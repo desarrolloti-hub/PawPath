@@ -1,0 +1,405 @@
+/* Reset y variables */
+:root {
+    --primary-color: #4ECDC4;
+    --secondary-color: #FF6B6B;
+    --accent-color: #FFE66D;
+    --dark-color: #1A535C;
+    --light-color: #F7FFF7;
+    --gray-color: #6C757D;
+    --shadow: 0 4px 6px rgba(0,0,0,0.1);
+    --radius: 15px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: var(--light-color);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Hero Section */
+.hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 60px 0;
+    gap: 40px;
+}
+
+.hero-content {
+    flex: 1;
+    min-width: 300px;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    color: var(--dark-color);
+    margin-bottom: 20px;
+}
+
+.highlight {
+    color: var(--primary-color);
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--gray-color);
+    margin-bottom: 30px;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.hero-image {
+    flex: 1;
+    min-width: 300px;
+    text-align: center;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 20px;
+    box-shadow: var(--shadow);
+}
+
+/* Botones */
+.btn-primary, .btn-secondary, .btn-plan, .btn-view-all {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3db9b0;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: var(--primary-color);
+    border: 2px solid var(--primary-color);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Features */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 60px 0;
+}
+
+.feature-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    color: var(--dark-color);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+}
+
+/* Forum Section */
+.forum-section {
+    padding: 60px 0;
+}
+
+.forum-section h2 {
+    text-align: center;
+    color: var(--dark-color);
+    margin-bottom: 40px;
+    font-size: 2rem;
+}
+
+.forum-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 40px;
+}
+
+.btn-view-all {
+    display: block;
+    margin: 0 auto;
+    padding: 12px 40px;
+    background-color: var(--secondary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-view-all:hover {
+    background-color: #ff5252;
+    transform: translateY(-2px);
+}
+
+/* Subscription Plans */
+.subscription-plans {
+    padding: 60px 0;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    border-radius: var(--radius);
+    margin: 40px 0;
+}
+
+.subscription-plans h2 {
+    text-align: center;
+    color: var(--dark-color);
+    margin-bottom: 50px;
+    font-size: 2rem;
+}
+
+.plans-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.plan-card {
+    background: white;
+    padding: 40px 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.plan-card:hover {
+    transform: scale(1.05);
+}
+
+.plan-card.free {
+    border-top: 5px solid var(--gray-color);
+}
+
+.plan-card.plus {
+    border-top: 5px solid var(--primary-color);
+}
+
+.plan-card.multi {
+    border-top: 5px solid var(--accent-color);
+}
+
+.price {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--dark-color);
+    margin: 20px 0;
+}
+
+.plan-card ul {
+    list-style: none;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.plan-card li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+}
+
+.plan-card li:before {
+    content: "✓";
+    margin-right: 10px;
+    color: green;
+    font-weight: bold;
+}
+
+.btn-plan {
+    background-color: var(--dark-color);
+    color: white;
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    font-size: 1rem;
+}
+
+.btn-plan:hover {
+    background-color: #0f3c43;
+    transform: translateY(-2px);
+}
+
+/* Veterinarians Section */
+.veterinarians-section {
+    padding: 60px 0;
+}
+
+.veterinarians-section h2 {
+    text-align: center;
+    color: var(--dark-color);
+    margin-bottom: 40px;
+    font-size: 2rem;
+}
+
+.vets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+}
+
+.vet-card {
+    background: white;
+    padding: 25px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform 0.3s ease;
+}
+
+.vet-card:hover {
+    transform: translateY(-5px);
+}
+
+.vet-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.vet-avatar {
+    width: 50px;
+    height: 50px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-right: 15px;
+}
+
+.vet-info h4 {
+    color: var(--dark-color);
+    margin-bottom: 5px;
+}
+
+.vet-specialty {
+    color: var(--gray-color);
+    font-size: 0.9rem;
+}
+
+.vet-rating {
+    margin-left: auto;
+    background: var(--accent-color);
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.vet-body {
+    margin-bottom: 20px;
+}
+
+.vet-body p {
+    margin-bottom: 10px;
+    color: var(--gray-color);
+    font-size: 0.95rem;
+}
+
+.btn-vet {
+    width: 100%;
+    padding: 12px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-vet:hover {
+    background: #3db9b0;
+    transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-buttons {
+        justify-content: center;
+    }
+    
+    .features, .plans-container, .vets-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .forum-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .subscription-plans {
+        margin: 20px;
+        padding: 40px 20px;
+    }
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.feature-card, .plan-card, .vet-card, forum-card {
+    animation: fadeIn 0.5s ease forwards;
+}

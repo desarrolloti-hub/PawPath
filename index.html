@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath - Plataforma Animal</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="index.css">
+    <link rel="icon" href="assets/images/PawPahtLogo.png">
+</head>
+<body>
+    <!-- Navbar dinámico -->
+    <navbar-visitor></navbar-visitor>
+
+    <!-- Banner de anuncios -->
+    <ads-banner></ads-banner>
+
+    <main class="container">
+        <!-- Hero Section -->
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Bienvenido a <span class="highlight">PawPath</span></h1>
+                <p>La plataforma integral para el cuidado y rescate de mascotas</p>
+                <div class="hero-buttons">
+                    <button class="btn-primary" id="btn-register">Registrarme</button>
+                    <button class="btn-secondary" id="btn-login">Iniciar Sesión</button>
+                </div>
+            </div>
+            <div class="hero-image">
+                <img src="assets/images/PawPahtLogo.png" alt="PawPath Logo">
+            </div>
+        </section>
+
+        <!-- Características principales -->
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🐾</div>
+                <h3>Foro de Rescate</h3>
+                <p>Reporta mascotas perdidas o encontradas. Sube fotos y ayuda a reunir familias.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🏥</div>
+                <h3>Veterinarios Pro</h3>
+                <p>Expedientes digitales, recetas electrónicas y agenda inteligente.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💚</div>
+                <h3>Caridad Gratuita</h3>
+                <p>Reportes de extravíos y ayuda callejera siempre gratuitos.</p>
+            </div>
+        </section>
+
+        <!-- Sección del Foro -->
+        <section class="forum-section">
+            <h2>Últimas Publicaciones en el Foro</h2>
+            <div class="forum-grid" id="forum-container">
+                <!-- Las tarjetas se cargan dinámicamente -->
+            </div>
+            <button class="btn-view-all" onclick="window.location='#forum'">Ver Todo el Foro</button>
+        </section>
+
+        <!-- Modelo de Suscripción -->
+        <section class="subscription-plans">
+            <h2>Planes de Suscripción</h2>
+            <div class="plans-container">
+                <div class="plan-card free">
+                    <h3>Nivel Base</h3>
+                    <p class="price">Gratis</p>
+                    <ul>
+                        <li>✅ 1 Mascota registrada</li>
+                        <li>✅ Acceso al foro</li>
+                        <li>✅ Alertas básicas</li>
+                    </ul>
+                    <button class="btn-plan" onclick="selectPlan('free')">Seleccionar</button>
+                </div>
+                <div class="plan-card plus">
+                    <h3>Nivel Plus</h3>
+                    <p class="price">$5/mes por mascota</p>
+                    <ul>
+                        <li>✅ 2 Mascotas</li>
+                        <li>✅ Expediente digital</li>
+                        <li>✅ Chat con veterinarios</li>
+                    </ul>
+                    <button class="btn-plan" onclick="selectPlan('plus')">Suscribirse</button>
+                </div>
+                <div class="plan-card multi">
+                    <h3>Nivel Multi</h3>
+                    <p class="price">$12/mes familiar</p>
+                    <ul>
+                        <li>✅ 3+ Mascotas</li>
+                        <li>✅ Recetas electrónicas</li>
+                        <li>✅ Agenda premium</li>
+                    </ul>
+                    <button class="btn-plan" onclick="selectPlan('multi')">Suscribirse</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Veterinarios Destacados -->
+        <section class="veterinarians-section">
+            <h2>Veterinarios Destacados</h2>
+            <div class="vets-grid" id="vets-container">
+                <!-- Veterinarios se cargan dinámicamente -->
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <main-footer></main-footer>
+
+    <!-- Scripts de componentes -->
+    <script type="module" src="components/JS navbar-visitor-component.js"></script>
+    <script type="module" src="components/JS ads-banner-component.js"></script>
+    <script type="module" src="components/JS forum-card-component.js"></script>
+    <script type="module" src="components/JS FooterVisitor.js"></script>
+    
+    <!-- Script principal -->
+    <script>
+        // Función para simular datos del foro
+        function loadForumPosts() {
+            const posts = [
+                {
+                    type: 'lost',
+                    animal: 'Perro',
+                    breed: 'Golden Retriever',
+                    location: 'Centro, Ciudad',
+                    date: 'Hoy 10:30 AM',
+                    image: 'https://via.placeholder.com/400x250/FF6B6B/FFFFFF?text=Perro+Perdido',
+                    description: 'Se perdió mi perro cerca del parque central'
+                },
+                {
+                    type: 'found',
+                    animal: 'Gato',
+                    breed: 'Callejero',
+                    location: 'Barrio Norte',
+                    date: 'Ayer 15:45 PM',
+                    image: 'https://via.placeholder.com/400x250/4ECDC4/FFFFFF?text=Gato+Encontrado',
+                    description: 'Encontré este gato cerca del supermercado'
+                },
+                {
+                    type: 'rescue',
+                    animal: 'Pájaro',
+                    breed: 'Loro',
+                    location: 'Zona Sur',
+                    date: '27/01 09:20 AM',
+                    image: 'https://via.placeholder.com/400x250/FFE66D/000000?text=Pájaro+Herido',
+                    description: 'Loro herido necesita atención urgente'
+                }
+            ];
+
+            const container = document.getElementById('forum-container');
+            posts.forEach(post => {
+                const card = document.createElement('forum-card');
+                card.setAttribute('data-post', JSON.stringify(post));
+                container.appendChild(card);
+            });
+        }
+
+        // Función para simular veterinarios
+        function loadVeterinarians() {
+            const vets = [
+                {
+                    name: 'Dr. Carlos Méndez',
+                    specialty: 'Cirugía Veterinaria',
+                    rating: 4.9,
+                    location: 'Clínica Central',
+                    available: true
+                },
+                {
+                    name: 'Dra. Ana López',
+                    specialty: 'Animales Exóticos',
+                    rating: 4.8,
+                    location: 'Hospital Veterinario Norte',
+                    available: true
+                },
+                {
+                    name: 'Dr. Pedro Sánchez',
+                    specialty: 'Emergencias',
+                    rating: 4.7,
+                    location: 'Urgencias 24h',
+                    available: false
+                }
+            ];
+
+            const container = document.getElementById('vets-container');
+            vets.forEach(vet => {
+                const vetCard = document.createElement('div');
+                vetCard.className = 'vet-card';
+                vetCard.innerHTML = `
+                    <div class="vet-header">
+                        <div class="vet-avatar">${vet.name.charAt(0)}</div>
+                        <div class="vet-info">
+                            <h4>${vet.name}</h4>
+                            <span class="vet-specialty">${vet.specialty}</span>
+                        </div>
+                        <span class="vet-rating">⭐ ${vet.rating}</span>
+                    </div>
+                    <div class="vet-body">
+                        <p><strong>📍</strong> ${vet.location}</p>
+                        <p><strong>📅</strong> ${vet.available ? 'Disponible hoy' : 'No disponible'}</p>
+                    </div>
+                    <button class="btn-vet" onclick="contactVet('${vet.name}')">
+                        ${vet.available ? 'Agendar Cita' : 'Ver Disponibilidad'}
+                    </button>
+                `;
+                container.appendChild(vetCard);
+            });
+        }
+
+        // Función para seleccionar plan
+        function selectPlan(plan) {
+            alert(`Has seleccionado el plan ${plan.toUpperCase()}. Redirigiendo a MercadoPago...`);
+            // Aquí iría la integración con MercadoPago
+        }
+
+        // Función para contactar veterinario
+        function contactVet(vetName) {
+            alert(`Contactando a ${vetName}...`);
+        }
+
+        // Event Listeners para botones principales
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-register').addEventListener('click', () => {
+                window.location.href = '#register';
+            });
+            
+            document.getElementById('btn-login').addEventListener('click', () => {
+                window.location.href = '#login';
+            });
+
+            // Cargar datos simulados
+            setTimeout(() => {
+                loadForumPosts();
+                loadVeterinarians();
+            }, 100);
+        });
+    </script>
+</body>
+</html>

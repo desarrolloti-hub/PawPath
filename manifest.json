@@ -1,0 +1,16 @@
+{
+  "name": "PawPath",
+  "short_name": "PawPath",
+  "description": "Plataforma PWA para el cuidado y rescate de mascotas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7FFF7",
+  "theme_color": "#4ECDC4",
+  "icons": [
+    {
+      "src": "assets/images/PawPahtLogo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
