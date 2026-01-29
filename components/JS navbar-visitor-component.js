@@ -17,7 +17,7 @@ class NavbarVisitor extends HTMLElement {
                     justify-content: space-between;
                     align-items: center;
                     padding: 1rem 2rem;
-                    background: linear-gradient(135deg, #1A535C 0%, #4ECDC4 100%);
+                    background-color: #4ECDC4;
                     color: white;
                     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
                     position: sticky;
