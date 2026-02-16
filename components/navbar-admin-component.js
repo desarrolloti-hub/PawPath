@@ -123,7 +123,7 @@ class NavbarAdmin extends HTMLElement {
         <div class="main">
             <header class="navbar">
                 <div class="logo" onclick="toggleSidebar()">
-                    <img src="" alt="Logo Pawpath">
+                    <img src="assets/images/PawPahtLogo.png" alt="Logo Pawpath">
                     <span>PawPath</span>
                 </div>
                 <div class="perfil">
