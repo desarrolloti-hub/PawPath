@@ -3,18 +3,19 @@ import Mascota from '/classes/mascotas.js';
 
 class MascotasController {
     constructor() {
-        // Referencias a elementos del DOM
+        // Referencias a elementos del DOM (IDs actualizados del nuevo HTML)
         this.btnAgregarMascota = document.getElementById('btnAgregarMascota');
         this.btnGuardar = document.getElementById('btnGuardar');
         this.btnCerrarModal = document.getElementById('btnCerrarModal');
         this.modalMascota = document.getElementById('modalMascota');
         this.modalTitle = document.getElementById('modalTitle');
 
-        // Inputs del formulario
+        // Inputs del formulario dentro del modal
         this.mascotaId = document.getElementById('mascotaId');
         this.nombreMascota = document.getElementById('nombreMascota');
         this.razaMascota = document.getElementById('razaMascota');
         this.especieMascota = document.getElementById('especieMascota');
+        this.generoMascota = document.getElementById('generoMascota');
         this.coloresMascota = document.getElementById('coloresMascota');
         this.edadMascota = document.getElementById('edadMascota');
         this.pesoMascota = document.getElementById('pesoMascota');
@@ -22,406 +23,253 @@ class MascotasController {
         this.historialMedico = document.getElementById('historialMedico');
         this.fotoMascota = document.getElementById('fotoMascota');
         this.fotoPreview = document.getElementById('fotoPreview');
+        this.fotoPreviewImg = document.getElementById('fotoPreviewImg');
+        this.placeholderIcon = document.getElementById('placeholderIcon');
+        this.esterilizadoRadios = document.getElementsByName('esterilizado');
 
-        // Radio buttons
-        this.generoRadios = document.querySelectorAll('input[name="genero"]');
-        this.esterilizadoRadios = document.querySelectorAll('input[name="esterilizado"]');
+        // will hold image as DataURL for saving
+        this.fotoDataUrl = '';
 
-        // Tabla
-        this.tablaMascotas = document.querySelector('#tablaMascotas tbody');
-
-        // Estado
-        this.mascotaActual = null;
         this.modoEdicion = false;
-
-        this.inicializar();
-    }
-
-    inicializar() {
-        this.configurarEventos();
+        this.initEvents();
         this.cargarMascotas();
     }
 
-    configurarEventos() {
-        this.btnAgregarMascota.addEventListener('click', () => this.abrirModal());
-        this.btnGuardar.addEventListener('click', () => this.guardarMascota());
-        this.btnCerrarModal.addEventListener('click', () => this.cerrarModal());
-        this.fotoMascota.addEventListener('change', (e) => this.previewImage(e));
+    initEvents() {
+        // Abrir modal para nueva mascota
+        this.btnAgregarMascota.onclick = () => this.abrirModal();
 
-        // Cerrar modal al hacer clic fuera
-        window.addEventListener('click', (e) => {
-            if (e.target === this.modalMascota) {
+        // Cerrar modal
+        this.btnCerrarModal.onclick = () => this.cerrarModal();
+
+        // Guardar o Actualizar
+        this.btnGuardar.onclick = () => this.guardarMascota();
+
+        // Vista previa de la imagen al seleccionar archivo
+        this.fotoMascota.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    this.fotoPreviewImg.src = e.target.result;
+                    this.fotoPreviewImg.style.display = 'block';
+                    if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
+                    this.fotoDataUrl = e.target.result; // keep for guardar
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+        // Cerrar modal si se hace clic fuera del recuadro blanco
+        window.onclick = (event) => {
+            if (event.target == this.modalMascota) {
                 this.cerrarModal();
             }
-        });
-
-        // Cerrar con ESC
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && this.modalMascota.style.display === 'block') {
-                this.cerrarModal();
-            }
-        });
+        };
     }
 
-    abrirModal(mascotaId = null) {
-        if (mascotaId) {
-            this.modalTitle.textContent = 'Editar Mascota';
-            this.cargarDatosMascota(mascotaId);
-        } else {
-            this.modalTitle.textContent = 'Nueva Mascota';
-            this.limpiarFormulario();
-        }
-
-        this.modalMascota.style.display = 'block';
-    }
-
-    cerrarModal() {
-        this.modalMascota.style.display = 'none';
-        this.mascotaActual = null;
+    abrirModal(id = null) {
+    if (id) {
+        this.modoEdicion = true;
+        this.modalTitle.innerText = "Editar Mascota";
+        this.cargarDatosMascota(id); // Esta función debe existir en tu clase
+    } else {
         this.modoEdicion = false;
+        this.modalTitle.innerText = "Registrar Mascota";
         this.limpiarFormulario();
     }
-
-    async cargarDatosMascota(id) {
-        try {
-            this.mascotaActual = new Mascota();
-            const resultado = await this.mascotaActual.cargar(id);
-
-            if (resultado.success) {
-                // Llenar formulario con datos de la mascota
-                this.mascotaId.value = this.mascotaActual.id;
-                this.nombreMascota.value = this.mascotaActual.nombre;
-                this.razaMascota.value = this.mascotaActual.raza;
-                this.especieMascota.value = this.mascotaActual.especie;
-
-                // Seleccionar género
-                this.generoRadios.forEach(radio => {
-                    if (radio.value === this.mascotaActual.genero) {
-                        radio.checked = true;
-                    }
-                });
-
-                this.coloresMascota.value = this.mascotaActual.colores;
-                this.edadMascota.value = this.mascotaActual.edad;
-                this.pesoMascota.value = this.mascotaActual.peso;
-                this.microchipMascota.value = this.mascotaActual.microchip;
-
-                // Seleccionar esterilizado
-                this.esterilizadoRadios.forEach(radio => {
-                    if (radio.value === this.mascotaActual.esterilizado) {
-                        radio.checked = true;
-                    }
-                });
-
-                this.historialMedico.value = this.mascotaActual.historialMedico;
-
-                if (this.mascotaActual.foto) {
-                    this.fotoPreview.src = this.mascotaActual.foto;
-                }
-
-                this.modoEdicion = true;
-                this.btnGuardar.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-            } else {
-                this.mostrarAlerta('Error', resultado.error, 'error');
-            }
-        } catch (error) {
-            console.error('Error cargando mascota:', error);
-            this.mostrarAlerta('Error', 'No se pudo cargar la información de la mascota', 'error');
-        }
+    
+    // ESTA ES LA LÍNEA CLAVE:
+    this.modalMascota.style.display = 'flex'; 
+}
+    cerrarModal() {
+        this.modalMascota.style.display = 'none';
+        this.limpiarFormulario();
     }
 
     async cargarMascotas() {
         try {
-            const resultado = await Mascota.obtenerTodas();
-
-            if (resultado.success) {
-                this.renderizarTabla(resultado.mascotas);
+            const { success, mascotas } = await Mascota.obtenerTodas();
+            if (success) {
+                this.renderizarCards(mascotas);
             } else {
-                this.mostrarAlerta('Error', resultado.error, 'error');
+                this.mostrarAlerta('Error', 'No se pudieron cargar las mascotas', 'error');
             }
         } catch (error) {
-            console.error('Error cargando mascotas:', error);
+            console.error("Error al cargar mascotas:", error);
             this.mostrarAlerta('Error', 'No se pudieron cargar las mascotas', 'error');
         }
     }
 
-    renderizarTabla(mascotas) {
-        this.tablaMascotas.innerHTML = '';
+    renderizarCards(mascotas) {
+        const contenedor = document.getElementById('contenedorMascotas');
+        contenedor.innerHTML = '';
 
         if (mascotas.length === 0) {
-            this.tablaMascotas.innerHTML = '<tr><td colspan="11" class="text-center">No hay mascotas registradas</td></tr>';
+            contenedor.innerHTML = `
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px;">
+                    <p>No tienes mascotas registradas todavía.</p>
+                </div>`;
             return;
         }
 
-        mascotas.forEach(mascotaData => {
-            const mascota = new Mascota(
-                mascotaData.nombre,
-                mascotaData.raza,
-                mascotaData.especie,
-                mascotaData.genero,
-                mascotaData.colores,
-                mascotaData.edad,
-                mascotaData.peso,
-                mascotaData.microchip,
-                mascotaData.esterilizado,
-                mascotaData.historialMedico,
-                mascotaData.foto,
-                mascotaData.id
-            );
+        mascotas.forEach(m => {
+            const card = document.createElement('div');
+            card.className = 'pet-card';
+            card.innerHTML = `
+                <button class="btn-delete-card" onclick="event.stopPropagation(); mascotasController.eliminarMascota('${m.id}')">
+                    <i class="fas fa-times"></i>
+                </button>
+                
+                <div class="pet-img-container" onclick="mascotasController.abrirModal('${m.id}')">
+                    <img src="${m.foto || 'https://via.placeholder.com/300x200?text=Sin+Foto'}" alt="${m.nombre}">
+                </div>
 
-            const row = this.tablaMascotas.insertRow();
-
-            row.innerHTML = `
-                <td>${mascota.nombre}</td>
-                <td>${mascota.raza}</td>
-                <td>${mascota.getEspecieIcono()} ${mascota.especie}</td>
-                <td>${mascota.getGeneroIcono()} ${mascota.genero}</td>
-                <td>${mascota.colores}</td>
-                <td>${mascota.getEdadFormateada()}</td>
-                <td>${mascota.getPesoFormateado()}</td>
-                <td>${mascota.tieneMicrochip() ? mascota.microchip : 'N/A'}</td>
-                <td>${mascota.esterilizado}</td>
-                <td>
-                    <img src="${mascota.foto || 'https://via.placeholder.com/50'}" 
-                         alt="Foto" class="foto-miniatura" 
-                         onclick="mascotasController.verFotoGrande('${mascota.foto}')">
-                </td>
-                <td>
-                    <button class="btn-editar" onclick="mascotasController.abrirModal('${mascota.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-eliminar" onclick="mascotasController.eliminarMascota('${mascota.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                    <button class="btn-ver" onclick="mascotasController.verDetalle('${mascota.id}')">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
+                <div class="pet-info" onclick="mascotasController.abrirModal('${m.id}')">
+                    <span class="badge">${m.especie}</span>
+                    <h3>${m.nombre}</h3>
+                    <p>${m.raza || 'Raza no especificada'}</p>
+                    <div style="margin-top: 10px; display: flex; justify-content: center; gap: 15px; font-size: 0.85rem; color: #718096;">
+                        <span><i class="fas fa-calendar-alt"></i> ${m.edad || '?'} años</span>
+                        <span><i class="fas fa-weight"></i> ${m.peso || '?'} kg</span>
+                    </div>
+                </div>
             `;
+            contenedor.appendChild(card);
         });
     }
 
+    async cargarDatosMascota(id) {
+        try {
+            const m = new Mascota();
+            const resultado = await m.cargar(id);
+            
+            if (resultado.success) {
+                this.mascotaId.value = m.id;
+                this.nombreMascota.value = m.nombre;
+                this.especieMascota.value = m.especie;
+                this.generoMascota.value = m.genero;
+                this.razaMascota.value = m.raza;
+                this.coloresMascota.value = m.colores;
+                this.edadMascota.value = m.edad;
+                this.pesoMascota.value = m.peso;
+                this.microchipMascota.value = m.microchip || '';
+                this.historialMedico.value = m.historialMedico;
+                
+                // Setear radio de esterilizado
+                this.esterilizadoRadios.forEach(r => {
+                    if (r.value === m.esterilizado) r.checked = true;
+                });
+
+                if (m.foto) {
+                    this.fotoDataUrl = m.foto;
+                    this.fotoPreviewImg.src = m.foto;
+                    this.fotoPreviewImg.style.display = 'block';
+                    if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
+                }
+            }
+        } catch (error) {
+            this.mostrarAlerta('Error', 'No se pudieron cargar los datos', 'error');
+        }
+    }
+
     async guardarMascota() {
-        // Crear instancia de mascota con datos del formulario
+        const esterilizadoValue = Array.from(this.esterilizadoRadios).find(r => r.checked)?.value;
+
+        // Crear instancia de mascota con los datos del formulario
         const mascota = new Mascota(
             this.nombreMascota.value,
             this.razaMascota.value,
             this.especieMascota.value,
-            this.getGeneroSeleccionado(),
+            this.generoMascota.value,
             this.coloresMascota.value,
-            parseFloat(this.edadMascota.value) || 0,
-            parseFloat(this.pesoMascota.value) || 0,
+            this.edadMascota.value,
+            this.pesoMascota.value,
             this.microchipMascota.value,
-            this.getEsterilizadoSeleccionado(),
+            esterilizadoValue,
             this.historialMedico.value,
-            this.fotoPreview.src || null,
-            this.mascotaId.value || null
+            this.fotoDataUrl || null,
+            this.mascotaId.value || null // id
         );
 
-        // Validar
-        const validacion = mascota.validar();
-        if (!validacion.valido) {
-            this.mostrarAlerta('Campos requeridos', validacion.errores.join('<br>'), 'warning');
-            return;
-        }
-
-        // Mostrar loading
-        Swal.fire({
-            title: 'Guardando...',
-            text: 'Por favor espere',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
-        });
-
-        // Guardar
-        const resultado = await mascota.guardar();
-        Swal.close();
-
-        if (resultado.success) {
-            this.mostrarAlerta('Éxito', resultado.message, 'success');
-            this.cerrarModal();
-            this.cargarMascotas();
-        } else {
-            this.mostrarAlerta('Error', resultado.error, 'error');
+        try {
+            const resultado = await mascota.guardar();
+            if (resultado.success) {
+                this.mostrarAlerta('Éxito', resultado.message, 'success');
+                this.cerrarModal();
+                this.cargarMascotas();
+            } else {
+                this.mostrarAlerta('Error', resultado.error || 'No se pudo guardar', 'error');
+            }
+        } catch (error) {
+            console.error('Error al guardar mascota:', error);
+            this.mostrarAlerta('Error', 'No se pudo guardar la información', 'error');
         }
     }
 
     async eliminarMascota(id) {
         const confirmacion = await Swal.fire({
-            title: '¿Eliminar mascota?',
-            text: 'Esta acción no se puede deshacer',
+            title: '¿Estás seguro?',
+            text: "Esta acción no se puede deshacer",
             icon: 'warning',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
+            confirmButtonColor: '#ff4d4d',
+            cancelButtonColor: '#718096',
+            confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
         });
 
         if (confirmacion.isConfirmed) {
-            const mascota = new Mascota();
-            mascota.id = id;
-
-            Swal.fire({
-                title: 'Eliminando...',
-                text: 'Por favor espere',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            const resultado = await mascota.eliminar();
-            Swal.close();
-
-            if (resultado.success) {
-                this.mostrarAlerta('Éxito', resultado.message, 'success');
-                this.cargarMascotas();
-            } else {
-                this.mostrarAlerta('Error', resultado.error, 'error');
+            try {
+                // Crear instancia de mascota solo con el ID
+                const mascota = new Mascota();
+                mascota.id = id;
+                
+                const resultado = await mascota.eliminar();
+                if (resultado.success) {
+                    this.mostrarAlerta('Eliminado', 'La mascota ha sido eliminada', 'success');
+                    this.cargarMascotas();
+                } else {
+                    this.mostrarAlerta('Error', resultado.error || 'No se pudo eliminar', 'error');
+                }
+            } catch (error) {
+                console.error('Error al eliminar mascota:', error);
+                this.mostrarAlerta('Error', 'No se pudo eliminar', 'error');
             }
         }
-    }
-
-    async verDetalle(id) {
-        const mascota = new Mascota();
-        const resultado = await mascota.cargar(id);
-
-        if (resultado.success) {
-            Swal.fire({
-                title: `${mascota.getEspecieIcono()} ${mascota.nombre}`,
-                html: `
-                    <div style="text-align: left;">
-                        <p><strong>Raza:</strong> ${mascota.raza}</p>
-                        <p><strong>Especie:</strong> ${mascota.especie}</p>
-                        <p><strong>Género:</strong> ${mascota.getGeneroIcono()} ${mascota.genero}</p>
-                        <p><strong>Colores:</strong> ${mascota.colores}</p>
-                        <p><strong>Edad:</strong> ${mascota.getEdadFormateada()}</p>
-                        <p><strong>Peso:</strong> ${mascota.getPesoFormateado()}</p>
-                        <p><strong>Microchip:</strong> ${mascota.tieneMicrochip() ? mascota.microchip : 'No registrado'}</p>
-                        <p><strong>Esterilizado:</strong> ${mascota.esterilizado}</p>
-                        <p><strong>Historial Médico:</strong> ${mascota.historialMedico}</p>
-                        <p><strong>Fecha Registro:</strong> ${new Date(mascota.fechaRegistro).toLocaleDateString()}</p>
-                    </div>
-                `,
-                imageUrl: mascota.foto || 'https://via.placeholder.com/150',
-                imageWidth: 200,
-                imageHeight: 200,
-                imageAlt: 'Foto de la mascota',
-                confirmButtonColor: '#667eea'
-            });
-        } else {
-            this.mostrarAlerta('Error', resultado.error, 'error');
-        }
-    }
-
-    verFotoGrande(fotoUrl) {
-        if (!fotoUrl) {
-            this.mostrarAlerta('Sin foto', 'Esta mascota no tiene foto registrada', 'info');
-            return;
-        }
-
-        Swal.fire({
-            imageUrl: fotoUrl,
-            imageAlt: 'Foto de la mascota',
-            showConfirmButton: false,
-            showCloseButton: true
-        });
-    }
-
-    previewImage(event) {
-        const file = event.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                this.mostrarAlerta('Archivo muy grande', 'La imagen no debe superar los 2MB', 'warning');
-                event.target.value = '';
-                return;
-            }
-
-            if (!file.type.startsWith('image/')) {
-                this.mostrarAlerta('Tipo no válido', 'Por favor seleccione una imagen', 'warning');
-                event.target.value = '';
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => this.fotoPreview.src = e.target.result;
-            reader.readAsDataURL(file);
-        }
-    }
-
-    getGeneroSeleccionado() {
-        let genero = '';
-        this.generoRadios.forEach(radio => {
-            if (radio.checked) genero = radio.value;
-        });
-        return genero;
-    }
-
-    getEsterilizadoSeleccionado() {
-        let esterilizado = 'No';
-        this.esterilizadoRadios.forEach(radio => {
-            if (radio.checked) esterilizado = radio.value;
-        });
-        return esterilizado;
     }
 
     limpiarFormulario() {
         this.mascotaId.value = '';
         this.nombreMascota.value = '';
         this.razaMascota.value = '';
-        this.especieMascota.value = '';
-
-        this.generoRadios.forEach(radio => radio.checked = false);
-
         this.coloresMascota.value = '';
         this.edadMascota.value = '';
         this.pesoMascota.value = '';
         this.microchipMascota.value = '';
-
-        this.esterilizadoRadios.forEach(radio => {
-            if (radio.value === 'No') radio.checked = true;
-        });
-
         this.historialMedico.value = '';
         this.fotoMascota.value = '';
-        this.fotoPreview.src = '';
-
-        this.btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar';
-        this.modoEdicion = false;
+        this.fotoDataUrl = '';
+        this.fotoPreviewImg.src = '';
+        this.fotoPreviewImg.style.display = 'none';
+        if (this.placeholderIcon) this.placeholderIcon.style.display = 'block';
+        
+        this.esterilizadoRadios.forEach(r => {
+            if (r.value === 'No') r.checked = true;
+        });
     }
 
-    mostrarAlerta(titulo, mensaje, tipo = 'info') {
-        const config = {
-            icon: tipo,
+    mostrarAlerta(titulo, mensaje, tipo) {
+        Swal.fire({
             title: titulo,
-            html: mensaje,
+            text: mensaje,
+            icon: tipo,
             confirmButtonColor: '#667eea'
-        };
-
-        if (tipo === 'success') {
-            config.timer = 2000;
-            config.showConfirmButton = false;
-        }
-
-        Swal.fire(config);
+        });
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// Inicialización
 document.addEventListener('DOMContentLoaded', () => {
-    try {
-        window.mascotasController = new MascotasController();
-    } catch (error) {
-        console.error('Error al inicializar MascotasController:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de inicialización',
-            text: 'No se pudo cargar la página correctamente. Por favor, recarga.',
-            confirmButtonText: 'Recargar',
-            allowOutsideClick: false
-        }).then(() => {
-            window.location.reload();
-        });
-    }
+    window.mascotasController = new MascotasController();
 });
-
-export default MascotasController;
