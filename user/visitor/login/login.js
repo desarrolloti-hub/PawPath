@@ -8,7 +8,8 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     sendPasswordResetEmail,
-    sendEmailVerification
+    sendEmailVerification,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 import { 
@@ -22,9 +23,9 @@ class AuthManager {
     constructor() {
         this.initializeDOMElements();
         this.attachEventListeners();
-        this.showLoginForm();
+        this.checkStoredSession();
+        this.setupAuthStateListener();
         console.log('✅ AuthManager initialized');
-        // Eliminamos checkAuthConfig que causaba el error
     }
 
     initializeDOMElements() {
@@ -49,6 +50,7 @@ class AuthManager {
         this.loginPassword = document.getElementById('login-password');
         this.loginBtn = document.getElementById('login-btn');
         this.forgotPassword = document.getElementById('forgot-password');
+        this.rememberMe = document.getElementById('remember-me');
         
         // Register form elements
         this.registerForm = document.getElementById('register-form');
@@ -93,6 +95,181 @@ class AuthManager {
         
         // Password confirmation validation
         this.confirmPassword?.addEventListener('input', () => this.validatePasswordMatch());
+
+        // Remember me functionality
+        if (this.rememberMe) {
+            // Load saved email if exists
+            const savedEmail = localStorage.getItem('rememberedEmail');
+            if (savedEmail && this.loginEmail) {
+                this.loginEmail.value = savedEmail;
+                this.rememberMe.checked = true;
+            }
+        }
+    }
+
+    setupAuthStateListener() {
+        // Listen for auth state changes
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // User is signed in
+                console.log('✅ Usuario autenticado:', user.uid);
+                
+                // Obtener el rol del usuario desde Firestore
+                const userRole = await this.getUserRole(user.uid);
+                
+                // Guardar sesión con el rol incluido
+                this.saveSessionToStorage(user, userRole);
+            } else {
+                // User is signed out
+                console.log('❌ Usuario no autenticado');
+                this.clearSessionFromStorage();
+            }
+        });
+    }
+
+    async getUserRole(uid) {
+        try {
+            const userRef = doc(db, 'usuarios', uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                return userData.rol || 'visitante'; // Por defecto 'visitante' si no hay rol
+            }
+            return 'visitante';
+        } catch (error) {
+            console.error('Error al obtener rol del usuario:', error);
+            return 'visitante';
+        }
+    }
+
+    redirectBasedOnRole(role) {
+        console.log('Redirigiendo según rol:', role);
+        
+        const roleRoutes = {
+            'administrador': '/user/administrator/dashAdmin/dashboard.html',
+            'veterinario': '/user/veterinario/dashVeterinario/dashVeterinario.html',
+            'usuario': '/user/visitor/mascotas/mascotas.html',
+            'visitante': '/user/visitor/mascotas/mascotas.html' // Por defecto para usuarios sin rol específico
+        };
+
+        const route = roleRoutes[role] || roleRoutes['visitante'];
+        
+        // Guardar el rol actual para referencia
+        localStorage.setItem('currentUserRole', role);
+        
+        // Redireccionar
+        setTimeout(() => {
+            window.location.href = route;
+        }, 1500);
+    }
+
+    checkStoredSession() {
+        try {
+            const sessionData = localStorage.getItem('userSession');
+            if (sessionData) {
+                const session = JSON.parse(sessionData);
+                const sessionAge = Date.now() - session.timestamp;
+                const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 días en milisegundos
+                
+                // Verificar si la sesión aún es válida (menos de 7 días)
+                if (sessionAge < SESSION_DURATION) {
+                    console.log('✅ Sesión encontrada en localStorage');
+                    
+                    // Verificar si el usuario ya está en una página de módulo
+                    const currentPath = window.location.pathname;
+                    const isInModulePath = currentPath.includes('/modulos/');
+                    
+                    // Solo redirigir si está en la página de login y hay sesión activa
+                    if (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html')) {
+                        this.redirectBasedOnRole(session.userRole);
+                    }
+                } else {
+                    // Sesión expirada
+                    console.log('❌ Sesión expirada');
+                    this.clearSessionFromStorage();
+                }
+            }
+        } catch (error) {
+            console.error('Error al verificar sesión:', error);
+            this.clearSessionFromStorage();
+        }
+    }
+
+    saveSessionToStorage(user, role = 'visitante') {
+        try {
+            const sessionData = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                emailVerified: user.emailVerified,
+                userRole: role,
+                timestamp: Date.now(),
+                lastLogin: new Date().toISOString()
+            };
+            
+            localStorage.setItem('userSession', JSON.stringify(sessionData));
+            
+            // También guardamos datos básicos del usuario para acceso rápido
+            localStorage.setItem('currentUserId', user.uid);
+            localStorage.setItem('userEmail', user.email);
+            localStorage.setItem('currentUserRole', role);
+            
+            console.log('✅ Sesión guardada en localStorage con rol:', role);
+            
+            // Emitir evento personalizado para notificar a otros componentes
+            window.dispatchEvent(new CustomEvent('userSessionStored', { 
+                detail: sessionData 
+            }));
+            
+        } catch (error) {
+            console.error('Error al guardar sesión:', error);
+        }
+    }
+
+    clearSessionFromStorage() {
+        localStorage.removeItem('userSession');
+        localStorage.removeItem('currentUserId');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('currentUserRole');
+        localStorage.removeItem('rememberedEmail');
+        console.log('✅ Sesión eliminada de localStorage');
+    }
+
+    saveRememberedEmail(email) {
+        if (this.rememberMe?.checked) {
+            localStorage.setItem('rememberedEmail', email);
+        } else {
+            localStorage.removeItem('rememberedEmail');
+        }
+    }
+
+    getStoredSession() {
+        try {
+            const sessionData = localStorage.getItem('userSession');
+            return sessionData ? JSON.parse(sessionData) : null;
+        } catch (error) {
+            console.error('Error al obtener sesión:', error);
+            return null;
+        }
+    }
+
+    isSessionValid() {
+        const session = this.getStoredSession();
+        if (!session) return false;
+        
+        const sessionAge = Date.now() - session.timestamp;
+        const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000; // 7 días
+        
+        return sessionAge < SESSION_DURATION;
+    }
+
+    // Método para verificar si el usuario está autenticado
+    isAuthenticated() {
+        const firebaseUser = auth.currentUser;
+        const storedSession = this.getStoredSession();
+        
+        return !!(firebaseUser && storedSession && this.isSessionValid());
     }
 
     // Utility methods
@@ -211,9 +388,21 @@ class AuthManager {
         this.setLoading(this.loginBtn, true);
 
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            // Obtener el rol del usuario
+            const userRole = await this.getUserRole(user.uid);
+            
+            // Guardar email si "recordarme" está marcado
+            this.saveRememberedEmail(email);
+            
+            // La sesión se guardará automáticamente en onAuthStateChanged con el rol
             this.showAlert('¡Bienvenido!', 'success');
-            setTimeout(() => window.location.href = '../../index.html', 1500);
+            
+            // Redirigir según el rol
+            this.redirectBasedOnRole(userRole);
+            
         } catch (error) {
             console.error('Login error:', error);
             this.handleAuthError(error);
@@ -268,7 +457,7 @@ class AuthManager {
             
             console.log('✅ Usuario creado en Auth:', user.uid);
 
-            // 2. Crear documento en Firestore (colección 'users')
+            // 2. Crear documento en Firestore (colección 'usuarios')
             const userData = {
                 primer_nombre: this.primerNombre.value.trim(),
                 segundo_nombre: this.segundoNombre?.value.trim() || '',
@@ -276,13 +465,13 @@ class AuthManager {
                 apellido_materno: this.apellidoMaterno.value.trim(),
                 nombre_completo: this.getFullName(),
                 email: email,
-                rol: 'visitante',
+                rol: 'usuario', // Por defecto, todos los registros son 'usuario'
                 fecha_registro: serverTimestamp(),
                 email_verificado: user.emailVerified
             };
             
-            await setDoc(doc(db, 'usarios', user.uid), userData);
-            console.log('✅ Documento creado en Firestore');
+            await setDoc(doc(db, 'usuarios', user.uid), userData);
+            console.log('✅ Documento creado en Firestore con rol: usuario');
 
             // 3. Enviar correo de verificación
             await sendEmailVerification(user);
@@ -334,14 +523,21 @@ class AuthManager {
                 await setDoc(userRef, {
                     ...userData,
                     email: user.email,
-                    rol: 'visitante',
+                    rol: 'usuario', // Por defecto, los usuarios de Google son 'usuario'
                     fecha_registro: serverTimestamp(),
                     email_verificado: user.emailVerified
                 });
+                console.log('✅ Usuario de Google creado con rol: usuario');
             }
 
+            // Obtener el rol del usuario
+            const userRole = await this.getUserRole(user.uid);
+            
+            // La sesión se guardará automáticamente en onAuthStateChanged
             this.showAlert('¡Bienvenido!', 'success');
-            setTimeout(() => window.location.href = '../../index.html', 1500);
+            
+            // Redirigir según el rol
+            this.redirectBasedOnRole(userRole);
 
         } catch (error) {
             console.error('Google auth error:', error);
@@ -430,9 +626,33 @@ class AuthManager {
         const message = errorMessages[error.code] || defaultMessage;
         this.showAlert(message, 'error');
     }
+
+    // Método para logout
+    async logout() {
+        try {
+            await auth.signOut();
+            this.clearSessionFromStorage();
+            console.log('✅ Sesión cerrada correctamente');
+            
+            // Redirigir al login
+            window.location.href = '/login.html';
+            return true;
+        } catch (error) {
+            console.error('Error al cerrar sesión:', error);
+            return false;
+        }
+    }
+
+    // Método para obtener el rol actual del usuario
+    getCurrentUserRole() {
+        return localStorage.getItem('currentUserRole') || 'visitante';
+    }
 }
 
 // Initialize the auth manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new AuthManager();
+    window.authManager = new AuthManager();
 });
+
+// Exportar para uso en otros módulos
+export { AuthManager };

@@ -2,10 +2,12 @@ class NavbarAdmin extends HTMLElement {
     constructor() {
         super();
     }
+
     connectedCallback() {
         this.render();
-        this.toggleSidebar()
+        this.setupEventListeners();
     }
+
     render() {
         this.innerHTML = `
         <style>
@@ -87,16 +89,17 @@ class NavbarAdmin extends HTMLElement {
             z-index: 10;
         }
 
-        .perfil img {
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
+        .mobile-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.8rem;
+            cursor: pointer;
+            color: #444;
         }
 
         @media(max-width: 780px) {
-            .menu{
-                margin-top: 25px;
-            }
+
             .sidebar {
                 left: -240px;
             }
@@ -108,34 +111,71 @@ class NavbarAdmin extends HTMLElement {
             .main {
                 margin-left: 0;
             }
+
+            .mobile-toggle {
+                display: block;
+            }
         }
-    </style>
+        </style>
+
         <div class="layout">
+            
             <aside class="sidebar" id="sidebar">
                 <ul class="menu">
-                    <li><a href="#"><i class="fas fa-users"></i> Usuarios</a></li>
-                    <li><a href="#"><i class="fas fa-paw"></i> Mascotas</a></li>
-                    <li><a href="#"><i class="fas fa-stethoscope"></i> Veterinarios</a></li>
-                    <li><a href="#"><i class="fas fa-chart-line"></i> Reportes</a></li>
-                    <li><a href="#"><i class="fas fa-credit-card"></i> Suscripciones</a></li>
+                    <li class="logo">
+                        <img src="/assets/images/PawPahtLogo.png" alt="Logo Pawpath">
+                        <span>PawPath</span>
+                    </li>
+                    <hr>
+                    <li><a href="#">👥 Usuarios</a></li>
+                    <li><a href="#">🐾 Mascotas</a></li>
+                    <li><a href="#">🩺 Veterinarios</a></li>
+                    <li><a href="#">📊 Reportes</a></li>
+                    <li><a href="#">💳 Suscripciones</a></li>
                 </ul>
             </aside>
-        <div class="main">
-            <header class="navbar">
-                <div class="logo" onclick="toggleSidebar()">
-                    <img src="assets/images/PawPahtLogo.png" alt="Logo Pawpath">
-                    <span>PawPath</span>
+
+            <div class="main">
+                <div class="navbar">
+                    <button class="mobile-toggle" id="menuToggle">☰</button>
+                    <h3>Panel Administrador</h3>
                 </div>
-                <div class="perfil">
-                    <img src="" alt="foto de perfil">
-                </div>
-            </header>
+            </div>
+
         </div>
-    </div>`;
+        `;
     }
-    toggleSidebar() {
-        if (window.innerWidth <= 780) {
-            document.getElementById("sidebar").classList.toggle("active")
-        }
+
+    setupEventListeners() {
+        const menuToggle = this.querySelector('#menuToggle');
+        const sidebar = this.querySelector('#sidebar');
+        const logo = this.querySelector('.logo');
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('active');
+        });
+        //al hacer click en el logo se cierra la sidebar
+        logo.addEventListener('click', ()=>{
+            sidebar.classList.remove('active');
+        });
+
+        const links = this.querySelectorAll('.menu a');
+        links.forEach(link => {
+            link.addEventListener('click', () => {
+                sidebar.classList.remove('active');
+            });
+        });
+
+        // Link activo
+        this.querySelectorAll('.menu a').forEach(link => {
+            link.addEventListener('click', function () {
+                this.closest('.menu')
+                    .querySelectorAll('a')
+                    .forEach(a => a.classList.remove('active'));
+
+                this.classList.add('active');
+            });
+        });
     }
 }
+
+customElements.define('navbar-admin', NavbarAdmin);
