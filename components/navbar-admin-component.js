@@ -127,7 +127,7 @@ class NavbarAdmin extends HTMLElement {
                         <span>PawPath</span>
                     </li>
                     <hr>
-                    <li><a href="#">👥 Usuarios</a></li>
+                    <li><a href="">👥 Usuarios</a></li>
                     <li><a href="#">🐾 Mascotas</a></li>
                     <li><a href="#">🩺 Veterinarios</a></li>
                     <li><a href="#">📊 Reportes</a></li>
