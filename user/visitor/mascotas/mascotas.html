@@ -1,0 +1,169 @@
+<!-- /user/visitor/mascotas/mascotas.html -->
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD Mascotas</title>
+    <link rel="stylesheet" href="/user/visitor/mascotas/mascotas.css">
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐾 Sistema de Gestión de Mascotas 🐾</h1>
+            <p>Administra tus mascotas de manera fácil y rápida</p>
+            <button id="btnAgregarMascota" class="btn-agregar">
+                <i class="fas fa-plus"></i> Agregar Mascota
+            </button>
+        </div>
+
+        <div class="content">
+            <!-- Tabla de mascotas -->
+            <div class="table-container">
+                <h2><i class="fas fa-list"></i> Lista de Mascotas</h2>
+                <table id="tablaMascotas">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Raza</th>
+                            <th>Especie</th>
+                            <th>Género</th>
+                            <th>Colores</th>
+                            <th>Edad</th>
+                            <th>Peso</th>
+                            <th>Microchip</th>
+                            <th>Esterilizado</th>
+                            <th>Foto</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="11" class="text-center">
+                                <i class="fas fa-spinner fa-spin"></i> Cargando mascotas...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para formulario de mascotas -->
+    <div id="modalMascota" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle"><i class="fas fa-paw"></i> Nueva Mascota</h2>
+                <span id="btnCerrarModal" class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="mascotaId">
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombreMascota">Nombre de la mascota *</label>
+                        <input type="text" id="nombreMascota" placeholder="Ej: Max" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="razaMascota">Raza *</label>
+                        <input type="text" id="razaMascota" placeholder="Ej: Labrador" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="especieMascota">Especie *</label>
+                        <select id="especieMascota" required>
+                            <option value="">Seleccione una especie</option>
+                            <option value="Perro">🐕 Perro</option>
+                            <option value="Gato">🐈 Gato</option>
+                            <option value="Ave">🦜 Ave</option>
+                            <option value="Roedor">🐭 Roedor</option>
+                            <option value="Reptil">🦎 Reptil</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Género *</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="genero" value="Macho"> ♂ Macho
+                            </label>
+                            <label>
+                                <input type="radio" name="genero" value="Hembra"> ♀ Hembra
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="coloresMascota">Colores *</label>
+                        <input type="text" id="coloresMascota" placeholder="Ej: Marrón y blanco" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="edadMascota">Edad (años) *</label>
+                        <input type="number" id="edadMascota" min="0" step="0.1" placeholder="Ej: 3" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pesoMascota">Peso (kg) *</label>
+                        <input type="number" id="pesoMascota" min="0" step="0.1" placeholder="Ej: 12.5" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="microchipMascota">Número de Microchip</label>
+                        <input type="text" id="microchipMascota" placeholder="Opcional">
+                    </div>
+
+                    <div class="form-group">
+                        <label>¿Esterilizado?</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="esterilizado" value="Sí"> Sí
+                            </label>
+                            <label>
+                                <input type="radio" name="esterilizado" value="No" checked> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="historialMedico">Historial Médico *</label>
+                        <textarea id="historialMedico" rows="3" placeholder="Vacunas, alergias, condiciones médicas..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Foto de la mascota</label>
+                        <div class="foto-container">
+                            <div class="foto-preview">
+                                <img id="fotoPreview" src="" alt="Vista previa">
+                            </div>
+                            <input type="file" id="fotoMascota" accept="image/*">
+                            <small><i class="fas fa-info-circle"></i> Máximo 2MB</small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button id="btnGuardar" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Guardar
+                    </button>
+                    <button id="btnCerrarModal" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts - SOLO IMPORTACIONES -->
+    <script type="module" src="/user/visitor/mascotas/mascotas.js"></script>
+</body>
+
+</html>
