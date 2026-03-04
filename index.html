@@ -11,8 +11,88 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Iconos de Font Awesome para un toque más profesional (opcional) -->
+    <!-- Iconos de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Styles para el perfil de usuario -->
+    <style>
+        .user-profile-menu {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            border: 1px solid rgba(255, 107, 107, 0.2);
+        }
+        
+        .user-avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .user-greeting {
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        .user-name {
+            font-weight: 700;
+            color: #FF6B6B;
+            font-size: 1rem;
+        }
+        
+        .user-role-badge {
+            background: rgba(255, 107, 107, 0.1);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: #FF6B6B;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        
+        .logout-btn {
+            background: none;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #FF6B6B;
+            padding: 0.5rem 1rem;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .logout-btn:hover {
+            background: #FF6B6B;
+            color: white;
+            border-color: #FF6B6B;
+        }
+        
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+    </style>
 </head>
 <body>
     <!-- Navbar dinámico -->
@@ -22,7 +102,7 @@
     <ads-banner></ads-banner>
 
     <main>
-        <!-- Hero Section - Más Impactante y con Llamado a la Acción -->
+        <!-- Hero Section -->
         <section class="hero">
             <div class="container hero-container">
                 <div class="hero-content">
@@ -33,14 +113,34 @@
                     <p class="hero-subtitle">
                         PawPath es la plataforma integral que conecta a dueños, rescatistas y veterinarios para crear una red de apoyo y cuidado animal.
                     </p>
-                    <div class="hero-buttons">
+                    
+                    <!-- Contenedor para botones de autenticación (visible solo si NO está logueado) -->
+                    <div class="hero-buttons" id="auth-buttons-container">
                         <button class="btn btn-primary" id="btn-register">
                             <i class="fas fa-paw"></i> Unirme gratis
                         </button>
-                        <button class="btn btn-primary" id="btn-register">
+                        <button class="btn btn-primary" id="btn-login">
                             <i class="fas fa-sign-in-alt"></i> Iniciar sesión
                         </button>
                     </div>
+
+                    <!-- Contenedor para perfil de usuario (visible solo si SÍ está logueado) -->
+                    <div class="hero-buttons" id="user-profile-container" style="display: none;">
+                        <div class="user-profile-menu">
+                            <div class="user-avatar" id="user-avatar">
+                                U
+                            </div>
+                            <div class="user-info">
+                                <span class="user-greeting">¡Bienvenido de nuevo!</span>
+                                <span class="user-name" id="user-name-display">Usuario</span>
+                                <span class="user-role-badge" id="user-role-display">usuario</span>
+                            </div>
+                            <button class="logout-btn" id="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i> Cerrar sesión
+                            </button>
+                        </div>
+                    </div>
+
                     <p class="hero-stats">
                         <span><strong>+2,500</strong> mascotas ayudadas</span>
                         <span><strong>+150</strong> veterinarios</span>
@@ -50,14 +150,12 @@
                 <div class="hero-visual">
                     <div class="hero-image-wrapper">
                         <img src="assets/images/PawPahtLogo.png" alt="PawPath Hero" class="hero-image">
-                        <!-- Elementos decorativos flotantes -->
-                       
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Sección de Características con nuevo diseño -->
+        <!-- Sección de Características -->
         <section class="features-section">
             <div class="container">
                 <div class="section-header">
@@ -94,7 +192,7 @@
             </div>
         </section>
 
-        <!-- Sección de Foro - Ahora con estilo de "Muro Social" -->
+        <!-- Sección de Foro -->
         <section class="forum-section">
             <div class="container">
                 <div class="section-header">
@@ -113,7 +211,7 @@
             </div>
         </section>
 
-        <!-- Planes de Suscripción con diseño de tarjetas más atractivo -->
+        <!-- Planes de Suscripción -->
         <section class="pricing-section">
             <div class="container">
                 <div class="section-header">
@@ -184,7 +282,7 @@
             </div>
         </section>
 
-        <!-- Veterinarios Destacados - Nuevo diseño más elegante -->
+        <!-- Veterinarios Destacados -->
         <section class="vets-section">
             <div class="container">
                 <div class="section-header">
@@ -221,175 +319,7 @@
     <script type="module" src="components/JS forum-card-component.js"></script>
     <script type="module" src="components/JS FooterVisitor.js"></script>
     
-    <!-- Script principal (ajustado para el nuevo HTML) -->
-    <script>
-        // Función para simular datos del foro
-        function loadForumPosts() {
-            const posts = [
-                {
-                    type: 'lost',
-                    animal: 'Perro',
-                    breed: 'Golden Retriever',
-                    location: 'Centro, Ciudad',
-                    date: 'Hoy 10:30 AM',
-                    image: 'assets/images/lindo-perro-feliz-jugando-con-un-palo.webp',
-                    description: 'Se perdió mi perro cerca del parque central. Por favor, cualquier info es urgente.'
-                },
-                {
-                    type: 'found',
-                    animal: 'Gato',
-                    breed: 'Callejero',
-                    location: 'Barrio Norte',
-                    date: 'Ayer 15:45 PM',
-                    image: 'assets/images/102507751-vista-de-cerca-del-gato-o-gatito-abisinio-sentado-en-la-ventana.webp',
-                    description: 'Encontré este gato cerca del supermercado. Es muy cariñoso y parece perdido.'
-                },
-                {
-                    type: 'rescue',
-                    animal: 'Pájaro',
-                    breed: 'Loro',
-                    location: 'Zona Sur',
-                    date: '27/01 09:20 AM',
-                    image: 'assets/images/parrot-4132823_640.webp',
-                    description: 'Loro herido necesita atención veterinaria urgente. Lo encontré en el parque.'
-                }
-            ];
-
-            const container = document.getElementById('forum-container');
-            container.innerHTML = ''; // Limpiar antes de cargar
-            posts.forEach(post => {
-                const card = document.createElement('forum-card');
-                card.setAttribute('data-post', JSON.stringify(post));
-                container.appendChild(card);
-            });
-        }
-
-        // Función para simular veterinarios con nuevo diseño
-        function loadVeterinarians() {
-            const vets = [
-                {
-                    name: 'Dr. Carlos Méndez',
-                    specialty: 'Cirugía Veterinaria',
-                    rating: 4.9,
-                    location: 'Clínica Central',
-                    available: true,
-                    image: 'assets/images/vet1.jpg' // Idealmente tendrías imágenes
-                },
-                {
-                    name: 'Dra. Ana López',
-                    specialty: 'Animales Exóticos',
-                    rating: 4.8,
-                    location: 'Hospital Veterinario Norte',
-                    available: true,
-                    image: 'assets/images/vet2.jpg'
-                },
-                {
-                    name: 'Dr. Pedro Sánchez',
-                    specialty: 'Emergencias 24/7',
-                    rating: 4.7,
-                    location: 'Urgencias 24h',
-                    available: false,
-                    image: 'assets/images/vet3.jpg'
-                }
-            ];
-
-            const container = document.getElementById('vets-container');
-            container.innerHTML = ''; // Limpiar antes de cargar
-            vets.forEach(vet => {
-                const vetCard = document.createElement('div');
-                vetCard.className = 'vet-card';
-                vetCard.innerHTML = `
-                    <div class="vet-card-inner">
-                        <div class="vet-avatar">
-                            ${vet.name.charAt(0)}
-                        </div>
-                        <div class="vet-info">
-                            <h4>${vet.name}</h4>
-                            <span class="vet-specialty">${vet.specialty}</span>
-                            <div class="vet-rating">
-                                ${generateStars(vet.rating)} <span class="rating-number">${vet.rating}</span>
-                            </div>
-                            <p class="vet-location"><i class="fas fa-map-marker-alt"></i> ${vet.location}</p>
-                            <span class="vet-status ${vet.available ? 'available' : 'busy'}">
-                                ${vet.available ? 'Disponible hoy' : 'Completo hoy'}
-                            </span>
-                        </div>
-                        <button class="btn-vet" onclick="contactVet('${vet.name}')">
-                            ${vet.available ? 'Agendar Cita' : 'Ver disponibilidad'}
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
-                    </div>
-                `;
-                container.appendChild(vetCard);
-            });
-        }
-
-        // Función auxiliar para generar estrellas
-        function generateStars(rating) {
-            let stars = '';
-            for (let i = 1; i <= 5; i++) {
-                if (i <= Math.floor(rating)) {
-                    stars += '<i class="fas fa-star"></i>';
-                } else if (i === Math.ceil(rating) && !Number.isInteger(rating)) {
-                    stars += '<i class="fas fa-star-half-alt"></i>';
-                } else {
-                    stars += '<i class="far fa-star"></i>';
-                }
-            }
-            return stars;
-        }
-
-        // Función para seleccionar plan
-        function selectPlan(plan) {
-            alert(`Has seleccionado el plan ${plan.toUpperCase()}. Serás redirigido a MercadoPago para completar el pago.`);
-            // Aquí iría la integración real con MercadoPago
-        }
-
-        // Función para contactar veterinario
-        function contactVet(vetName) {
-            alert(`Iniciando chat con ${vetName}...`);
-        }
-
-        // Event Listeners para botones principales
-        document.addEventListener('DOMContentLoaded', () => {
-            const btnRegister = document.getElementById('btn-register');
-            const btnLogin = document.getElementById('btn-login');
-            const btnRegisterCta = document.getElementById('btn-register-cta');
-
-            if (btnRegister) {
-                btnRegister.addEventListener('click', () => {
-                    window.location.href = '#register';
-                });
-            }
-            
-            if (btnLogin) {
-                btnLogin.addEventListener('click', () => {
-                    window.location.href = '#login';
-                });
-            }
-
-            if (btnRegisterCta) {
-                btnRegisterCta.addEventListener('click', () => {
-                    window.location.href = '#register';
-                });
-            }
-
-            // Cargar datos simulados
-            setTimeout(() => {
-                loadForumPosts();
-                loadVeterinarians();
-            }, 100);
-        });
- 
-    const urlRedireccion = '/user/visitor/login/login.html';
-
-    document.getElementById('btn-register').addEventListener('click', () => {
-        window.location.href = urlRedireccion;
-    });
-
-    document.getElementById('btn-login').addEventListener('click', () => {
-        window.location.href = urlRedireccion;
-    });
-</script>
+    <!-- Script principal separado -->
+    <script type="module" src="index.js"></script>
 </body>
 </html>

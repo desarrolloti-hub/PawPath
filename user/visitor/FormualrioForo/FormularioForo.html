@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Publicación - Foro de Mascotas</title>
+    <link rel="stylesheet" href="FormularioForo.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+<body>
+    <div class="container-full">
+        <div class="header">
+            <h1><i class="fas fa-paw"></i> Foro de Mascotas</h1>
+            <p>Comparte, ayuda y aprende sobre el cuidado de mascotas</p>
+        </div>
+
+        <div class="form-container">
+            <div class="form-header">
+                <h2><i class="fas fa-plus-circle"></i> Nueva Publicación</h2>
+                <a href="/user/visitor/foro/foro.html" class="btn-cancelar">
+                    <i class="fas fa-times"></i> Cancelar
+                </a>
+            </div>
+            
+            <form id="formPublicacion" class="form-publicacion-full">
+                <input type="hidden" id="publicacionId">
+                
+                <div class="form-grid">
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="titulo">
+                                <i class="fas fa-heading"></i> Título de la publicación *
+                            </label>
+                            <input type="text" id="titulo" placeholder="Ej: Mi perro Max se perdió en el parque" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tipo">
+                                <i class="fas fa-tag"></i> Tipo de publicación *
+                            </label>
+                            <select id="tipo" required>
+                                <option value="">Seleccionar tipo</option>
+                                <option value="Mascota Perdida">🔍 Mascota Perdida</option>
+                                <option value="En Adopción">🏠 En Adopción</option>
+                                <option value="Consejo de Cuidado">💡 Consejo de Cuidado</option>
+                                <option value="Galería de Fotos">📷 Galería de Fotos</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="descripcion">
+                                <i class="fas fa-align-left"></i> Descripción/Contenido *
+                            </label>
+                            <textarea id="descripcion" rows="6" placeholder="Describe tu publicación..." required></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="categoria">
+                                <i class="fas fa-tags"></i> Categoría
+                            </label>
+                            <select id="categoria">
+                                <option value="">Seleccionar categoría</option>
+                                <option value="Perros">🐕 Perros</option>
+                                <option value="Gatos">🐈 Gatos</option>
+                                <option value="Aves">🦜 Aves</option>
+                                <option value="Roedores">🐭 Roedores</option>
+                                <option value="Reptiles">🦎 Reptiles</option>
+                                <option value="Otros">🐾 Otros</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="contacto">
+                                <i class="fas fa-phone"></i> Contacto *
+                            </label>
+                            <input type="text" id="contacto" placeholder="Teléfono o email" required>
+                        </div>
+
+                        <div id="recompensaGroup" class="form-group conditional-field" style="display: none;">
+                            <label for="recompensa">
+                                <i class="fas fa-trophy"></i> Recompensa
+                            </label>
+                            <input type="text" id="recompensa" placeholder="Ej: $1000 pesos">
+                        </div>
+
+                        <div id="fechaEventoGroup" class="form-group conditional-field" style="display: none;">
+                            <label for="fechaEvento">
+                                <i class="fas fa-calendar"></i> Fecha del evento
+                            </label>
+                            <input type="date" id="fechaEvento">
+                        </div>
+                    </div>
+
+                    <div class="form-col">
+                        <div class="form-group">
+                            <label for="fotos">
+                                <i class="fas fa-images"></i> Fotos (máximo 5)
+                            </label>
+                            <div class="fotos-upload">
+                                <div class="fotos-preview" id="fotosPreview"></div>
+                                <div class="fotos-control">
+                                    <input type="file" id="fotos" accept="image/*" multiple>
+                                    <span class="fotos-count" id="fotosCount">0/5</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="seccionMapa" class="mapa-section" style="display: none;">
+                            <h3><i class="fas fa-map-marked-alt"></i> Ubicación en el mapa *</h3>
+                            
+                            <div id="mapa" class="mapa-container"></div>
+                            
+                            <div class="mapa-controles">
+                                <button type="button" id="btnMiUbicacion" class="btn-mapa">
+                                    <i class="fas fa-location-dot"></i> Usar mi ubicación
+                                </button>
+                                <span class="mapa-hint">Haz clic en el mapa para colocar el marcador</span>
+                            </div>
+                            
+                            <div class="coordenadas-info" id="coordenadasInfo">
+                                <i class="fas fa-map-pin"></i>
+                                <span id="coordenadasTexto">Ningún punto seleccionado</span>
+                            </div>
+                            
+                            <input type="hidden" id="coordenadasLat">
+                            <input type="hidden" id="coordenadasLng">
+                            
+                            <div class="form-group" style="margin-top: 20px;">
+                                <label for="ubicacionTexto">
+                                    <i class="fas fa-map-marker-alt"></i> Dirección / Referencia *
+                                </label>
+                                <input type="text" id="ubicacionTexto" placeholder="Ej: Parque Central, Colonia Centro">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <a href="/user/visitor/foro/foro.html" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="button" class="btn btn-primary" id="btnGuardar">
+                        <i class="fas fa-save"></i> Publicar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script type="module" src="FormularioForo.js"></script>
+</body>
+</html>
