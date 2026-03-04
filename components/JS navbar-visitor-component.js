@@ -158,8 +158,12 @@ class NavbarVisitor extends HTMLElement {
                 </ul>
                 
                 <div class="nav-actions" id="navActions">
-                    <button class="btn-nav btn-login"  onclick="window.location='#login'">Iniciar Sesión</button>
-                    <button class="btn-nav btn-register" onclick="window.location='#register'">Registrarse</button>
+                    <a href="/user/visitor/login/login.html">
+                        <button class="btn-nav btn-login" >Iniciar Sesión</button>
+                    </a>
+                    <a href="/user/visitor/login/login.html">
+                        <button class="btn-nav btn-register" onclick="window.location='#register'">Registrarse</button>
+                    </a>
                 </div>
             </nav>
         `;
