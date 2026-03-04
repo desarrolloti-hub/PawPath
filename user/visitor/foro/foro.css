@@ -1,4 +1,4 @@
-/* foro.css */
+/* foro.css - VERSIÓN LIMPIA Y OPTIMIZADA */
 :root {
     --color-primary: #4F7CAC;
     --color-secondary: #C0E0DE;
@@ -27,7 +27,6 @@
     --radius-full: 9999px;
     
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -45,7 +44,7 @@ body {
     padding: 20px;
 }
 
-/* Contenedor principal del foro */
+/* ===== CONTENEDOR PRINCIPAL ===== */
 .forum-container {
     max-width: 1400px;
     margin: 0 auto;
@@ -57,7 +56,7 @@ body {
     flex-direction: column;
 }
 
-/* Header del foro */
+/* ===== HEADER ===== */
 .forum-header {
     display: flex;
     justify-content: space-between;
@@ -89,12 +88,7 @@ body {
     gap: 8px;
 }
 
-.btn-sm {
-    padding: 8px 16px;
-    font-size: 0.9rem;
-}
-
-/* Main layout: tres columnas */
+/* ===== MAIN LAYOUT ===== */
 .forum-main {
     display: grid;
     grid-template-columns: 240px 1fr 280px;
@@ -103,7 +97,7 @@ body {
     background: var(--color-surface);
 }
 
-/* Sidebars */
+/* ===== SIDEBARS ===== */
 .forum-sidebar-left,
 .forum-sidebar-right {
     display: flex;
@@ -142,6 +136,7 @@ body {
     transition: var(--transition);
     display: block;
     padding: 6px 0;
+    cursor: pointer;
 }
 
 .filter-list a:hover,
@@ -177,19 +172,84 @@ body {
     background: var(--color-gray-100);
     border: 2px dashed var(--color-gray-300);
     border-radius: var(--radius-sm);
-    padding: 40px 0;
+    padding: 30px 0;
     text-align: center;
     color: var(--color-text-light);
 }
 
-/* Feed central */
+.ad-placeholder i {
+    font-size: 2rem;
+    margin-bottom: 8px;
+    color: var(--color-gray-400);
+}
+
+/* ===== FEED CENTRAL ===== */
 .forum-feed {
     display: flex;
     flex-direction: column;
     gap: 24px;
 }
 
-/* Tarjeta para crear publicación */
+/* Panel de filtros */
+.filtros-panel {
+    background: white;
+    margin: 0 24px 24px 24px;
+    padding: 20px;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--color-gray-200);
+}
+
+.filtros-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.filtro-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filtro-group label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filtro-group select {
+    padding: 10px;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    background: white;
+    transition: var(--transition);
+}
+
+.filtro-group select:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.filtros-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Grid de publicaciones */
+.publicaciones-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Tarjeta de creación */
 .create-post-card {
     background: white;
     border-radius: var(--radius-md);
@@ -203,14 +263,6 @@ body {
     align-items: center;
     gap: 12px;
     margin-bottom: 16px;
-}
-
-.avatar {
-    width: 48px;
-    height: 48px;
-    border-radius: var(--radius-full);
-    object-fit: cover;
-    background: var(--color-gray-200);
 }
 
 .create-post-text {
@@ -227,7 +279,7 @@ body {
     justify-content: flex-end;
 }
 
-/* Tarjeta de publicación */
+/* ===== TARJETA DE PUBLICACIÓN ===== */
 .post-card {
     background: white;
     border-radius: var(--radius-md);
@@ -270,14 +322,6 @@ body {
     line-height: 1.6;
 }
 
-.post-image {
-    width: 100%;
-    max-height: 400px;
-    object-fit: cover;
-    border-radius: var(--radius-md);
-    margin-bottom: 16px;
-}
-
 .post-stats {
     display: flex;
     gap: 24px;
@@ -300,7 +344,62 @@ body {
     margin-bottom: 16px;
 }
 
-/* Sección de comentarios */
+/* ===== ESTILOS DE IMÁGENES ===== */
+.avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    background: var(--color-gray-200);
+    border: 3px solid var(--color-primary);
+    box-shadow: var(--shadow-sm);
+}
+
+.avatar-small {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    background: var(--color-gray-200);
+    border: 2px solid var(--color-primary);
+}
+
+.post-image {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin: 16px 0;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 3px solid white;
+    outline: 1px solid var(--color-gray-200);
+}
+
+.post-image:hover {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    outline: 2px solid var(--color-primary);
+}
+
+/* Para imágenes dentro del sidebar */
+.sidebar-card img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+    margin: 10px 0;
+    box-shadow: var(--shadow-sm);
+}
+
+/* Para imágenes de placeholder */
+img[src*="placeholder"] {
+    background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
+    border: 3px solid var(--color-primary);
+}
+
+/* ===== SECCIÓN DE COMENTARIOS ===== */
 .comment-section {
     margin-top: 16px;
     padding-top: 16px;
@@ -311,14 +410,6 @@ body {
     display: flex;
     gap: 12px;
     margin-bottom: 16px;
-}
-
-.avatar-small {
-    width: 32px;
-    height: 32px;
-    border-radius: var(--radius-full);
-    object-fit: cover;
-    background: var(--color-gray-200);
 }
 
 .comment-content {
@@ -350,55 +441,112 @@ body {
     text-decoration: none;
     font-weight: 500;
     font-size: 0.9rem;
+    cursor: pointer;
 }
 
 .view-more:hover {
     text-decoration: underline;
 }
 
-/* Footer del foro */
-.forum-footer {
+/* ===== LOADING Y ESTADOS VACÍOS ===== */
+.loading {
     text-align: center;
-    padding: 16px;
+    padding: 40px;
     background: white;
-    border-top: 1px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.spinner {
+    border: 4px solid var(--color-gray-200);
+    border-top: 4px solid var(--color-primary);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 16px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.sin-resultados {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+}
+
+.sin-resultados i {
+    font-size: 4rem;
+    color: var(--color-gray-400);
+    margin-bottom: 16px;
+}
+
+.sin-resultados h3 {
+    margin-bottom: 8px;
+    color: var(--color-text);
+}
+
+.sin-resultados p {
     color: var(--color-text-light);
-    font-size: 0.9rem;
+    margin-bottom: 24px;
 }
 
-/* Responsive */
-@media (max-width: 1024px) {
-    .forum-main {
-        grid-template-columns: 1fr;
-    }
-    .forum-sidebar-left,
-    .forum-sidebar-right {
-        display: none; /* Ocultamos sidebars en móvil para simplificar */
-    }
+.cargar-mas {
+    text-align: center;
 }
 
-@media (max-width: 768px) {
-    .forum-header {
-        flex-direction: column;
-        gap: 12px;
-    }
-    .header-right {
-        width: 100%;
-        justify-content: center;
-    }
-    .create-post-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .create-post-text {
-        text-align: center;
-    }
-    .create-post-actions {
-        justify-content: center;
-    }
+/* ===== MODAL ===== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(5px);
 }
 
-/* Reutilización de clases de botón */
+.modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--color-gray-200);
+}
+
+.close {
+    color: var(--color-gray-400);
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.close:hover {
+    color: var(--color-text);
+}
+
+/* ===== BOTONES ===== */
 .btn {
     display: inline-flex;
     align-items: center;
@@ -443,7 +591,262 @@ body {
     background: var(--color-gray-100);
 }
 
-/* Para los íconos dentro de botones */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .btn i {
     font-size: 1rem;
+}
+
+/* ===== FOOTER ===== */
+.forum-footer {
+    text-align: center;
+    padding: 16px;
+    background: white;
+    border-top: 1px solid var(--color-gray-200);
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .forum-main {
+        grid-template-columns: 1fr;
+    }
+    .forum-sidebar-left,
+    .forum-sidebar-right {
+        display: none;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    .forum-header {
+        flex-direction: column;
+        gap: 12px;
+    }
+    
+    .header-right {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .filtros-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filtros-actions {
+        flex-direction: column;
+    }
+    
+    .filtros-actions button {
+        width: 100%;
+    }
+    
+    .create-post-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .create-post-text {
+        text-align: center;
+    }
+    
+    .create-post-actions {
+        justify-content: center;
+    }
+    
+    .post-image {
+        height: 200px;
+    }
+}
+/* ===== ESTILOS DE EMERGENCIA PARA TU HTML ACTUAL ===== */
+/* Estos estilos FORZAN que todas las imágenes se vean bien */
+
+/* Todas las imágenes dentro del feed */
+.forum-feed img {
+    width: 100% !important;
+    height: 280px !important;
+    object-fit: cover !important;
+    border-radius: 20px !important;
+    margin: 15px 0 !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    border: 4px solid white !important;
+    outline: 2px solid #4F7CAC !important;
+    transition: all 0.3s ease !important;
+}
+
+/* Las imágenes de las publicaciones específicamente */
+.post-card img {
+    width: 100% !important;
+    height: 280px !important;
+    object-fit: cover !important;
+    border-radius: 20px !important;
+    margin: 15px 0 !important;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+    border: 4px solid white !important;
+    outline: 2px solid #4F7CAC !important;
+}
+
+/* Efecto hover */
+.post-card img:hover {
+    transform: scale(1.02) !important;
+    box-shadow: 0 20px 30px rgba(79, 124, 172, 0.4) !important;
+    outline: 3px solid #4F7CAC !important;
+    cursor: pointer;
+}
+
+/* Para las imágenes de las sedes/sucursales */
+.sidebar-card img,
+img[alt*="RSI"] {
+    width: 100% !important;
+    height: 180px !important;
+    object-fit: cover !important;
+    border-radius: 15px !important;
+    margin: 10px 0 !important;
+    border: 3px solid #4F7CAC !important;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2) !important;
+}
+
+/* Para los avatares */
+.post-header img,
+img[alt="Usuario"],
+img[alt="Avatar"] {
+    width: 50px !important;
+    height: 50px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    border: 3px solid #4F7CAC !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
+}
+
+/* Para el logo */
+.forum-logo,
+img[alt="PawPath Logo"] {
+    width: 48px !important;
+    height: 48px !important;
+    object-fit: contain !important;
+}
+
+/* Para las tarjetas de publicaciones */
+.post-card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 25px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    border: 1px solid #e0e7ff;
+}
+/* ===== CSS PARA LOS ELEMENTOS QUE MUESTRAS ===== */
+
+/* Para el badge "🔍 Mascota Perdida 3" */
+.post-card b:contains("🔍 Mascota Perdida"),
+.post-card:has(b:contains("🔍")) {
+    display: block;
+    background: #EF4444;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    width: fit-content;
+}
+
+/* Para el título "prueba" */
+.post-card:contains("prueba") h3,
+.post-card:contains("prueba") strong {
+    font-size: 24px;
+    color: #162B32;
+    margin: 10px 0;
+    font-weight: 700;
+    display: block;
+}
+
+/* Para el texto "dasdasdasdasdas" */
+.post-card:contains("dasdasdasdasdas") p,
+.post-card div:contains("dasdasdasdasdas") {
+    background: #F1F5F9;
+    padding: 15px;
+    border-radius: 12px;
+    border-left: 5px solid #4F7CAC;
+    margin: 15px 0;
+    color: #334155;
+    line-height: 1.6;
+}
+
+/* Para "🐕 Perros hace unos segundos" */
+.post-card:contains("🐕") {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 0;
+    border-top: 2px solid #E2E8F0;
+    border-bottom: 2px solid #E2E8F0;
+    margin: 15px 0;
+}
+
+.post-card:contains("🐕") span {
+    background: #4F7CAC20;
+    padding: 5px 12px;
+    border-radius: 20px;
+    color: #4F7CAC;
+    font-weight: 600;
+}
+
+/* Para "Ver en mapa" */
+.post-card a:contains("Ver en mapa") {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #4F7CAC10;
+    color: #4F7CAC;
+    padding: 10px 20px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    margin: 10px 0;
+    border: 1px solid #4F7CAC30;
+}
+
+/* Para los "0 0 0" */
+.post-card:contains("0  0  0") {
+    display: flex;
+    gap: 30px;
+    padding: 15px 0;
+    margin: 10px 0;
+    border-top: 1px dashed #CBD5E1;
+}
+
+.post-card:contains("0  0  0") span {
+    color: #475569;
+    font-size: 15px;
+}
+
+/* Para "Usuario Demo" */
+.post-card:contains("Usuario Demo") {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px 0 0;
+    margin-top: 15px;
+    border-top: 2px solid #E2E8F0;
+}
+
+.post-card:contains("Usuario Demo")::before {
+    content: "👤";
+    background: #4F7CAC;
+    color: white;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 20px;
 }
