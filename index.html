@@ -37,7 +37,7 @@
                         <button class="btn btn-primary" id="btn-register">
                             <i class="fas fa-paw"></i> Unirme gratis
                         </button>
-                        <button class="btn btn-outline" id="btn-login">
+                        <button class="btn btn-primary" id="btn-register">
                             <i class="fas fa-sign-in-alt"></i> Iniciar sesión
                         </button>
                     </div>
@@ -380,6 +380,16 @@
                 loadVeterinarians();
             }, 100);
         });
-    </script>
+ 
+    const urlRedireccion = '/user/visitor/login/login.html';
+
+    document.getElementById('btn-register').addEventListener('click', () => {
+        window.location.href = urlRedireccion;
+    });
+
+    document.getElementById('btn-login').addEventListener('click', () => {
+        window.location.href = urlRedireccion;
+    });
+</script>
 </body>
 </html>

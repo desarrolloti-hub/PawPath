@@ -1,6 +1,7 @@
 {
   "projects": {
-    "pawpath": "pawpath-mx"
+    "pawpath": "pawpath-mx",
+    "Pawpath": "pawpath-mx"
   },
   "targets": {},
   "etags": {}

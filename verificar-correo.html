@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath - Verificación de correo</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .logo {
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            font-size: 2.5em;
+            color: #764ba2;
+            margin-bottom: 10px;
+        }
+
+        .logo span {
+            color: #667eea;
+        }
+
+        .paw-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            color: #667eea;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+        }
+
+        .message-box {
+            background: #f7f7f7;
+            border-radius: 10px;
+            padding: 30px;
+            margin: 20px 0;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .success-icon::before {
+            content: '✓';
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .error-icon {
+            width: 80px;
+            height: 80px;
+            background: #f44336;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+
+        .error-icon::before {
+            content: '!';
+            font-size: 40px;
+            color: white;
+            font-weight: bold;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+
+        .success-message {
+            color: #4CAF50;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .error-message {
+            color: #f44336;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .info-text {
+            color: #666;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .reset-password-form {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            margin-top: 15px;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #e1e1e1;
+            border-radius: 2px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            animation: progress 3s linear forwards;
+            transform-origin: left;
+        }
+
+        @keyframes progress {
+            from {
+                transform: scaleX(0);
+            }
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        .redirect-text {
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .password-requirements {
+            font-size: 0.85em;
+            color: #666;
+            margin-top: 5px;
+            list-style: none;
+        }
+
+        .password-requirements li {
+            margin: 5px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .requirement-met {
+            color: #4CAF50;
+        }
+
+        .requirement-met::before {
+            content: '✓';
+            margin-right: 5px;
+        }
+
+        .requirement-unmet::before {
+            content: '○';
+            margin-right: 5px;
+            color: #999;
+        }
+
+        .reset-success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <div class="logo">
+            <div class="paw-icon">🐾</div>
+            <h1>Paw<span>Path</span></h1>
+        </div>
+
+        <!-- Contenido dinámico -->
+        <div id="content"></div>
+    </div>
+
+    <script>
+        // Tu configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyABACTyV6lId6OAiRorJF_DMXHuCTycMoY",
+            authDomain: "pawpath-mx.firebaseapp.com",
+            projectId: "pawpath-mx"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const mode = urlParams.get('mode');
+        const actionCode = urlParams.get('oobCode');
+        const continueUrl = urlParams.get('continueUrl');
+        const lang = urlParams.get('lang');
+
+        const contentDiv = document.getElementById('content');
+
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage(title, message, redirectUrl = '/user/visitor/login/login.html') {
+            contentDiv.innerHTML = `
+                <div class="message-box">
+                    <div class="success-icon"></div>
+                    <h2 class="success-message">${title}</h2>
+                    <p class="info-text">${message}</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="redirect-text">Serás redirigido en 3 segundos...</p>
+                    <button class="btn btn-secondary" onclick="window.location.href='${redirectUrl}'">
+                        Ir ahora
+                    </button>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.location.href = redirectUrl;
+            }, 3000);
+        }
+
+        // Función para mostrar mensaje de error
+        function showErrorMessage(title, message) {
+            contentDiv.innerHTML = `
+                <div class="message-box">
+                    <div class="error-icon"></div>
+                    <h2 class="error-message">${title}</h2>
+                    <p class="info-text">${message}</p>
+                    <button class="btn" onclick="window.location.href='/user/visitor/login/login.html'">
+                        Ir al inicio de sesión
+                    </button>
+                </div>
+            `;
+        }
+
+        // Función para mostrar formulario de recuperación de contraseña
+        function showResetPasswordForm() {
+            contentDiv.innerHTML = `
+                <h2>Restablecer contraseña</h2>
+                <p class="info-text">Ingresa tu nueva contraseña</p>
+                
+                <div class="reset-password-form" id="resetForm">
+                    <div class="form-group">
+                        <label for="newPassword">Nueva contraseña</label>
+                        <input type="password" id="newPassword" placeholder="Ingresa tu nueva contraseña" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirmar contraseña</label>
+                        <input type="password" id="confirmPassword" placeholder="Confirma tu nueva contraseña" required>
+                    </div>
+                    
+                    <ul class="password-requirements" id="passwordRequirements">
+                        <li id="lengthReq" class="requirement-unmet">Mínimo 6 caracteres</li>
+                        <li id="matchReq" class="requirement-unmet">Las contraseñas coinciden</li>
+                    </ul>
+                    
+                    <button class="btn" id="resetBtn" disabled>Restablecer contraseña</button>
+                </div>
+            `;
+
+            const newPassword = document.getElementById('newPassword');
+            const confirmPassword = document.getElementById('confirmPassword');
+            const resetBtn = document.getElementById('resetBtn');
+            const lengthReq = document.getElementById('lengthReq');
+            const matchReq = document.getElementById('matchReq');
+
+            function validatePassword() {
+                const password = newPassword.value;
+                const confirm = confirmPassword.value;
+                
+                // Validar longitud
+                const isValidLength = password.length >= 6;
+                lengthReq.className = isValidLength ? 'requirement-met' : 'requirement-unmet';
+                
+                // Validar coincidencia
+                const doMatch = password === confirm && password.length > 0;
+                matchReq.className = doMatch ? 'requirement-met' : 'requirement-unmet';
+                
+                // Habilitar/deshabilitar botón
+                resetBtn.disabled = !(isValidLength && doMatch);
+            }
+
+            newPassword.addEventListener('input', validatePassword);
+            confirmPassword.addEventListener('input', validatePassword);
+
+            resetBtn.addEventListener('click', () => {
+                const newPasswordValue = newPassword.value;
+                
+                auth.verifyPasswordResetCode(actionCode)
+                    .then((email) => {
+                        return auth.confirmPasswordReset(actionCode, newPasswordValue);
+                    })
+                    .then(() => {
+                        contentDiv.innerHTML = `
+                            <div class="reset-success">
+                                <h3>¡Contraseña actualizada!</h3>
+                                <p>Tu contraseña ha sido restablecida exitosamente.</p>
+                                <button class="btn" onclick="window.location.href='/user/visitor/login/login.html'">
+                                    Iniciar sesión
+                                </button>
+                            </div>
+                        `;
+                    })
+                    .catch((error) => {
+                        showErrorMessage('Error', 'No se pudo restablecer la contraseña. El enlace puede haber expirado.');
+                    });
+            });
+        }
+
+        // Procesar según el modo
+        if (mode === 'verifyEmail') {
+            // Mostrar mensaje de carga
+            contentDiv.innerHTML = `
+                <div class="message-box">
+                    <p class="info-text">Verificando tu correo electrónico...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="animation: progress 2s linear infinite;"></div>
+                    </div>
+                </div>
+            `;
+
+            firebase.auth().applyActionCode(actionCode)
+                .then(() => {
+                    showSuccessMessage(
+                        '¡Correo verificado!', 
+                        'Gracias por verificar tu correo electrónico. Ahora puedes acceder a todas las funciones de PawPath.'
+                    );
+                })
+                .catch((error) => {
+                    showErrorMessage(
+                        'Error de verificación',
+                        'El enlace de verificación ha expirado o ya fue utilizado. Solicita un nuevo enlace de verificación.'
+                    );
+                });
+        } 
+        else if (mode === 'resetPassword') {
+            // Verificar que el código es válido
+            auth.verifyPasswordResetCode(actionCode)
+                .then((email) => {
+                    showResetPasswordForm();
+                })
+                .catch((error) => {
+                    showErrorMessage(
+                        'Enlace inválido',
+                        'El enlace para restablecer la contraseña ha expirado o no es válido. Solicita un nuevo enlace.'
+                    );
+                });
+        }
+        else {
+            // Modo no reconocido
+            showErrorMessage(
+                'Acción no válida',
+                'El enlace que has utilizado no es válido o ha expirado.'
+            );
+        }
+    </script>
+</body>
+</html>

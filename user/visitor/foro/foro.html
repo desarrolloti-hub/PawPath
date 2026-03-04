@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Foro de Mascotas Perdidas</title>
+    <link rel="stylesheet" href="foro.css">
+    <link rel="icon" href="/assets/images/PawPahtLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="forum-container">
+        <!-- Header del foro -->
+        <header class="forum-header">
+            <div class="header-left">
+                <img src="../../assets/images/PawPahtLogo.png" alt="PawPath Logo" class="forum-logo">
+                <h1>PawPath · Foro</h1>
+            </div>
+            <div class="header-right">
+                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-home"></i> Inicio</a>
+                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-bell"></i> Alertas</a>
+                <a href="#" class="btn btn-outline btn-sm"><i class="fas fa-user"></i> Perfil</a>
+            </div>
+        </header>
+
+        <!-- Contenido principal: feed y sidebar -->
+        <main class="forum-main">
+            <!-- Sidebar izquierdo (opcional, se puede usar para filtros o información) -->
+            <aside class="forum-sidebar-left">
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-filter"></i> Filtrar por</h3>
+                    <ul class="filter-list">
+                        <li><a href="#" class="active">Todas las mascotas</a></li>
+                        <li><a href="#">Perros</a></li>
+                        <li><a href="#">Gatos</a></li>
+                        <li><a href="#">Otras mascotas</a></li>
+                        <li><a href="#">Últimas 24h</a></li>
+                        <li><a href="#">Cerca de mí</a></li>
+                    </ul>
+                </div>
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-chart-line"></i> Estadísticas</h3>
+                    <p>Mascotas reportadas hoy: <strong>12</strong></p>
+                    <p>Mascotas encontradas: <strong>8</strong></p>
+                    <p>Usuarios activos: <strong>342</strong></p>
+                </div>
+            </aside>
+
+            <!-- Feed central -->
+            <section class="forum-feed">
+                <!-- Caja para crear nueva publicación (estática) -->
+                <div class="create-post-card">
+                    <div class="create-post-header">
+                        <img src="../../assets/images/default-avatar.png" alt="Avatar" class="avatar">
+                        <span class="create-post-text">¿Has visto alguna mascota extraviada? ¡Compártelo!</span>
+                    </div>
+                    <div class="create-post-actions">
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-camera"></i> Foto</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-map-marker-alt"></i> Ubicación</button>
+                        <button class="btn btn-primary btn-sm">Publicar</button>
+                    </div>
+                </div>
+
+                <!-- Publicación 1 -->
+                <article class="post-card">
+                    <div class="post-header">
+                        <img src="../../assets/images/avatar1.jpg" alt="Usuario" class="avatar">
+                        <div class="post-user-info">
+                            <h4>María González <span class="post-time">hace 2 horas</span></h4>
+                            <p class="post-location"><i class="fas fa-map-marker-alt"></i> Colonia Centro, Ciudad</p>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p><strong>¡AYUDA! Perdí a mi perro Max 🐕</strong> Se extravió ayer por la tarde cerca del parque central. Es un labrador color dorado, responde a su nombre. Si lo ves, por favor contacta al número: 555-1234. ¡Comparte para ayudar a encontrarlo!</p>
+                        <img src="https://via.placeholder.com/600x400?text=Max+el+perro" alt="Foto de Max" class="post-image">
+                    </div>
+                    <div class="post-stats">
+                        <span><i class="fas fa-heart"></i> 45 ayudas</span>
+                        <span><i class="fas fa-comment"></i> 12 comentarios</span>
+                        <span><i class="fas fa-share"></i> 8 compartidos</span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-heart"></i> Ayudar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-comment"></i> Comentar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-share"></i> Compartir</button>
+                    </div>
+                    <!-- Sección de comentarios (estáticos) -->
+                    <div class="comment-section">
+                        <div class="comment">
+                            <img src="../../assets/images/avatar2.jpg" alt="Avatar" class="avatar-small">
+                            <div class="comment-content">
+                                <strong>Carlos López</strong> <span class="comment-time">hace 1 hora</span>
+                                <p>Lo vi cerca del mercado, pero se asustó y corrió. Ojalá aparezca pronto.</p>
+                            </div>
+                        </div>
+                        <div class="comment">
+                            <img src="../../assets/images/avatar3.jpg" alt="Avatar" class="avatar-small">
+                            <div class="comment-content">
+                                <strong>Ana Martínez</strong> <span class="comment-time">hace 30 minutos</span>
+                                <p>Compartido en mi muro. ¡Mucho ánimo!</p>
+                            </div>
+                        </div>
+                        <a href="#" class="view-more">Ver más comentarios</a>
+                    </div>
+                </article>
+
+                <!-- Publicación 2 -->
+                <article class="post-card">
+                    <div class="post-header">
+                        <img src="../../assets/images/avatar4.jpg" alt="Usuario" class="avatar">
+                        <div class="post-user-info">
+                            <h4>Juan Pérez <span class="post-time">hace 5 horas</span></h4>
+                            <p class="post-location"><i class="fas fa-map-marker-alt"></i> Residencial Las Flores</p>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p><strong>Gatita extraviada 🐈</strong> Se perdió Luna, una gata blanca con manchas negras, muy cariñosa. Desapareció ayer en la noche. Cualquier información, por favor llamar al 555-5678. ¡Se recompensa!</p>
+                        <img src="https://via.placeholder.com/600x400?text=Luna+la+gata" alt="Foto de Luna" class="post-image">
+                    </div>
+                    <div class="post-stats">
+                        <span><i class="fas fa-heart"></i> 32 ayudas</span>
+                        <span><i class="fas fa-comment"></i> 8 comentarios</span>
+                        <span><i class="fas fa-share"></i> 5 compartidos</span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-heart"></i> Ayudar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-comment"></i> Comentar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-share"></i> Compartir</button>
+                    </div>
+                    <!-- Comentarios mínimos -->
+                    <div class="comment-section">
+                        <a href="#" class="view-more">Ver los 8 comentarios</a>
+                    </div>
+                </article>
+
+                <!-- Publicación 3 -->
+                <article class="post-card">
+                    <div class="post-header">
+                        <img src="../../assets/images/avatar5.jpg" alt="Usuario" class="avatar">
+                        <div class="post-user-info">
+                            <h4>Laura Sánchez <span class="post-time">hace 1 día</span></h4>
+                            <p class="post-location"><i class="fas fa-map-marker-alt"></i> Colonia Universidad</p>
+                        </div>
+                    </div>
+                    <div class="post-content">
+                        <p><strong>Perro encontrado 🐶</strong> Encontré este perrito en la calle, parece perdido. Tiene collar pero sin identificación. Si es tuyo o lo conoces, mándame mensaje.</p>
+                        <img src="https://via.placeholder.com/600x400?text=Perro+encontrado" alt="Foto de perro encontrado" class="post-image">
+                    </div>
+                    <div class="post-stats">
+                        <span><i class="fas fa-heart"></i> 67 ayudas</span>
+                        <span><i class="fas fa-comment"></i> 23 comentarios</span>
+                        <span><i class="fas fa-share"></i> 15 compartidos</span>
+                    </div>
+                    <div class="post-actions">
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-heart"></i> Ayudar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-comment"></i> Comentar</button>
+                        <button class="btn btn-outline btn-sm"><i class="fas fa-share"></i> Compartir</button>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Sidebar derecho (información de contacto, anuncios) -->
+            <aside class="forum-sidebar-right">
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-phone-alt"></i> Contactos de emergencia</h3>
+                    <ul class="contact-list">
+                        <li><i class="fas fa-dog"></i> Protectora Animal: 555-0001</li>
+                        <li><i class="fas fa-hospital"></i> Veterinaria 24h: 555-0002</li>
+                        <li><i class="fas fa-police"></i> Policía: 555-0003</li>
+                    </ul>
+                </div>
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-newspaper"></i> Consejos</h3>
+                    <p>✔️ Si encuentras una mascota, revisa si tiene microchip.</p>
+                    <p>✔️ Comparte fotos claras y la ubicación exacta.</p>
+                    <p>✔️ No te acerques de forma brusca, puede estar asustado.</p>
+                </div>
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-ad"></i> Publicidad</h3>
+                    <div class="ad-placeholder">Espacio publicitario</div>
+                </div>
+            </aside>
+        </main>
+
+        <!-- Footer simple -->
+        <footer class="forum-footer">
+            <p>© 2025 PawPath - Foro de Mascotas Perdidas y Encontradas. Todos los derechos reservados.</p>
+        </footer>
+    </div>
+</body>
+</html>

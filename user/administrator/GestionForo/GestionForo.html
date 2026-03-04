@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Administrar Comentarios</title>
+    <link rel="stylesheet" href="/user/visitor/login/login.css">
+    <link rel="stylesheet" href="admin-comentarios.css">
+    <link rel="icon" href="../../assets/images/PawPahtLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="sidebar-logo">
+                <h3>Panel Admin</h3>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="#" class="active"><i class="fas fa-comments"></i> Comentarios</a>
+                <a href="#"><i class="fas fa-users"></i> Usuarios</a>
+                <a href="#"><i class="fas fa-flag"></i> Reportes</a>
+                <a href="#"><i class="fas fa-cog"></i> Configuración</a>
+            </nav>
+        </aside>
+
+        <main class="admin-main">
+            <header class="admin-header">
+                <h1><i class="fas fa-comments"></i> Gestión de Comentarios</h1>
+                <div class="admin-actions">
+                    <button id="nuevoComentarioBtn" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Comentario</button>
+                </div>
+            </header>
+
+            <!-- Filtros -->
+            <div class="filtros">
+                <div class="filtro-group">
+                    <label for="filtro-publicacion">Publicación:</label>
+                    <select id="filtro-publicacion">
+                        <option value="">Todas</option>
+                        <option value="1">Perro perdido en Centro</option>
+                        <option value="2">Gato encontrado en Norte</option>
+                        <option value="3">Mascota extraviada</option>
+                    </select>
+                </div>
+                <div class="filtro-group">
+                    <label for="filtro-estado">Estado:</label>
+                    <select id="filtro-estado">
+                        <option value="">Todos</option>
+                        <option value="activo">Activo</option>
+                        <option value="editado">Editado</option>
+                        <option value="destacado">Destacado</option>
+                    </select>
+                </div>
+                <button id="aplicarFiltros" class="btn btn-outline"><i class="fas fa-filter"></i> Aplicar</button>
+                <button id="limpiarFiltros" class="btn btn-outline"><i class="fas fa-times"></i> Limpiar</button>
+            </div>
+
+            <!-- Tabla de comentarios -->
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Publicación</th>
+                            <th>Autor</th>
+                            <th>Comentario</th>
+                            <th>Fecha</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-comentarios">
+                        <!-- Los datos se cargarán dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Modal para crear/editar comentario -->
+            <div id="modalComentario" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h2 id="modal-titulo">Nuevo Comentario</h2>
+                    <form id="formComentario">
+                        <input type="hidden" id="comentario-id">
+                        <div class="form-group">
+                            <label>Publicación *</label>
+                            <select id="comentario-publicacion" required>
+                                <option value="">Seleccione publicación</option>
+                                <option value="1">Perro perdido en Centro</option>
+                                <option value="2">Gato encontrado en Norte</option>
+                                <option value="3">Mascota extraviada</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Autor *</label>
+                            <input type="text" id="comentario-autor" placeholder="Nombre del autor" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Comentario *</label>
+                            <textarea id="comentario-texto" rows="3" placeholder="Escribe el comentario..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Estado</label>
+                            <select id="comentario-estado">
+                                <option value="activo">Activo</option>
+                                <option value="editado">Editado</option>
+                                <option value="destacado">Destacado</option>
+                            </select>
+                        </div>
+                        <div class="modal-actions">
+                            <button type="submit" class="btn btn-primary">Guardar</button>
+                            <button type="button" class="btn btn-outline" id="cancelarModal">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal de confirmación para eliminar -->
+            <div id="modalEliminar" class="modal" style="display: none;">
+                <div class="modal-content modal-small">
+                    <h3>Confirmar eliminación</h3>
+                    <p>¿Estás seguro de que deseas eliminar este comentario?</p>
+                    <div class="modal-actions">
+                        <button id="confirmarEliminar" class="btn btn-error">Eliminar</button>
+                        <button id="cancelarEliminar" class="btn btn-outline">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="admin-comentarios.js"></script>
+</body>
+</html>
