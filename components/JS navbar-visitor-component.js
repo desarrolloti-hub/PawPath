@@ -158,7 +158,7 @@ class NavbarVisitor extends HTMLElement {
                 </ul>
                 
                 <div class="nav-actions" id="navActions">
-                    <button class="btn-nav btn-login" onclick="window.location='#login'">Iniciar Sesión</button>
+                    <button class="btn-nav btn-login"  onclick="window.location='#login'">Iniciar Sesión</button>
                     <button class="btn-nav btn-register" onclick="window.location='#register'">Registrarse</button>
                 </div>
             </nav>
