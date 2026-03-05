@@ -19,6 +19,118 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
+class DataProtectionSHA256 {
+    /**
+     * Genera hash SHA-256 de cualquier texto
+     * @param {string} text - Texto a proteger
+     * @returns {Promise<string>} Hash hexadecimal de 64 caracteres
+     */
+    static async hashSHA256(text) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(text);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    /**
+     * PROTECCIÓN DE EMAIL - Campo más crítico después de contraseña
+     * @param {string} email - Email del usuario
+     * @returns {Promise<string>} Hash único del email
+     */
+    static async protectEmail(email) {
+        // Añadimos un salt específico del proyecto
+        const salt = "pawpath-salt-" + email.split('@')[0];
+        const emailWithSalt = salt + email;
+        return await this.hashSHA256(emailWithSalt);
+    }
+
+    /**
+     * CREA UN IDENTIFICADOR ÚNICO PARA EL USUARIO
+     * Útil para trackear actividad sin exponer identidad
+     * @param {string} email - Email del usuario
+     * @param {string} nombre - Nombre completo
+     * @returns {Promise<string>} ID único de 16 caracteres
+     */
+    static async generateUserIdentifier(email, nombre) {
+        const dataToHash = `${email}-${nombre}-${Date.now()}`;
+        const fullHash = await this.hashSHA256(dataToHash);
+        return fullHash.substring(0, 16);
+    }
+
+    /**
+     * PROTEGE EL PERFIL COMPLETO DEL USUARIO
+     * Crea una firma única del perfil para detectar modificaciones
+     * @param {Object} userData - Datos del usuario
+     * @returns {Promise<string>} Hash del perfil completo
+     */
+    static async generateProfileHash(userData) {
+        const profileString = 
+            userData.primer_nombre + 
+            userData.segundo_nombre + 
+            userData.apellido_paterno + 
+            userData.apellido_materno + 
+            userData.email;
+        
+        return await this.hashSHA256(profileString);
+    }
+
+    /**
+     * MÉTODO PRINCIPAL - Para usar en el registro de usuarios
+     */
+    static async protectUserDataOnRegister(userData) {
+        console.log('🔐 Protegiendo datos con SHA-256...');
+        
+        const emailHash = await this.protectEmail(userData.email);
+        console.log('   ✅ Email hasheado:', emailHash.substring(0, 16) + '...');
+        
+        const userIdentifier = await this.generateUserIdentifier(
+            userData.email, 
+            userData.nombre_completo
+        );
+        console.log('   ✅ ID único generado:', userIdentifier);
+        
+        const profileHash = await this.generateProfileHash(userData);
+        console.log('   ✅ Hash de perfil creado');
+        
+        return {
+            security: {
+                email_hash: emailHash,
+                user_identifier: userIdentifier,
+                profile_hash: profileHash,
+                created_with: 'web',
+                encryption_version: '1.0',
+                timestamp: new Date().toISOString(),
+                hashed_fields: ['email', 'nombre_completo']
+            },
+            search_tokens: [
+                emailHash.substring(0, 16),
+                userIdentifier
+            ]
+        };
+    }
+
+    /**
+     * VERIFICACIÓN DE INTEGRIDAD
+     */
+    static async verifyDataIntegrity(currentUserData, storedSecurityData) {
+        const currentEmailHash = await this.protectEmail(currentUserData.email);
+        const emailMatches = currentEmailHash === storedSecurityData.email_hash;
+        
+        const currentProfileHash = await this.generateProfileHash(currentUserData);
+        const profileMatches = currentProfileHash === storedSecurityData.profile_hash;
+        
+        return {
+            isIntegrity: emailMatches && profileMatches,
+            emailMatches,
+            profileMatches,
+            message: emailMatches && profileMatches ? 
+                '✅ Datos íntegros' : 
+                '⚠️ ALERTA: Datos modificados'
+        };
+    }
+}
+
 class AuthManager {
     constructor() {
         console.log('🚀 Inicializando AuthManager...');
@@ -503,6 +615,7 @@ class AuthManager {
     async handleRegister(e) {
         e.preventDefault();
 
+        // ==== CÓDIGO ORIGINAL (VALIDACIONES) ====
         if (!this.primerNombre?.value.trim() || 
             !this.apellidoPaterno?.value.trim() || 
             !this.apellidoMaterno?.value.trim()) {
@@ -539,11 +652,13 @@ class AuthManager {
         try {
             console.log('📝 Intentando registrar usuario:', email);
             
+            // ==== CÓDIGO ORIGINAL: Crear usuario en Firebase Auth ====
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
             console.log('✅ Usuario creado en Auth:', user.uid);
 
+            // ==== CÓDIGO ORIGINAL: Preparar datos del usuario ====
             const userData = {
                 primer_nombre: this.primerNombre.value.trim(),
                 segundo_nombre: this.segundoNombre?.value.trim() || '',
@@ -551,15 +666,35 @@ class AuthManager {
                 apellido_materno: this.apellidoMaterno.value.trim(),
                 nombre_completo: this.getFullName(),
                 email: email,
-                rol: 'usuario',
+                // 👇 CAMBIO: Cambiamos de "usuario" a "visitante" (según tu captura)
+                rol: 'visitante',  // ANTES era: 'usuario'
                 fecha_registro: serverTimestamp(),
                 email_verificado: user.emailVerified
             };
             
-            console.log('📦 Datos a guardar en Firestore:', userData);
+            console.log('📦 Datos originales:', userData);
             
-            await setDoc(doc(db, 'usarios', user.uid), userData);
-            console.log('✅ Documento creado en Firestore');
+            // ===== 🆕 NUEVO: Proteger datos con SHA-256 =====
+            console.log('🔐 Aplicando protección SHA-256...');
+            const protectedData = await DataProtectionSHA256.protectUserDataOnRegister(userData);
+            
+            // ===== 🆕 NUEVO: Combinar datos originales con seguridad =====
+            const finalUserData = {
+                ...userData,
+                security: protectedData.security,
+                search_tokens: protectedData.search_tokens
+            };
+            
+            console.log('📦 Datos finales con protección:');
+            console.log('   - Email (original):', finalUserData.email);
+            console.log('   - Email (hash):', finalUserData.security.email_hash);
+            console.log('   - User ID único:', finalUserData.security.user_identifier);
+            // ===== FIN de la modificación =====
+
+            // ==== CÓDIGO ORIGINAL: Guardar en Firestore ====
+            // 👇 CAMBIO: Usamos finalUserData en lugar de userData
+            await setDoc(doc(db, 'usarios', user.uid), finalUserData);
+            console.log('✅ Documento creado en Firestore con datos protegidos');
 
             await sendEmailVerification(user);
             console.log('✅ Email de verificación enviado');
@@ -588,6 +723,49 @@ class AuthManager {
             this.setLoading(this.registerBtn, false);
         }
     }
+     
+    /**
+     * Verificar integridad de datos después del login
+     * Puedes llamar a este método después de un login exitoso
+     */
+    async verifyUserDataIntegrity(user) {
+        try {
+            const userRef = doc(db, 'usarios', user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                
+                if (userData.security) {
+                    const verification = await DataProtectionSHA256.verifyDataIntegrity(
+                        {
+                            email: user.email,
+                            primer_nombre: userData.primer_nombre,
+                            segundo_nombre: userData.segundo_nombre,
+                            apellido_paterno: userData.apellido_paterno,
+                            apellido_materno: userData.apellido_materno
+                        },
+                        userData.security
+                    );
+                    
+                    console.log(verification.message);
+                    
+                    if (!verification.isIntegrity) {
+                        console.warn('⚠️ Posible modificación de datos detectada');
+                        // Opcional: Mostrar alerta al usuario
+                        this.showAlert('Tus datos muestran inconsistencias de seguridad', 'warning');
+                    }
+                    
+                    return verification;
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Error verificando integridad:', error);
+            return null;
+        }
+    }
+
 
     async handleGoogleAuth() {
         this.setLoading(this.googleAuthBtn, true);
