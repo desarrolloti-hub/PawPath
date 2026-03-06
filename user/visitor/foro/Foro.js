@@ -376,3 +376,85 @@ window.onclick = function(event) {
 document.addEventListener('DOMContentLoaded', () => {
     new ControladorForo();
 });
+  
+        // Función para modo oscuro
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.querySelector('.theme-toggle i');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('darkMode', 'enabled');
+            } else {
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('darkMode', 'disabled');
+            }
+        }
+
+        // Verificar preferencia guardada
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+            document.querySelector('.theme-toggle i').className = 'fas fa-sun';
+        }
+
+        // Función para cerrar modal
+        function cerrarModal() {
+            document.getElementById('modalDetalle').style.display = 'none';
+        }
+
+        // Función para mostrar notificación
+        function mostrarNotificacion() {
+            Swal.fire({
+                title: '¡Novedades!',
+                text: 'Tienes 3 nuevas notificaciones',
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true
+            });
+        }
+
+        // Función para agregar comentario (simulada)
+        function agregarComentario() {
+            const input = document.getElementById('nuevoComentario');
+            const comentario = input.value.trim();
+            
+            if (comentario) {
+                const comentariosLista = document.getElementById('comentariosLista');
+                const nuevoComentario = document.createElement('div');
+                nuevoComentario.className = 'comentario';
+                nuevoComentario.innerHTML = `
+                    <div class="comentario-header">
+                        <span>Usuario Anónimo</span>
+                        <span class="comentario-fecha">Justo ahora</span>
+                    </div>
+                    <p>${comentario}</p>
+                `;
+                comentariosLista.appendChild(nuevoComentario);
+                input.value = '';
+                
+                // Animar el nuevo comentario
+                nuevoComentario.style.animation = 'slideIn 0.3s';
+                
+                // Actualizar contador
+                const contador = document.getElementById('detalleComentarios');
+                contador.textContent = parseInt(contador.textContent) + 1;
+            }
+        }
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+
+        // Cerrar modal haciendo clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalDetalle');
+            if (event.target == modal) {
+                cerrarModal();
+            }
+        }
+    
