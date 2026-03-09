@@ -413,7 +413,7 @@ class NavbarVisitor extends HTMLElement {
             
             <nav class="navbar-visitor">
                 <a href="/" class="nav-brand">
-                    <img src="assets/images/PawPahtLogo.png" alt="PawPath Logo">
+                    <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo">
                     <span>PawPath</span>
                 </a>
                 
@@ -423,7 +423,7 @@ class NavbarVisitor extends HTMLElement {
                     <li><a href="/" class="active">Inicio</a></li>
                     <li><a href="/user/visitor/foro/foro.html">Foro</a></li>
                     <li><a href="#map">Mapa</a></li>
-                    <li><a href="#veterinarios">Veterinarios</a></li>
+                    <li><a href="/user/visitor/citas/citas.html">Agenda tu Cita</a></li>
                     <li><a href="#planes">Planes</a></li>
                 </ul>
                 

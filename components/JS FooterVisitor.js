@@ -1,4 +1,4 @@
-// components/JS FooterVisitor.js
+// components/FooterVisitor.js
 class FooterVisitor extends HTMLElement {
     constructor() {
         super();
@@ -9,10 +9,19 @@ class FooterVisitor extends HTMLElement {
     }
 
     render() {
+        // Verificar si la imagen existe
+        const imagePath = '/assets/images/PawPahtLogo.png';
+        const img = new Image();
+        img.onerror = () => {
+            console.warn('Logo image not found, using fallback');
+        };
+        img.src = imagePath;
+
         this.innerHTML = `
             <style>
                 .main-footer {
-                    background: linear-gradient(135deg, #1A535C 0%, #2C7873 100%);
+                    background: #33105c;
+                    background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
                     color: white;
                     padding: 50px 20px 20px;
                     margin-top: 80px;
@@ -172,7 +181,7 @@ class FooterVisitor extends HTMLElement {
                 <div class="footer-content">
                     <div class="footer-section">
                         <div class="footer-logo">
-                            <img src="images/PawPahtLogo.png" alt="PawPath Logo">
+                            <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo">
                             <h3>PawPath</h3>
                         </div>
                         <p>Plataforma PWA para el cuidado, rescate y bienestar de animales domésticos. Conectamos dueños, veterinarios y rescatistas.</p>
@@ -189,7 +198,7 @@ class FooterVisitor extends HTMLElement {
                         <ul class="footer-links">
                             <li><a href="#forum">🐾 Foro de Rescate</a></li>
                             <li><a href="#map">🗺️ Mapa de Ayuda</a></li>
-                            <li><a href="#veterinarians">🏥 Veterinarios</a></li>
+                            <li><a href="/user/veterinario/formVeterinario/formVeterinario.html">🏥 Veterinarios</a></li>
                             <li><a href="#subscriptions">💰 Planes y Precios</a></li>
                             <li><a href="#donations">💚 Donaciones</a></li>
                             <li><a href="#volunteer">🙋 Voluntariado</a></li>
@@ -215,7 +224,7 @@ class FooterVisitor extends HTMLElement {
                                 <span>📧</span>
                                 <div>
                                     <strong>Correo:</strong><br>
-                                    <a href="mailto:info@pawpath.com">info@pawpath.com</a>
+                                    <a href="mailto:info@pawpath.com" style="color: #BDEDFF;">info@pawpath.com</a>
                                 </div>
                             </li>
                             <li>
@@ -258,51 +267,50 @@ class FooterVisitor extends HTMLElement {
             </footer>
         `;
         
-        // Añadir funcionalidad de instalación PWA
         this.setupPWAInstall();
     }
     
     setupPWAInstall() {
+        // Tu código existente con un pequeño fix
         let deferredPrompt;
         
-        // Detectar evento de instalación
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
             
-            // Mostrar botón de instalación en el footer
-            const installBtn = document.createElement('button');
-            installBtn.innerHTML = '📲 Instalar App';
-            installBtn.style.cssText = `
-                background: #4ECDC4;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 20px;
-                cursor: pointer;
-                font-weight: bold;
-                margin-left: 10px;
-                transition: all 0.3s;
-            `;
-            
-            installBtn.onmouseover = () => installBtn.style.background = '#3db9b0';
-            installBtn.onmouseout = () => installBtn.style.background = '#4ECDC4';
-            
-            installBtn.onclick = async () => {
-                if (deferredPrompt) {
-                    deferredPrompt.prompt();
-                    const { outcome } = await deferredPrompt.userChoice;
-                    console.log(`User response: ${outcome}`);
-                    deferredPrompt = null;
-                }
-            };
-            
+            // Verificar que el elemento existe antes de manipularlo
             const pwaBadge = this.querySelector('.pwa-badge');
             if (pwaBadge) {
+                const installBtn = document.createElement('button');
+                installBtn.innerHTML = '📲 Instalar App';
+                installBtn.style.cssText = `
+                    background: #4ECDC4;
+                    color: white;
+                    border: none;
+                    padding: 10px 20px;
+                    border-radius: 20px;
+                    cursor: pointer;
+                    font-weight: bold;
+                    margin-left: 10px;
+                    transition: all 0.3s;
+                    border: none;
+                `;
+                
+                installBtn.onclick = async () => {
+                    if (deferredPrompt) {
+                        deferredPrompt.prompt();
+                        const { outcome } = await deferredPrompt.userChoice;
+                        console.log(`User response: ${outcome}`);
+                        deferredPrompt = null;
+                        installBtn.style.display = 'none';
+                    }
+                };
+                
                 pwaBadge.appendChild(installBtn);
             }
         });
     }
 }
 
-customElements.define('footer-visitor', FooterVisitor);
+customElements.define('main-footer', FooterVisitor);
+

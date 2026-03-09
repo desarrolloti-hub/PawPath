@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Panel Veterinario</title>
+    <link rel="stylesheet" href="veterinario.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <!-- Sidebar - Menú principal del veterinario -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h1 class="logo">PawPath</h1>
+                <p class="vet-badge">Veterinario</p>
+            </div>
+
+            <div class="vet-profile">
+                <div class="vet-avatar">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <div class="vet-info">
+                    <span class="vet-name" id="vetName">Cargando...</span>
+                    <span class="vet-specialty" id="vetSpecialty">Veterinario</span>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <ul>
+                    <li>
+                        <a href="#" class="nav-link active" data-section="dashboard">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-section="citas">
+                            <i class="fas fa-calendar-check"></i>
+                            <span>Citas</span>
+                            <span class="badge" id="citasPendientesBadge">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-section="publicaciones">
+                            <i class="fas fa-newspaper"></i>
+                            <span>Publicaciones</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-section="adopciones">
+                            <i class="fas fa-paw"></i>
+                            <span>Solicitudes Adopción</span>
+                            <span class="badge" id="adopcionesBadge">0</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-section="reclamos">
+                            <i class="fas fa-clipboard-list"></i>
+                            <span>Reclamos de Mascotas</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="#" class="nav-link" data-section="horarios">
+                            <i class="fas fa-clock"></i>
+                            <span>Configurar Horarios</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+
+            <div class="sidebar-footer">
+                <a href="#" id="logoutBtn" class="logout-btn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar sesión</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header con información rápida -->
+            <header class="content-header">
+                <div class="header-title">
+                    <h2 id="currentSection">Dashboard</h2>
+                    <p id="currentDate"></p>
+                </div>
+                <div class="header-actions">
+                    <div class="notification-badge">
+                        <i class="fas fa-bell"></i>
+                        <span class="badge" id="notificaciones">3</span>
+                    </div>
+                    <button class="btn-refresh" onclick="vetController.cargarTodo()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Contenido dinámico -->
+            <div class="content-body">
+                <!-- DASHBOARD SECTION -->
+                <section class="content-section active" id="dashboard-section">
+                    <!-- Estadísticas en vivo (inspirado en la imagen) -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon blue">
+                                <i class="fas fa-calendar-day"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Citas hoy</span>
+                                <span class="stat-value" id="statsCitasHoy">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon yellow">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Pendientes</span>
+                                <span class="stat-value" id="statsPendientes">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon green">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Aceptadas</span>
+                                <span class="stat-value" id="statsAceptadas">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon purple">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Concluidas</span>
+                                <span class="stat-value" id="statsConcluidas">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Próximas citas -->
+                    <div class="dashboard-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-calendar-alt"></i> Próximas citas</h3>
+                            <a href="#" class="view-all" onclick="vetController.cambiarSeccion('citas')">Ver todas</a>
+                        </div>
+                        <div class="citas-list" id="proximasCitasList">
+                            <p class="loading">Cargando citas...</p>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <!-- Solicitudes de adopción recientes -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-paw"></i> Solicitudes de adopción</h3>
+                                <a href="#" class="view-all" onclick="vetController.cambiarSeccion('adopciones')">Ver
+                                    todas</a>
+                            </div>
+                            <div class="solicitudes-list" id="solicitudesRecientes">
+                                <p class="loading">Cargando solicitudes...</p>
+                            </div>
+                        </div>
+
+                        <!-- Reclamos recientes -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-clipboard-list"></i> Reclamos de mascotas</h3>
+                                <a href="#" class="view-all" onclick="vetController.cambiarSeccion('reclamos')">Ver
+                                    todos</a>
+                            </div>
+                            <div class="reclamos-list" id="reclamosRecientes">
+                                <p class="loading">Cargando reclamos...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Consejos útiles (inspirado en la imagen) -->
+                    <div class="tips-card">
+                        <h3><i class="fas fa-lightbulb"></i> Consejos para hoy</h3>
+                        <ul>
+                            <li>✓ Revisa el historial médico antes de cada consulta</li>
+                            <li>✓ Confirma las citas con al menos 2 horas de anticipación</li>
+                            <li>✓ Mantén actualizado tu horario de atención</li>
+                            <li>✓ Registra notas detalladas de cada consulta</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- CITAS SECTION -->
+                <section class="content-section" id="citas-section">
+                    <div class="section-header">
+                        <h3>Gestión de Citas</h3>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="todos">Todas</button>
+                            <button class="filter-btn" data-filter="pendiente">Pendientes</button>
+                            <button class="filter-btn" data-filter="aceptada">Aceptadas</button>
+                            <button class="filter-btn" data-filter="rechazada">Rechazadas</button>
+                            <button class="filter-btn" data-filter="concluida">Concluidas</button>
+                            <button class="filter-btn" data-filter="hoy">Hoy</button>
+                        </div>
+                    </div>
+
+                    <div class="citas-grid" id="citasGrid">
+                        <p class="loading">Cargando citas...</p>
+                    </div>
+                </section>
+
+                <!-- PUBLICACIONES SECTION -->
+                <section class="content-section" id="publicaciones-section">
+                    <div class="section-header">
+                        <h3>Gestionar Publicaciones</h3>
+                        <button class="btn-primary" onclick="vetController.nuevaPublicacion()">
+                            <i class="fas fa-plus"></i> Nueva publicación
+                        </button>
+                    </div>
+
+                    <div class="publicaciones-tabs">
+                        <button class="pub-tab active" data-pub-type="adopcion">En adopción</button>
+                        <button class="pub-tab" data-pub-type="perdidos">Mascotas perdidas</button>
+                        <button class="pub-tab" data-pub-type="encontrados">Mascotas encontradas</button>
+                    </div>
+
+                    <div class="publicaciones-grid" id="publicacionesGrid">
+                        <p class="loading">Cargando publicaciones...</p>
+                    </div>
+                </section>
+
+                <!-- ADOPCIONES SECTION -->
+                <section class="content-section" id="adopciones-section">
+                    <div class="section-header">
+                        <h3>Solicitudes de Adopción</h3>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="pendientes">Pendientes</button>
+                            <button class="filter-btn" data-filter="aprobadas">Aprobadas</button>
+                            <button class="filter-btn" data-filter="rechazadas">Rechazadas</button>
+                        </div>
+                    </div>
+
+                    <div class="solicitudes-grid" id="solicitudesGrid">
+                        <p class="loading">Cargando solicitudes...</p>
+                    </div>
+                </section>
+
+                <!-- RECLAMOS SECTION -->
+                <section class="content-section" id="reclamos-section">
+                    <div class="section-header">
+                        <h3>Reclamos de Mascotas</h3>
+                        <div class="filter-buttons">
+                            <button class="filter-btn active" data-filter="pendientes">Pendientes</button>
+                            <button class="filter-btn" data-filter="verificados">En verificación</button>
+                            <button class="filter-btn" data-filter="aprobados">Aprobados</button>
+                            <button class="filter-btn" data-filter="rechazados">Rechazados</button>
+                        </div>
+                    </div>
+
+                    <div class="reclamos-grid" id="reclamosGrid">
+                        <p class="loading">Cargando reclamos...</p>
+                    </div>
+                </section>
+
+                <!-- HORARIOS SECTION -->
+                <section class="content-section" id="horarios-section">
+                    <div class="section-header">
+                        <h3>Configuración de Horarios</h3>
+                    </div>
+
+                    <div class="horarios-card">
+                        <form id="horarioForm" class="horario-form">
+                            <div class="horario-grid" id="horarioGrid">
+                                <!-- Los días se generarán dinámicamente con JS -->
+                            </div>
+
+                            <div class="configuracion-adicional">
+                                <h4>Configuración adicional</h4>
+                                <div class="form-group">
+                                    <label for="duracionCita">Duración de cita (minutos)</label>
+                                    <select id="duracionCita" name="duracionCita">
+                                        <option value="15">15 minutos</option>
+                                        <option value="30" selected>30 minutos</option>
+                                        <option value="45">45 minutos</option>
+                                        <option value="60">60 minutos</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="diasAnticipacion">Días de anticipación para citas</label>
+                                    <select id="diasAnticipacion" name="diasAnticipacion">
+                                        <option value="7">7 días</option>
+                                        <option value="15">15 días</option>
+                                        <option value="30">30 días</option>
+                                        <option value="60">60 días</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn-primary">
+                                    <i class="fas fa-save"></i> Guardar cambios
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para ver detalles -->
+    <div id="detalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitulo">Detalles</h3>
+                <button class="modal-close" onclick="vetController.cerrarModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <!-- Botones dinámicos -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para cambiar estado -->
+    <div id="estadoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Cambiar estado</h3>
+                <button class="modal-close" onclick="vetController.cerrarEstadoModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="estadoForm">
+                    <input type="hidden" id="itemIdActual">
+                    <input type="hidden" id="itemTipoActual">
+
+                    <div class="form-group">
+                        <label for="nuevoEstado">Nuevo estado</label>
+                        <select id="nuevoEstado" required>
+                            <!-- Opciones dinámicas -->
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notasEstado">Notas / Comentarios</label>
+                        <textarea id="notasEstado" rows="4" placeholder="Añade notas..."></textarea>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Actualizar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="vetController.cerrarEstadoModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para nueva publicación -->
+    <div id="publicacionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nueva publicación</h3>
+                <button class="modal-close" onclick="vetController.cerrarPublicacionModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="publicacionForm">
+                    <div class="form-group">
+                        <label for="pubTipo">Tipo de publicación</label>
+                        <select id="pubTipo" required>
+                            <option value="adopcion">En adopción</option>
+                            <option value="perdido">Mascota perdida</option>
+                            <option value="encontrado">Mascota encontrada</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubTitulo">Título</label>
+                        <input type="text" id="pubTitulo" required placeholder="Ej: Gatitos en adopción">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubDescripcion">Descripción</label>
+                        <textarea id="pubDescripcion" rows="4" required
+                            placeholder="Describe la situación..."></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="pubEspecie">Especie</label>
+                            <select id="pubEspecie">
+                                <option value="perro">Perro</option>
+                                <option value="gato">Gato</option>
+                                <option value="otro">Otro</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="pubEdad">Edad aproximada</label>
+                            <input type="text" id="pubEdad" placeholder="Ej: 3 meses">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubUbicacion">Ubicación</label>
+                        <input type="text" id="pubUbicacion" required placeholder="Ej: Colonia Centro">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubImagen">Imagen (opcional)</label>
+                        <input type="file" id="pubImagen" accept="image/*">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">Publicar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="vetController.cerrarPublicacionModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="vetController.js"></script>
+</body>
+
+</html>
