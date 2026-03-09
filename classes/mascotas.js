@@ -25,6 +25,7 @@ class Mascota {
         microchip = '',
         esterilizado = 'No',
         historialMedico = '',
+        uidUsuario = '',
         foto = null,
         id = ''
     ) {
@@ -38,6 +39,7 @@ class Mascota {
         this.microchip = microchip;
         this.esterilizado = esterilizado;
         this.historialMedico = historialMedico;
+        this.uidUsuario = uidUsuario;
         this.foto = foto;
         this.fechaRegistro = new Date().toISOString();
         this.id = id;
@@ -116,6 +118,7 @@ class Mascota {
                 this.microchip = data.microchip || '';
                 this.esterilizado = data.esterilizado || 'No';
                 this.historialMedico = data.historialMedico || '';
+                this.uidUsuario = data.uidUsuario || '';
                 this.foto = data.foto || null;
                 this.fechaRegistro = data.fechaRegistro || new Date().toISOString();
 
@@ -171,6 +174,30 @@ class Mascota {
         }
     }
 
+    static async obtenerPorUsuario(uidUsuario) {
+        try {
+            const q = query(
+                collection(db, 'mascotas'),
+                where('uidUsuario', '==', uidUsuario)
+            );
+            const querySnapshot = await getDocs(q);
+
+            const mascotas = [];
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                mascotas.push({
+                    id: doc.id,
+                    ...data
+                });
+            });
+
+            return { success: true, mascotas };
+        } catch (error) {
+            console.error('❌ Error obteniendo mascotas por usuario:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
     // ============ MÉTODOS DE UTILIDAD ============
     toFirestoreData() {
         return {
@@ -184,6 +211,7 @@ class Mascota {
             microchip: this.microchip,
             esterilizado: this.esterilizado,
             historialMedico: this.historialMedico,
+            uidUsuario: this.uidUsuario,
             foto: this.foto,
             fechaRegistro: this.fechaRegistro
         };
