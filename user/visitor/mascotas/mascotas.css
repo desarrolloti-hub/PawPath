@@ -1,6 +1,6 @@
-/* mascotas.css - Diseño Unificado PawPath */
+/* mascotas.css - Estilos aislados para la vista de Mascotas */
 
-:root {
+.pet-page .pet-main {
     --color-primary: #667eea;
     --color-primary-dark: #5a67d8;
     --color-danger: #ff4d4d;
@@ -14,56 +14,57 @@
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
     --radius-md: 12px;
     --radius-lg: 20px;
+    
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--color-text);
+    line-height: 1.6;
+    background: #c3cfe2;
+    min-height: calc(100vh - 120px);
+    padding: 32px 16px 48px;
 }
 
-* {
-    margin: 0;
-    padding: 0;
+.pet-page .pet-main *,
+.pet-page .pet-main *::before,
+.pet-page .pet-main *::after {
     box-sizing: border-box;
 }
 
-.container {
+.pet-page .pet-main .container {
+    width: 100%;
     max-width: 1000px;
-    margin: 40px auto;
+    margin: 0 auto;
     padding: 40px 30px;
-    background-color: white;
+    background-color: #fff;
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     border: 1px solid var(--color-gray-200);
 }
 
-body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background:  #c3cfe2 ;
-    color: var(--color-text);
-    line-height: 1.6;
-}
-
-/* --- ENCABEZADO --- */
-.header {
+.pet-page .pet-main .header {
     text-align: center;
     margin-bottom: 50px;
 }
 
-.auth-logo {
+.pet-page .pet-main .auth-logo {
     font-size: 3.5rem;
     margin-bottom: 10px;
 }
 
-.header h1 {
+.pet-page .pet-main .header h1 {
     font-size: 2.5rem;
     font-weight: 800;
     color: var(--color-text);
+    margin: 0;
 }
 
-.header p {
+.pet-page .pet-main .header p {
     color: var(--color-text-light);
-    margin-bottom: 25px;
+    margin: 8px 0 25px;
 }
 
-.btn-agregar {
+.pet-page .pet-main .btn-agregar {
     background: var(--color-primary);
-    color: white;
+    color: #fff;
     border: none;
     padding: 14px 28px;
     border-radius: 50px;
@@ -74,22 +75,21 @@ body {
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.btn-agregar:hover {
+.pet-page .pet-main .btn-agregar:hover {
     transform: translateY(-2px);
     background: var(--color-primary-dark);
     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
 }
 
-/* --- GRID DE TARJETAS (Vista Usuario) --- */
-.pet-cards {
+.pet-page .pet-main .pet-cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 30px;
     margin-top: 20px;
 }
 
-.pet-card {
-    background: white;
+.pet-page .pet-main .pet-card {
+    background: #fff;
     border-radius: var(--radius-lg);
     overflow: hidden;
     position: relative;
@@ -98,18 +98,17 @@ body {
     border: 1px solid var(--color-gray-200);
 }
 
-.pet-card:hover {
+.pet-page .pet-main .pet-card:hover {
     transform: translateY(-10px);
     box-shadow: var(--shadow-lg);
 }
 
-/* Botón Eliminar (Esquina) */
-.btn-delete-card {
+.pet-page .pet-main .btn-delete-card {
     position: absolute;
     top: 15px;
     right: 15px;
     background: rgba(255, 77, 77, 0.9);
-    color: white;
+    color: #fff;
     border: none;
     width: 35px;
     height: 35px;
@@ -122,12 +121,12 @@ body {
     transition: 0.2s;
 }
 
-.btn-delete-card:hover {
+.pet-page .pet-main .btn-delete-card:hover {
     background: #e53e3e;
     transform: scale(1.1);
 }
 
-.pet-img-container {
+.pet-page .pet-main .pet-img-container {
     height: 200px;
     width: 100%;
     overflow: hidden;
@@ -135,25 +134,25 @@ body {
     background-color: var(--color-gray-100);
 }
 
-.pet-img-container img {
+.pet-page .pet-main .pet-img-container img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.pet-info {
+.pet-page .pet-main .pet-info {
     padding: 20px;
     text-align: center;
     cursor: pointer;
 }
 
-.pet-info h3 {
+.pet-page .pet-main .pet-info h3 {
     font-size: 1.4rem;
-    margin-bottom: 5px;
+    margin: 0 0 5px;
     font-weight: 700;
 }
 
-.badge {
+.pet-page .pet-main .badge {
     background: #ebf4ff;
     color: var(--color-primary);
     padding: 4px 12px;
@@ -164,7 +163,7 @@ body {
     letter-spacing: 0.5px;
 }
 
-.pet-stats {
+.pet-page .pet-main .pet-stats {
     display: flex;
     justify-content: center;
     gap: 20px;
@@ -175,12 +174,25 @@ body {
     font-size: 0.9rem;
 }
 
-/* --- MODAL ESTILO PET-REGISTER --- */
-.modal-backdrop {
-    display: none; /* Se activa con JS */
+.pet-page .pet-main .loading-state {
+    text-align: center;
+    padding: 48px 16px;
+    color: var(--color-text-light);
+}
+
+.pet-page .pet-main .loading-state i {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    color: var(--color-primary);
+}
+
+.pet-page .pet-main .modal-backdrop {
+    display: none;
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     background: rgba(0, 0, 0, 0.6);
     backdrop-filter: blur(5px);
     z-index: 2000;
@@ -189,8 +201,8 @@ body {
     padding: 20px;
 }
 
-.modal-form {
-    background: white;
+.pet-page .pet-main .modal-form {
+    background: #fff;
     width: 100%;
     max-width: 650px;
     max-height: 90vh;
@@ -198,15 +210,22 @@ body {
     overflow-y: auto;
     position: relative;
     padding: 40px;
-    animation: slideUp 0.4s ease-out;
+    animation: petSlideUp 0.4s ease-out;
 }
 
-@keyframes slideUp {
-    from { transform: translateY(30px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@keyframes petSlideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
-.close-modal {
+.pet-page .pet-main .close-modal {
     position: absolute;
     top: 20px;
     right: 25px;
@@ -216,53 +235,196 @@ body {
     transition: 0.2s;
 }
 
-.close-modal:hover { color: var(--color-danger); }
+.pet-page .pet-main .close-modal:hover {
+    color: var(--color-danger);
+}
 
-/* --- FORMULARIO INTERNO --- */
-.form-grid {
+.pet-page .pet-main .auth-header {
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+.pet-page .pet-main .auth-header h2 {
+    margin: 0;
+}
+
+.pet-page .pet-main .auth-subtitle {
+    color: var(--color-text-light);
+    margin-top: 8px;
+    font-size: 1rem;
+}
+
+.pet-page .pet-main .form-container {
+    margin-top: 8px;
+}
+
+.pet-page .pet-main .auth-form {
+    margin-bottom: 24px;
+}
+
+.pet-page .pet-main .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-top: 25px;
 }
 
-.full-width { grid-column: span 2; }
+.pet-page .pet-main .full-width {
+    grid-column: span 2;
+}
 
-.form-group label {
-    display: block;
+.pet-page .pet-main .form-group {
+    margin-bottom: 16px;
+}
+
+.pet-page .pet-main .form-group label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     margin-bottom: 8px;
     color: var(--color-text);
 }
 
-.form-group input, 
-.form-group select, 
-.form-group textarea {
+.pet-page .pet-main .form-group label i {
+    color: var(--color-primary);
+    font-size: 1rem;
+}
+
+.pet-page .pet-main .form-group input,
+.pet-page .pet-main .form-group select,
+.pet-page .pet-main .form-group textarea {
     width: 100%;
-    padding: 12px 16px;
-    border: 2px solid var(--color-gray-300);
+    padding: 14px 16px;
+    border: 2px solid var(--color-gray-200);
     border-radius: var(--radius-md);
     font-family: inherit;
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--color-gray-100);
 }
 
-.form-group input:focus, 
-.form-group select:focus {
-    border-color: var(--color-primary);
+.pet-page .pet-main .form-group input:hover,
+.pet-page .pet-main .form-group select:hover,
+.pet-page .pet-main .form-group textarea:hover {
+    border-color: var(--color-gray-300);
+}
+
+.pet-page .pet-main .form-group textarea {
+    resize: vertical;
+}
+
+.pet-page .pet-main .form-group input:focus,
+.pet-page .pet-main .form-group select:focus,
+.pet-page .pet-main .form-group textarea:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    border-color: var(--color-primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(79, 124, 172, 0.1);
 }
 
-/* Radio buttons estilizados */
-.radio-group {
+.pet-page .pet-main .form-group input::placeholder,
+.pet-page .pet-main .form-group textarea::placeholder {
+    color: #94a3b8;
+}
+
+.pet-page .pet-main .row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.pet-page .pet-main .col {
+    flex: 1;
+}
+
+.pet-page .pet-main .col label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: var(--color-text);
+    font-size: 0.95rem;
+}
+
+.pet-page .pet-main .col input,
+.pet-page .pet-main .col select,
+.pet-page .pet-main .col textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid var(--color-gray-200);
+    border-radius: var(--radius-md);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    background: var(--color-gray-100);
+}
+
+.pet-page .pet-main .col input:hover,
+.pet-page .pet-main .col select:hover,
+.pet-page .pet-main .col textarea:hover {
+    border-color: var(--color-gray-300);
+}
+
+.pet-page .pet-main .col input:focus,
+.pet-page .pet-main .col select:focus,
+.pet-page .pet-main .col textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(79, 124, 172, 0.1);
+}
+
+.pet-page .pet-main .col input::placeholder,
+.pet-page .pet-main .col textarea::placeholder {
+    color: #94a3b8;
+}
+
+.pet-page .pet-main .checkbox-group {
+    margin: 20px 0;
+}
+
+.pet-page .pet-main .checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-weight: 400;
+    color: var(--color-text);
+}
+
+.pet-page .pet-main .checkbox-group input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--color-primary);
+}
+
+.pet-page .pet-main .text-right {
+    text-align: right;
+    margin-top: -10px;
+    margin-bottom: 10px;
+}
+
+.pet-page .pet-main .text-right a {
+    color: var(--color-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pet-page .pet-main .text-right a:hover {
+    text-decoration: underline;
+}
+
+.pet-page .pet-main .radio-group {
     display: flex;
     gap: 20px;
     padding: 10px 0;
 }
 
-.radio-option {
+.pet-page .pet-main .radio-option {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -270,8 +432,7 @@ body {
     font-weight: 500;
 }
 
-/* Uploader de foto */
-.pet-photo-uploader {
+.pet-page .pet-main .pet-photo-uploader {
     display: flex;
     align-items: center;
     gap: 20px;
@@ -281,11 +442,11 @@ body {
     border: 2px dashed var(--color-gray-300);
 }
 
-.photo-preview {
+.pet-page .pet-main .photo-preview {
     width: 100px;
     height: 100px;
     border-radius: 12px;
-    background: white;
+    background: #fff;
     border: 1px solid var(--color-gray-300);
     display: flex;
     align-items: center;
@@ -295,37 +456,21 @@ body {
     font-size: 2rem;
 }
 
-.photo-preview img {
+.pet-page .pet-main .photo-preview img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.btn-save {
-    flex: 1;
-    background: var(--color-primary);
-    color: white;
-    border: none;
-    padding: 16px;
-    border-radius: var(--radius-md);
-    font-weight: 700;
-    font-size: 1.1rem;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-.btn-save:hover { background: var(--color-primary-dark); }
-
-.form-actions {
+.pet-page .pet-main .form-actions {
     display: flex;
     gap: 12px;
     margin-top: 20px;
 }
 
-.btn-cancel {
+.pet-page .pet-main .btn-save,
+.pet-page .pet-main .btn-cancel {
     flex: 1;
-    background: var(--color-gray-300);
-    color: var(--color-text);
     border: none;
     padding: 16px;
     border-radius: var(--radius-md);
@@ -335,15 +480,50 @@ body {
     transition: 0.3s;
 }
 
-.btn-cancel:hover {
+.pet-page .pet-main .btn-save {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.pet-page .pet-main .btn-save:hover {
+    background: var(--color-primary-dark);
+}
+
+.pet-page .pet-main .btn-cancel {
+    background: var(--color-gray-300);
+    color: var(--color-text);
+}
+
+.pet-page .pet-main .btn-cancel:hover {
     background: var(--color-gray-200);
 }
 
-.btn-save {
-    flex: 1;
-}
 @media (max-width: 600px) {
-    .form-grid { grid-template-columns: 1fr; }
-    .full-width { grid-column: span 1; }
-    .modal-form { padding: 25px; }
+    .pet-page .pet-main {
+        padding: 24px 12px 40px;
+    }
+
+    .pet-page .pet-main .container {
+        padding: 24px 18px;
+    }
+
+    .pet-page .pet-main .header h1 {
+        font-size: 2rem;
+    }
+
+    .pet-page .pet-main .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pet-page .pet-main .full-width {
+        grid-column: span 1;
+    }
+
+    .pet-page .pet-main .modal-form {
+        padding: 25px;
+    }
+
+    .pet-page .pet-main .form-actions {
+        flex-direction: column;
+    }
 }
