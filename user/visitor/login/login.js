@@ -210,8 +210,8 @@ class AuthManager {
         // 🔴 AJUSTA ESTAS RUTAS SEGÚN TU PROYECTO
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
-            'veterinario': '/user/veterinario/dashVeterinario/dashVeterinario.html',
-            'usuario': 'index.html'
+            'veterinario': '/user/veterinario/dashVeterinario/veterinario.html',
+            'usuario': '/index.html'
         };
 
         console.log('📋 Rutas configuradas:', roleRoutes);
