@@ -195,6 +195,69 @@
     font-size: 1.2rem;
 }
 
+/* Estilo para filas de usuarios suspendidos */
+.usuario-suspendido {
+    background-color: rgba(220, 53, 69, 0.05);
+    /* Rojo transparente */
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.usuario-suspendido:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    /* Un poco más intenso al hover */
+}
+
+/* Estilo para botón de reactivar (verde) */
+.btn-reactivar {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.btn-reactivar:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Estilo para botón de suspender (amarillo) */
+.btn-suspender {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.btn-suspender:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+/* Ajuste para acciones */
+.acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1024px) {
     .container-all {

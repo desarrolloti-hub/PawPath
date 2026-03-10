@@ -18,12 +18,12 @@ class Admin_usuariosController {
             document.addEventListener('DOMContentLoaded', () => {
                 console.log("✅ Evento DOMContentLoaded recibido");
                 this.cargarUsuarios();
-                this.configurarBuscador(); // ← Agregado
+                this.configurarBuscador();
             });
         } else {
             console.log("✅ DOM ya cargado, ejecutando inmediatamente");
             this.cargarUsuarios();
-            this.configurarBuscador(); // ← Agregado
+            this.configurarBuscador();
         }
     }
 
@@ -37,12 +37,12 @@ class Admin_usuariosController {
     async cargarUsuarios() {
         console.log("🔄 Método cargarUsuarios() ejecutándose");
         try {
-            console.log("🔄 Llamando a Admin_usuarios.obtenerUsuarios()...")
+            console.log("🔄 Llamando a Admin_usuarios.obtenerUsuarios()...");
             const resultado = await Admin_usuarios.obtenerUsuarios();
             console.log("📦 Resultado recibido:", resultado);
 
             if (resultado.success) {
-                console.log('Usuarios cargados:', resultado.usuarios);
+                console.log('Usuarios cargados:', resultado.usuarios.length);
                 this.renderizarTabla(resultado.usuarios);
             } else {
                 this.mostrarAlerta('Error', resultado.error, 'error');
@@ -78,8 +78,18 @@ class Admin_usuariosController {
             console.log("📌 Usuario:", usuario);
 
             const row = tbody.insertRow();
+            
+            // Clase para usuarios suspendidos (fondo transparente)
+            if (usuario.suspendido) {
+                row.classList.add('usuario-suspendido');
+            }
 
-            // ✅ TUS BOTONES ORIGINALES - SIN MODIFICAR
+            // Determinar texto e icono del botón según estado
+            const botonTexto = usuario.suspendido ? 'Reactivar' : 'Suspender';
+            const botonIcono = usuario.suspendido ? 'fa-check-circle' : 'fa-ban';
+            const botonClase = usuario.suspendido ? 'btn-reactivar' : 'btn-suspender';
+            const botonTitulo = usuario.suspendido ? 'Reactivar usuario' : 'Suspender usuario';
+
             row.innerHTML = `
                 <td>${this.escapeHtml(usuario.nombre || '')}</td>
                 <td>${this.escapeHtml(usuario.apellidos || '')}</td>
@@ -90,8 +100,10 @@ class Admin_usuariosController {
                     <button class="btn-eliminar" onclick="admin_usuariosController.eliminarUsuario('${usuario.id}')" title="Eliminar usuario">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <button class="btn-editar" onclick="admin_usuariosController.suspenderUsuario('${usuario.id}')" title="Suspender usuario">
-                        <i class="fas fa-person"></i>
+                    <button class="${botonClase}" 
+                            onclick="admin_usuariosController.suspenderUsuario('${usuario.id}')" 
+                            title="${botonTitulo}">
+                        <i class="fas ${botonIcono}"></i> ${botonTexto}
                     </button>
                 </td>
             `;
@@ -100,14 +112,10 @@ class Admin_usuariosController {
         console.log("✅ Renderizado completado");
     }
 
-    // ============ NUEVOS MÉTODOS AGREGADOS ============
-
     configurarBuscador() {
         const inputBuscar = document.getElementById('buscarNombre');
-        if (!inputBuscar) {
-            console.warn('⚠️ No se encontró el input de búsqueda');
-            return;
-        }
+        if (!inputBuscar) return;
+        
         let timeoutId;
         inputBuscar.addEventListener('input', (e) => {
             clearTimeout(timeoutId);
@@ -115,30 +123,21 @@ class Admin_usuariosController {
                 this.buscarUsuario(e.target.value);
             }, 300);
         });
-        inputBuscar.addEventListener('keypress', (e) => {
-            if (e.key == 'Enter') {
-                clearTimeout(timeoutId);
-                this.buscarUsuario(e.target.value);
-            }
-        });
     }
 
     async buscarUsuario(termino) {
-        console.log('🔍 Buscando usuarios con término:', termino);
         try {
-            if (!termino || termino.trim() == '') {
+            if (!termino || termino.trim() === '') {
                 this.cargarUsuarios();
                 return;
             }
-            // Usar el método correcto del modelo: buscarUsuarios (con 's')
             const resultado = await Admin_usuarios.buscarUsuarios(termino);
             if (!resultado.success) {
                 this.mostrarNotificacion("Error al buscar", "error");
                 return;
             }
-            console.log(`📊 ${resultado.usuarios.length} usuarios encontrados`);
 
-            if (resultado.usuarios.length == 0) {
+            if (resultado.usuarios.length === 0) {
                 const tbody = document.getElementById("tabla-usuarios");
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se encontraron usuarios</td></tr>';
@@ -152,6 +151,7 @@ class Admin_usuariosController {
         }
     }
 
+    // ========== MÉTODO SUSPENDER USUARIO CORREGIDO ==========
     async suspenderUsuario(id) {
         try {
             console.log('🔒 Preparando suspensión/activación de usuario:', id);
@@ -161,16 +161,19 @@ class Admin_usuariosController {
             admin_usuarios.id = id;
 
             const resultado = await admin_usuarios.listarUsuarios(id);
-            let nombreUsuario = 'este usuario';
-            let estadoActual = 'activo';
-
-            if (resultado.success) {
-                const usuario = resultado.usuario;
-                nombreUsuario = `${usuario.nombre} ${usuario.apellidos}`.trim();
-                estadoActual = usuario.suspendido ? 'suspendido' : 'activo';
+            
+            if (!resultado.success) {
+                this.mostrarNotificacion('No se pudo obtener información del usuario', 'error');
+                return;
             }
 
-            const esSuspender = estadoActual === 'activo';
+            const usuario = resultado.usuario;
+            const nombreUsuario = `${usuario.nombre} ${usuario.apellidos}`.trim() || 'este usuario';
+            const suspendido = usuario.suspendido === true; // Estado actual
+
+            console.log('📊 Estado actual del usuario:', suspendido ? 'SUSPENDIDO' : 'ACTIVO');
+
+            const esSuspender = !suspendido; // Si no está suspendido, vamos a suspender
             const titulo = esSuspender ? '¿Suspender usuario?' : '¿Reactivar usuario?';
             const mensaje = esSuspender
                 ? `¿Estás seguro de que deseas suspender a <strong>${nombreUsuario}</strong>?`
@@ -202,13 +205,21 @@ class Admin_usuariosController {
 
             this.mostrarLoading(true);
 
-            // Ejecutar suspensión/activación
+            // Ejecutar la acción
             const admin_usuarios2 = new Admin_usuarios();
             admin_usuarios2.id = id;
 
-            const resultadoOperacion = esSuspender
-                ? await admin_usuarios2.suspenderUsuario('suspendido')
-                : await admin_usuarios2.reactivarUsuario();
+            let resultadoOperacion;
+            
+            if (esSuspender) {
+                console.log('🔒 Ejecutando suspensión...');
+                resultadoOperacion = await admin_usuarios2.suspenderUsuario('suspendido');
+            } else {
+                console.log('🔄 Ejecutando reactivación...');
+                resultadoOperacion = await admin_usuarios2.reactivarUsuario();
+            }
+
+            console.log('📥 Resultado:', resultadoOperacion);
 
             this.mostrarLoading(false);
 
@@ -222,9 +233,10 @@ class Admin_usuariosController {
                     showConfirmButton: false
                 });
 
+                // Recargar la tabla
                 this.cargarUsuarios();
             } else {
-                this.mostrarNotificacion(resultadoOperacion.error, 'error');
+                this.mostrarNotificacion(resultadoOperacion.error || 'Error al procesar', 'error');
             }
 
         } catch (error) {
@@ -238,37 +250,38 @@ class Admin_usuariosController {
         try {
             console.log('🗑️ Preparando eliminación de usuario:', id);
 
-            // Obtener información del usuario para mostrar en el modal
             const admin_usuarios = new Admin_usuarios();
             admin_usuarios.id = id;
 
-            // Opcional: cargar datos del usuario para mostrarlos en el modal
             const resultado = await admin_usuarios.listarUsuarios(id);
             if (resultado.success) {
                 const usuario = resultado.usuario;
-                document.getElementById('nombreUsuarioEliminar').textContent =
-                    `${usuario.nombre} ${usuario.apellidos}`;
-                document.getElementById('infoUsuarioEliminar').style.display = 'block';
+                const nombreSpan = document.getElementById('nombreUsuarioEliminar');
+                const infoDiv = document.getElementById('infoUsuarioEliminar');
+                
+                if (nombreSpan && infoDiv) {
+                    nombreSpan.textContent = `${usuario.nombre} ${usuario.apellidos}`.trim();
+                    infoDiv.style.display = 'block';
+                }
             }
 
-            // Configurar el botón de confirmación
             const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+            if (!btnConfirmar) {
+                console.error('❌ Botón de confirmación no encontrado');
+                return;
+            }
 
-            // Remover event listeners anteriores para evitar duplicados
             btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
             const nuevoBtnConfirmar = document.getElementById('btnConfirmarEliminar');
 
-            // Agregar event listener para la eliminación
             nuevoBtnConfirmar.addEventListener('click', async () => {
-                // Cerrar el modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminar'));
-                modal.hide();
+                const modalEl = document.getElementById('modalConfirmarEliminar');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
 
-                // Mostrar indicador de carga
                 this.mostrarLoading(true);
 
                 try {
-                    console.log('🔄 Ejecutando eliminación en Firebase...');
                     const admin_usuarios = new Admin_usuarios();
                     admin_usuarios.id = id;
 
@@ -278,10 +291,7 @@ class Admin_usuariosController {
                     this.mostrarLoading(false);
 
                     if (resultadoEliminacion.success) {
-                        // Mostrar mensaje de éxito
                         this.mostrarNotificacion('Usuario eliminado correctamente', 'success');
-
-                        // Recargar la tabla
                         setTimeout(() => {
                             this.cargarUsuarios();
                         }, 500);
@@ -295,7 +305,6 @@ class Admin_usuariosController {
                 }
             });
 
-            // Mostrar el modal
             const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminar'));
             modal.show();
 
@@ -305,10 +314,8 @@ class Admin_usuariosController {
         }
     }
 
-    // Método para mostrar/ocultar loading
     mostrarLoading(mostrar) {
         let loadingEl = document.getElementById('loadingOverlay');
-
         if (!loadingEl && mostrar) {
             loadingEl = document.createElement('div');
             loadingEl.id = 'loadingOverlay';
@@ -327,9 +334,9 @@ class Admin_usuariosController {
         }
     }
 
-    // Método para mostrar notificaciones
     mostrarNotificacion(mensaje, tipo) {
-        // Crear contenedor de notificaciones si no existe
+        const texto = mensaje || (tipo === 'success' ? 'Operación exitosa' : 'Error en la operación');
+        
         let container = document.getElementById('notificacionContainer');
         if (!container) {
             container = document.createElement('div');
@@ -343,19 +350,17 @@ class Admin_usuariosController {
             document.body.appendChild(container);
         }
 
-        // Crear notificación
         const notificacion = document.createElement('div');
         notificacion.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
         notificacion.role = 'alert';
         notificacion.innerHTML = `
             <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
-            ${mensaje}
+            ${texto}
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         `;
 
         container.appendChild(notificacion);
 
-        // Auto-cerrar después de 3 segundos
         setTimeout(() => {
             notificacion.remove();
         }, 3000);

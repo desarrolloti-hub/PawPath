@@ -325,3 +325,4 @@ class MascotasController {
 document.addEventListener('DOMContentLoaded', () => {
     window.mascotasController = new MascotasController();
 });
+export default MascotasController
