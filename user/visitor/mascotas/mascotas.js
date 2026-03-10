@@ -162,16 +162,17 @@ class MascotasController {
         mascotas.forEach(m => {
             const card = document.createElement('div');
             card.className = 'pet-card';
+            card.onclick = () => this.irADetalle(m.id);
             card.innerHTML = `
                 <button class="btn-delete-card" onclick="event.stopPropagation(); mascotasController.eliminarMascota('${m.id}')">
                     <i class="fas fa-times"></i>
                 </button>
                 
-                <div class="pet-img-container" onclick="mascotasController.abrirModal('${m.id}')">
+                <div class="pet-img-container">
                     <img src="${m.foto || 'https://via.placeholder.com/300x200?text=Sin+Foto'}" alt="${m.nombre}">
                 </div>
 
-                <div class="pet-info" onclick="mascotasController.abrirModal('${m.id}')">
+                <div class="pet-info">
                     <span class="badge">${m.especie}</span>
                     <h3>${m.nombre}</h3>
                     <p>${m.raza || 'Raza no especificada'}</p>
@@ -183,6 +184,11 @@ class MascotasController {
             `;
             contenedor.appendChild(card);
         });
+    }
+
+    irADetalle(idMascota) {
+        if (!idMascota) return;
+        window.location.href = `/user/visitor/Mascotas/mascota-detalle.html?id=${encodeURIComponent(idMascota)}`;
     }
 
     async cargarDatosMascota(id) {

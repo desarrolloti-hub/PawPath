@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Mascota · PawPath</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="mascota-detalle.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body class="pet-detail-page" style="margin: 0;">
+    <navbar-visitor></navbar-visitor>
+
+    <main class="pet-detail-main">
+        <div class="detail-container">
+            <div class="detail-actions-top">
+                <button id="btnVolver" class="btn-back">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </button>
+                <button id="btnEditarMascota" class="btn-edit">
+                    <i class="fas fa-pen"></i> Editar informacion
+                </button>
+            </div>
+
+            <section class="pet-hero">
+                <div class="pet-photo-wrap">
+                    <img id="petFoto" src="https://via.placeholder.com/320x320?text=Sin+Foto" alt="Foto de mascota">
+                </div>
+                <div class="pet-summary">
+                    <span id="petEspecie" class="pill">Especie</span>
+                    <h1 id="petNombre">Mascota</h1>
+                    <p id="petRaza" class="pet-subtitle">Raza</p>
+                    <div class="pet-mini-stats">
+                        <span><i class="fas fa-calendar-alt"></i> <strong id="petEdad">-</strong></span>
+                        <span><i class="fas fa-weight"></i> <strong id="petPeso">-</strong></span>
+                        <span><i class="fas fa-venus-mars"></i> <strong id="petGenero">-</strong></span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="pet-grid">
+                <article class="data-card">
+                    <h2><i class="fas fa-id-card"></i> Informacion general</h2>
+                    <p><strong>Color:</strong> <span id="petColores">-</span></p>
+                    <p><strong>Microchip:</strong> <span id="petMicrochip">-</span></p>
+                    <p><strong>Esterilizado:</strong> <span id="petEsterilizado">-</span></p>
+                </article>
+
+                <article class="data-card">
+                    <h2><i class="fas fa-notes-medical"></i> Historial medico</h2>
+                    <p id="petHistorial" class="history-text">Sin informacion registrada.</p>
+                </article>
+            </section>
+        </div>
+
+        <div id="modalMascota" class="modal-backdrop">
+            <div class="modal-form">
+                <div class="auth-header">
+                    <div class="title-row">
+                        <h2>Editar Mascota</h2>
+                        <span id="btnCerrarModal" class="close-modal">&times;</span>
+                    </div>
+                    <p class="auth-subtitle">Actualiza la informacion de tu mascota</p>
+                </div>
+
+                <div class="form-container">
+                    <input type="hidden" id="mascotaId">
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nombreMascota"><i class="fas fa-tag"></i> Nombre *</label>
+                            <input type="text" id="nombreMascota" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="especieMascota"><i class="fas fa-dog"></i> Especie *</label>
+                            <select id="especieMascota" required>
+                                <option value="">Seleccione una especie</option>
+                                <option value="Perro">Perro</option>
+                                <option value="Gato">Gato</option>
+                                <option value="Ave">Ave</option>
+                                <option value="Roedor">Roedor</option>
+                                <option value="Reptil">Reptil</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="generoMascota"><i class="fas fa-venus-mars"></i> Genero</label>
+                            <select id="generoMascota">
+                                <option value="">Seleccione un genero</option>
+                                <option value="Macho">Macho</option>
+                                <option value="Hembra">Hembra</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="razaMascota"><i class="fas fa-dna"></i> Raza</label>
+                            <input type="text" id="razaMascota">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coloresMascota"><i class="fas fa-palette"></i> Color</label>
+                            <input type="text" id="coloresMascota">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edadMascota"><i class="fas fa-calendar-alt"></i> Edad (anos)</label>
+                            <input type="number" id="edadMascota" step="1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="pesoMascota"><i class="fas fa-weight"></i> Peso (kg)</label>
+                            <input type="number" id="pesoMascota" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="microchipMascota"><i class="fas fa-microchip"></i> Numero de Microchip</label>
+                        <input type="text" id="microchipMascota">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-stethoscopes"></i> Esta esterilizado?</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="esterilizado" value="Sí"> Si
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="esterilizado" value="No" checked> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="historialMedico"><i class="fas fa-notes-medical"></i> Historial / Notas medicas</label>
+                        <textarea id="historialMedico" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label><i class="fas fa-camera"></i> Foto de perfil</label>
+                        <div class="pet-photo-uploader">
+                            <div id="fotoPreview" class="photo-preview">
+                                <img id="fotoPreviewImg" src="" alt="Vista previa" style="display:none;" />
+                                <i id="placeholderIcon" class="fas fa-image"></i>
+                            </div>
+                            <input type="file" id="fotoMascota" accept="image/*">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button id="btnGuardar" class="btn-save">
+                            <i class="fas fa-save"></i> Guardar cambios
+                        </button>
+                        <button type="button" id="btnCancelar" class="btn-cancel">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <main-footer></main-footer>
+
+    <script type="module" src="/user/visitor/Mascotas/mascota-detalle.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script type="module" src="/components/JS ads-banner-component.js"></script>
+    <script type="module" src="/components/JS forum-card-component.js"></script>
+    <script type="module" src="/components/JS FooterVisitor.js"></script>
+    <script type="module" src="/index.js"></script>
+</body>
+
+</html>
