@@ -1,4 +1,3 @@
-// models/Veterinario.js
 import { db, auth } from '/config/firebase-config.js';
 import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
@@ -11,7 +10,131 @@ class Veterinario {
     }
 
 
-    // Obtener datos del veterinario actual
+    async obtenerVeterinarios(filtros = {}) {
+        try {
+
+            let q = query(
+                collection(this.db, this.veterinariosCollection)
+                // where('activo', '==', true) // no me detecta el fokin campo
+            );
+
+            const querySnapshot = await getDocs(q);
+            const veterinarios = [];
+
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+
+                if (data.activo === true) {
+                    const nombreMostrar = data.nombreCompleto ||
+                        `${data.primerNombre || ''} ${data.segundoNombre || ''} ${data.apellidoPat || ''} ${data.apellidoMat || ''}`.trim();
+
+                    const especialidadPrincipal = data.especialidades?.length > 0
+                        ? data.especialidades[0]
+                        : 'Veterinario General';
+
+                    veterinarios.push({
+                        id: doc.id,
+                        nombre: nombreMostrar || 'Veterinario',
+                        nombreClinica: data.nombreClinica || 'Clínica sin nombre',
+                        specialty: this.formatearEspecialidad(especialidadPrincipal),
+                        especialidades: data.especialidades || [],
+                        horarioSemanal: data.horarioSemanal || [],
+                        duracionCita: data.duracionCita || 30,
+                        rating: data.rating || 0,
+                        totalReseñas: data.totalReseñas || 0,
+                        location: data.direccion || 'Ubicación no disponible',
+                        available: this.verificarDisponibilidad(data.horarioSemanal),
+                        foto: data.fotoPerfil || null,
+                        fotoClinica: data.fotoClinica || null,
+                        telefono: data.telefono
+                    });
+                }
+            });
+
+            return { success: true, data: veterinarios };
+
+        } catch (error) {
+            console.error('error al obtener',error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    formatearEspecialidad(esp) {
+        const especialidades = {
+            'perros': '🐕 Especialista en Perros',
+            'gatos': '🐈 Especialista en Gatos',
+            'aves': '🦜 Especialista en Aves',
+            'roedores': '🐹 Especialista en Roedores',
+            'reptiles': '🦎 Especialista en Reptiles',
+            'emergencias': '🚑 Emergencias 24/7',
+            'cirugias': '🔬 Cirugía Veterinaria',
+            'hospitalizacion': '🏥 Hospitalización'
+        };
+        return especialidades[esp] || esp;
+    }
+
+
+    verificarDisponibilidad(horarioSemanal) {
+        if (!horarioSemanal || !Array.isArray(horarioSemanal)) {
+            return false;
+        }
+
+        const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+        const hoy = new Date();
+        const diaSemana = dias[hoy.getDay()];
+
+        const horarioHoy = horarioSemanal.find(h => h.dia === diaSemana);
+
+        if (!horarioHoy || !horarioHoy.activo) {
+            return false;
+        }
+
+        const horaActual = hoy.getHours();
+        const minutosActual = hoy.getMinutes();
+        const horaActualStr = `${horaActual.toString().padStart(2, '0')}:${minutosActual.toString().padStart(2, '0')}`;
+
+        const [horaApertura, minApertura] = horarioHoy.apertura.split(':');
+        const [horaCierre, minCierre] = horarioHoy.cierre.split(':');
+
+        const aperturaMinutos = parseInt(horaApertura) * 60 + parseInt(minApertura);
+        const cierreMinutos = parseInt(horaCierre) * 60 + parseInt(minCierre);
+        const actualMinutos = horaActual * 60 + minutosActual;
+
+        return actualMinutos < cierreMinutos;
+    }
+
+    formatearEspecialidad(esp) {
+        if (!esp) return 'Veterinario General';
+
+        const especialidades = {
+            'perros': '🐕 Especialista en Perros',
+            'gatos': '🐈 Especialista en Gatos',
+            'aves': '🦜 Especialista en Aves',
+            'roedores': '🐹 Especialista en Roedores',
+            'reptiles': '🦎 Especialista en Reptiles',
+            'emergencias': '🚑 Emergencias 24/7',
+            'cirugias': '🔬 Cirugía Veterinaria',
+            'hospitalizacion': '🏥 Hospitalización'
+        };
+        return especialidades[esp] || esp;
+    }
+    //falta meterlo
+    generarEstrellasHTML(rating) {
+        if (!rating) return '<i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i><i class="far fa-star"></i>';
+
+        let estrellas = '';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= Math.floor(rating)) {
+                estrellas += '<i class="fas fa-star"></i>';
+            } else if (i - rating < 1 && i - rating > 0) {
+                estrellas += '<i class="fas fa-star-half-alt"></i>';
+            } else {
+                estrellas += '<i class="far fa-star"></i>';
+            }
+        }
+        return estrellas;
+    }
+
     async obtenerVeterinarioActual() {
         try {
             const user = this.auth.currentUser;
@@ -39,7 +162,8 @@ class Veterinario {
         }
     }
 
-    // Obtener citas del veterinario
+
+
     async obtenerCitasVeterinario(veterinarioId, filtros = {}) {
         try {
             let q = query(
@@ -70,7 +194,6 @@ class Veterinario {
         }
     }
 
-    // Actualizar estado de una cita
     async actualizarEstadoCita(citaId, nuevoEstado, notas = '') {
         try {
             const user = this.auth.currentUser;
@@ -107,7 +230,6 @@ class Veterinario {
         }
     }
 
-    // Guardar/Actualizar configuración de horario
     async guardarConfiguracionHorario(veterinarioId, horarioConfig) {
         try {
             const vetRef = doc(this.db, this.veterinariosCollection, veterinarioId);
@@ -124,7 +246,6 @@ class Veterinario {
         }
     }
 
-    // Obtener estadísticas del veterinario
     async obtenerEstadisticas(veterinarioId) {
         try {
             const citas = await this.obtenerCitasVeterinario(veterinarioId);

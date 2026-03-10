@@ -1,8 +1,6 @@
-// views/veterinario/vetController.js
 import { auth } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { db } from '/config/firebase-config.js';
 import Veterinario from '/classes/Veterinario.js';
 
 class VetController {
@@ -41,7 +39,7 @@ class VetController {
         return new Promise((resolve, reject) => {
             onAuthStateChanged(auth, async (user) => {
                 if (!user) {
-                    window.location.href = '/login';
+                    window.location.href = '../../visitor/login/login.html';
                     reject();
                 } else {
                     resolve(user);
@@ -56,7 +54,6 @@ class VetController {
         if (result.success) {
             this.veterinarioActual = result.data;
 
-            // Elementos que SÍ existen en tu HTML
             const vetNameElement = document.getElementById('vetName');
             const vetSpecialtyElement = document.getElementById('vetSpecialty');
 
@@ -68,12 +65,9 @@ class VetController {
                 vetSpecialtyElement.textContent = this.veterinarioActual.especialidades?.join(', ') || 'Veterinario General';
             }
 
-            // El elemento vetNameHeader NO existe en tu HTML, lo eliminamos
-            // document.getElementById('vetNameHeader').textContent = this.veterinarioActual.nombre || 'Veterinario';
 
         } else {
             console.log('Perfil no encontrado, usando datos temporales...');
-            // Crear un perfil temporal para pruebas
             this.veterinarioActual = {
                 id: 'temp-id',
                 nombre: 'Veterinario de Prueba',
@@ -132,7 +126,7 @@ class VetController {
     }
 
     async cargarPublicaciones() {
-        // Simulación - Aquí iría la lógica real de Firestore
+        // met estatico
         this.publicaciones = [
             {
                 id: '1',
@@ -159,7 +153,7 @@ class VetController {
     }
 
     async cargarSolicitudesAdopcion() {
-        // Simulación
+        // estatico
         this.solicitudesAdopcion = [
             {
                 id: '1',
@@ -184,7 +178,7 @@ class VetController {
     }
 
     async cargarReclamos() {
-        // Simulación
+        // estatitco
         this.reclamos = [
             {
                 id: '1',
@@ -389,8 +383,7 @@ class VetController {
 
         container.innerHTML = html;
 
-        // Actualizar también las recientes en dashboard
-        this.renderizarSolicitudesRecientes();
++        this.renderizarSolicitudesRecientes();
     }
 
     renderizarReclamos() {
@@ -415,7 +408,6 @@ class VetController {
 
         container.innerHTML = html;
 
-        // Actualizar también los recientes en dashboard
         this.renderizarReclamosRecientes();
     }
 
@@ -538,8 +530,7 @@ class VetController {
 
         horarioGrid.innerHTML = html;
 
-        // Configurar listeners para checkboxes
-        dias.forEach(dia => {
++        dias.forEach(dia => {
             const checkbox = document.getElementById(`${dia}_activo`);
             if (checkbox) {
                 checkbox.addEventListener('change', (e) => {
@@ -551,7 +542,6 @@ class VetController {
             }
         });
 
-        // Establecer valores guardados
         if (this.veterinarioActual?.duracionCita) {
             document.getElementById('duracionCita').value = this.veterinarioActual.duracionCita;
         }
@@ -599,9 +589,7 @@ class VetController {
         }
     }
 
-    // ========== MÉTODOS DE NAVEGACIÓN ==========
     cambiarSeccion(seccion) {
-        // Actualizar active en sidebar
         document.querySelectorAll('.nav-link').forEach(link => {
             if (link.dataset.section === seccion) {
                 link.classList.add('active');
@@ -610,7 +598,6 @@ class VetController {
             }
         });
 
-        // Actualizar sección visible
         document.querySelectorAll('.content-section').forEach(section => {
             if (section.id === `${seccion}-section`) {
                 section.classList.add('active');
@@ -619,7 +606,6 @@ class VetController {
             }
         });
 
-        // Actualizar título
         const titulos = {
             dashboard: 'Dashboard',
             citas: 'Gestión de Citas',
@@ -630,13 +616,11 @@ class VetController {
         };
         document.getElementById('currentSection').textContent = titulos[seccion] || seccion;
 
-        // Configuraciones específicas por sección
         if (seccion === 'horarios') {
             this.configurarFormularioHorarios();
         }
     }
 
-    // ========== MÉTODOS DE FILTROS ==========
     aplicarFiltroCitas(filtro) {
         document.querySelectorAll('#citas-section .filter-btn').forEach(btn => {
             if (btn.dataset.filter === filtro) {
@@ -685,7 +669,6 @@ class VetController {
         this.renderizarPublicaciones();
     }
 
-    // ========== MÉTODOS DE MODALES ==========
     verDetalle(tipo, id) {
         let item = null;
         let titulo = '';
@@ -763,7 +746,6 @@ class VetController {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
         const notas = document.getElementById('notasEstado').value;
 
-        // Aquí iría la lógica para guardar en Firestore
         this.mostrarNotificacion(`Estado actualizado a ${nuevoEstado}`, 'success');
 
         this.cerrarEstadoModal();
@@ -777,7 +759,6 @@ class VetController {
     async guardarPublicacion(e) {
         e.preventDefault();
 
-        // Aquí iría la lógica para guardar en Firestore
         this.mostrarNotificacion('Publicación creada exitosamente', 'success');
 
         this.cerrarPublicacionModal();
@@ -808,9 +789,7 @@ class VetController {
         document.getElementById('publicacionForm').reset();
     }
 
-    // ========== MÉTODOS UTILITARIOS ==========
     mostrarNotificacion(mensaje, tipo = 'info') {
-        // Crear un elemento temporal de notificación
         const notificacion = document.createElement('div');
         notificacion.className = `notificacion notificacion-${tipo}`;
         notificacion.textContent = mensaje;
@@ -835,7 +814,7 @@ class VetController {
     }
 
     setupEventListeners() {
-        // Navegación del sidebar
+        // nav
         document.querySelectorAll('.nav-link').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -844,7 +823,6 @@ class VetController {
             });
         });
 
-        // Filtros de citas
         document.querySelectorAll('#citas-section .filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const filtro = e.currentTarget.dataset.filter;
@@ -852,7 +830,6 @@ class VetController {
             });
         });
 
-        // Filtros de adopciones
         document.querySelectorAll('#adopciones-section .filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const filtro = e.currentTarget.dataset.filter;
@@ -860,7 +837,6 @@ class VetController {
             });
         });
 
-        // Filtros de reclamos
         document.querySelectorAll('#reclamos-section .filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const filtro = e.currentTarget.dataset.filter;
@@ -868,7 +844,6 @@ class VetController {
             });
         });
 
-        // Tabs de publicaciones
         document.querySelectorAll('.pub-tab').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const tipo = e.currentTarget.dataset.pubType;
@@ -876,41 +851,34 @@ class VetController {
             });
         });
 
-        // Formulario de horarios
         document.getElementById('horarioForm').addEventListener('submit', (e) => this.guardarHorario(e));
 
-        // Formulario de estado
         document.getElementById('estadoForm').addEventListener('submit', (e) => this.guardarCambioEstado(e));
 
-        // Formulario de publicación
         document.getElementById('publicacionForm').addEventListener('submit', (e) => this.guardarPublicacion(e));
 
-        // Logout
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
             this.logout();
         });
 
-        // Búsqueda (placeholder)
         document.getElementById('searchInput')?.addEventListener('input', (e) => {
-            // Implementar búsqueda
+            //imp
         });
     }
 
     async logout() {
         try {
             await auth.signOut();
-            window.location.href = '/login';
+            window.location.href = '../../../index.html';
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
         }
     }
 }
 
-// Inicializar
 const vetController = new VetController();
 
-// Hacer disponible globalmente para los onclick
 window.vetController = vetController;
 
 export default vetController;

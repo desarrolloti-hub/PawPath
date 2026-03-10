@@ -1,7 +1,7 @@
-// citasController.js
 import { auth } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import Citas from '/classes/Citas.js';
+import Veterinario from '/classes/Veterinario.js';
 
 class CitasController {
     constructor() {
@@ -14,37 +14,40 @@ class CitasController {
         this.fileUploadLabel = null;
         this.modal = null;
         this.proximasCitasDiv = null;
+        this.vetSeleccionado = sessionStorage.getItem('vetSeleccionado');
+        this.vetModel = new Veterinario();
+        this.veterinarios = [];
 
         this.initialize();
     }
 
+
     async initialize() {
         try {
-            // Verificar autenticación primero
             await this.checkAuth();
 
-            // Inicializar el modelo después de verificar auth
             this.citasModel = new Citas();
-
-            // Obtener referencias del DOM
             this.getDOMElements();
 
-            // Configurar event listeners
+            await this.cargarVeterinarios();
+
             this.setupEventListeners();
-
-            // Establecer fecha mínima
             this.setMinDate();
-
-            // Cargar citas próximas
+            // this.mostrarUsuario();
             await this.cargarProximasCitas();
 
-            // Mostrar email del usuario
-            this.mostrarUsuario();
+            if (this.vetSeleccionado && this.veterinarios.length > 0) {
+                const select = document.getElementById('veterinario');
+                if (select) {
+                    select.value = this.vetSeleccionado;
+                }
+                await this.cargarHorariosDisponibles();
+            }
 
             this.initialized = true;
 
         } catch (error) {
-            console.error('Error al inicializar el controlador:', error);
+            console.error('Error al inicializar:', error);
             this.mostrarError('Error al cargar la página. Por favor recarga.');
         }
     }
@@ -100,6 +103,7 @@ class CitasController {
         }, 5000);
     }
 
+
     setupEventListeners() {
         if (this.form) {
             this.form.addEventListener('submit', (e) => this.handleSubmit(e));
@@ -110,16 +114,30 @@ class CitasController {
             btnCancelar.addEventListener('click', () => this.cancelarFormulario());
         }
 
-        if (this.imageInput) {
-            this.imageInput.addEventListener('change', (e) => this.previewImage(e));
+        const imageInput = document.getElementById('imagenMascota');
+        if (imageInput) {
+            imageInput.addEventListener('change', (e) => this.previewImage(e));
         }
 
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.logout());
-        }
-
+        const veterinarioSelect = document.getElementById('veterinario');
         const fechaInput = document.getElementById('fecha');
+
+        if (veterinarioSelect) {
+            veterinarioSelect.addEventListener('change', () => {
+                if (document.getElementById('fecha')?.value) {
+                    this.cargarHorariosDisponibles();
+                }
+            });
+        }
+
+        if (fechaInput) {
+            fechaInput.addEventListener('change', () => {
+                if (document.getElementById('veterinario')?.value) {
+                    this.cargarHorariosDisponibles();
+                }
+            });
+        }
+
         const horaSelect = document.getElementById('hora');
 
         if (fechaInput) {
@@ -142,20 +160,59 @@ class CitasController {
         }
     }
 
-    mostrarUsuario() {
-        const userEmailSpan = document.getElementById('userEmail');
-        if (userEmailSpan && auth.currentUser) {
-            userEmailSpan.textContent = auth.currentUser.email;
+
+    async cargarVeterinarios() {
+
+        const select = document.getElementById('veterinario');
+        if (!select) {
+            return;
+        }
+
+        try {
+            const result = await this.vetModel.obtenerVeterinarios();
+
+            if (!result.success) {
+                select.innerHTML = '<option value="">Error al cargar veterinarios</option>';
+                return;
+            }
+
+            this.veterinarios = result.data;
+
+            if (this.veterinarios.length === 0) {
+                select.innerHTML = '<option value="">No hay veterinarios disponibles</option>';
+                return;
+            }
+
+            let options = '<option value="">Selecciona un veterinario</option>';
+
+            this.veterinarios.forEach(vet => {
+                const selected = (vet.id === this.vetSeleccionado) ? 'selected' : '';
+                const ratingText = vet.rating > 0 ? `★ ${vet.rating.toFixed(1)}` : '';
+                options += `<option value="${vet.id}" ${selected}>${vet.nombre} - ${vet.nombreClinica} ${ratingText}</option>`;
+            });
+
+            select.innerHTML = options;
+
+            if (this.vetSeleccionado) {
+                sessionStorage.removeItem('vetSeleccionado');
+            }
+
+        } catch (error) {
+            select.innerHTML = '<option value="">Error al cargar</option>';
         }
     }
+
+
+    // mostrarUsuario() {
+    //     const userEmailSpan = document.getElementById('userEmail');
+    //     if (userEmailSpan && auth.currentUser) {
+    //         userEmailSpan.textContent = auth.currentUser.email;
+    //     }
+    // }
 
     async handleSubmit(e) {
         e.preventDefault();
 
-        if (!this.initialized || !this.citasModel) {
-            this.mostrarError('El sistema no está inicializado. Por favor recarga la página.');
-            return;
-        }
 
         if (!this.validarFormulario()) {
             return;
@@ -164,34 +221,58 @@ class CitasController {
         this.setSubmitButtonState(true);
 
         try {
-            const datosCita = {
-                nombreMascota: document.getElementById('nombreMascota').value,
-                especie: document.getElementById('especie').value,
-                raza: document.getElementById('raza').value,
-                genero: document.getElementById('genero').value,
-                edad: document.getElementById('edad').value,
-                enfermedades: document.getElementById('enfermedades').value,
-                problemaSalud: document.getElementById('problemaSalud').value,
-                fecha: document.getElementById('fecha').value,
-                hora: document.getElementById('hora').value
-            };
+            const veterinarioId = document.getElementById('veterinario')?.value;
+            const fecha = document.getElementById('fecha')?.value;
+            const hora = document.getElementById('hora')?.value;
+            const nombreMascota = document.getElementById('nombreMascota')?.value;
+            const especie = document.getElementById('especie')?.value;
+            const raza = document.getElementById('raza')?.value;
+            const genero = document.getElementById('genero')?.value;
+            const edad = document.getElementById('edad')?.value;
+            const enfermedades = document.getElementById('enfermedades')?.value;
+            const problemaSalud = document.getElementById('problemaSalud')?.value;
+            const imagenFile = document.getElementById('imagenMascota')?.files[0];
 
-            const imagenFile = this.imageInput.files[0];
-
-            // Verificar disponibilidad
-            const disponibilidad = await this.citasModel.verificarDisponibilidad(
-                datosCita.fecha,
-                datosCita.hora
-            );
-
-            if (!disponibilidad.disponible) {
-                alert('Lo sentimos, este horario no está disponible. Por favor selecciona otro.');
+            if (!veterinarioId || !fecha || !hora) {
+                alert('Por favor completa todos los campos requeridos');
                 this.setSubmitButtonState(false);
                 return;
             }
 
-            // Crear la cita
-            const resultado = await this.citasModel.crearCita(datosCita, imagenFile);
+
+            const disponible = await this.citasModel.verificarDisponibilidadHorario(
+                veterinarioId,
+                fecha,
+                hora
+            );
+
+            if (!disponible) {
+                alert('Lo sentimos, el horario seleccionado ya no está disponible. Por favor elige otro.');
+                this.cargarHorariosDisponibles();
+                this.setSubmitButtonState(false);
+                return;
+            }
+
+            const vetSeleccionado = this.veterinarios?.find(v => v.id === veterinarioId);
+            const veterinarioNombre = vetSeleccionado ? vetSeleccionado.nombre : 'Veterinario';
+
+            const datosCita = {
+                veterinarioId: veterinarioId,
+                veterinarioNombre: veterinarioNombre,
+                fecha: fecha,
+                hora: hora,
+                nombreMascota: nombreMascota,
+                especie: especie,
+                raza: raza,
+                genero: genero,
+                edad: edad,
+                enfermedades: enfermedades || '',
+                problemaSalud: problemaSalud,
+                estado: 'pendiente'
+            };
+
+
+            const resultado = await this.citasModel.crearCitaConTransaccion(datosCita, imagenFile);
 
             if (resultado.success) {
                 this.mostrarModalExito();
@@ -207,7 +288,6 @@ class CitasController {
                 alert('Error al agendar la cita: ' + resultado.error);
             }
         } catch (error) {
-            console.error('Error al procesar el formulario:', error);
             alert('Ocurrió un error al procesar la solicitud. Por favor intenta de nuevo.');
         } finally {
             this.setSubmitButtonState(false);
@@ -296,6 +376,131 @@ class CitasController {
         }
     }
 
+
+    async cargarHorariosDisponibles() {
+
+        const veterinarioId = document.getElementById('veterinario')?.value;
+        const fecha = document.getElementById('fecha')?.value;
+        const horaSelect = document.getElementById('hora');
+
+        if (!horaSelect) {
+            return;
+        }
+
+        // Validaciones
+        if (!veterinarioId) {
+            horaSelect.innerHTML = '<option value="">Primero selecciona un veterinario</option>';
+            return;
+        }
+
+        if (!fecha) {
+            horaSelect.innerHTML = '<option value="">Primero selecciona una fecha</option>';
+            return;
+        }
+
+        if (!this.veterinarios || this.veterinarios.length === 0) {
+            await this.cargarVeterinarios();
+
+            if (!this.veterinarios || this.veterinarios.length === 0) {
+                horaSelect.innerHTML = '<option value="">Error: No hay veterinarios disponibles</option>';
+                return;
+            }
+        }
+
+        try {
+            horaSelect.innerHTML = '<option value="">Cargando horarios...</option>';
+            horaSelect.disabled = true;
+
+            const vetSeleccionado = this.veterinarios.find(v => v.id === veterinarioId);
+
+            if (!vetSeleccionado) {
+                horaSelect.innerHTML = '<option value="">Error: Veterinario no encontrado</option>';
+                horaSelect.disabled = false;
+                return;
+            }
+
+
+            if (!vetSeleccionado.horarioSemanal || vetSeleccionado.horarioSemanal.length === 0) {
+                horaSelect.innerHTML = '<option value="">El veterinario no tiene horario configurado</option>';
+                horaSelect.disabled = false;
+                return;
+            }
+
+            const horariosOcupados = await this.citasModel.obtenerHorariosOcupados(veterinarioId, fecha);
+
+            const horariosDisponibles = this.generarHorarios(vetSeleccionado, horariosOcupados);
+
+            let options = '<option value="">Selecciona una hora</option>';
+
+            if (horariosDisponibles.length === 0) {
+                options = '<option value="">No hay horarios disponibles para esta fecha</option>';
+            } else {
+                horariosDisponibles.forEach(hora => {
+                    options += `<option value="${hora}">${hora}</option>`;
+                });
+            }
+
+            horaSelect.innerHTML = options;
+            horaSelect.disabled = false;
+
+        } catch (error) {
+            console.error('Error al cargar horarios:', error);
+            horaSelect.innerHTML = '<option value="">Error al cargar horarios</option>';
+            horaSelect.disabled = false;
+        }
+    }
+
+    generarHorarios(vet, horariosOcupados = []) {
+
+        if (!vet || !vet.horarioSemanal) {
+            return [];
+        }
+
+        const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+        const fechaInput = document.getElementById('fecha')?.value;
+
+        if (!fechaInput) {
+            return [];
+        }
+
+        const fecha = new Date(fechaInput);
+        const diaSemana = dias[fecha.getDay()];
+
+
+        const horarioDia = vet.horarioSemanal.find(h => h.dia === diaSemana);
+
+        if (!horarioDia || !horarioDia.activo) {
+            return [];
+        }
+
+
+        const duracion = vet.duracionCita || 30;
+        const horarios = [];
+
+        const [horaInicio, minInicio] = horarioDia.apertura.split(':').map(Number);
+        const [horaFin, minFin] = horarioDia.cierre.split(':').map(Number);
+
+        let horaActual = horaInicio;
+        let minActual = minInicio;
+
+        while (horaActual < horaFin || (horaActual === horaFin && minActual < minFin)) {
+            const horaStr = `${horaActual.toString().padStart(2, '0')}:${minActual.toString().padStart(2, '0')}`;
+
+            if (!horariosOcupados.includes(horaStr)) {
+                horarios.push(horaStr);
+            }
+
+            minActual += duracion;
+            if (minActual >= 60) {
+                horaActual += Math.floor(minActual / 60);
+                minActual = minActual % 60;
+            }
+        }
+
+        return horarios;
+    }
+
+
     async verificarDisponibilidad() {
         if (!this.citasModel) return;
 
@@ -318,18 +523,14 @@ class CitasController {
 
     async cargarProximasCitas() {
         if (!this.citasModel || !this.proximasCitasDiv) {
-            console.log('No se pueden cargar citas: modelo o div no disponible');
             return;
         }
 
         try {
-            console.log('Obteniendo citas del usuario...');
             const resultado = await this.citasModel.obtenerCitasUsuario();
-            console.log('Resultado de citas:', resultado);
 
             if (resultado.success) {
                 const citas = resultado.data;
-                console.log(`Se encontraron ${citas.length} citas totales`);
 
                 if (citas.length === 0) {
                     this.proximasCitasDiv.innerHTML = '<p class="loading-citas">No tienes citas agendadas</p>';
@@ -346,8 +547,6 @@ class CitasController {
                 const minutosActual = hoy.getMinutes().toString().padStart(2, '0');
                 const horaActualStr = `${horaActual}:${minutosActual}`;
 
-                console.log('Fecha actual (local):', fechaActualStr);
-                console.log('Hora actual (local):', horaActualStr);
 
                 const citasFuturas = citas.filter(cita => {
                     if (cita.estado === 'cancelada') {
@@ -358,22 +557,16 @@ class CitasController {
                         return false;
                     }
 
-                    // Comparar fechas como strings en formato YYYY-MM-DD
                     if (cita.fecha > fechaActualStr) {
-                        // Fecha futura
                         return true;
                     } else if (cita.fecha === fechaActualStr) {
-                        // Misma fecha, comparar hora
                         return cita.hora > horaActualStr;
                     } else {
-                        // Fecha pasada
                         return false;
                     }
                 });
 
-                console.log(`Citas futuras encontradas: ${citasFuturas.length}`);
 
-                // Ordenar citas por fecha y hora
                 const citasOrdenadas = citasFuturas.sort((a, b) => {
                     if (a.fecha !== b.fecha) {
                         return a.fecha.localeCompare(b.fecha);
@@ -381,7 +574,6 @@ class CitasController {
                     return a.hora.localeCompare(b.hora);
                 }).slice(0, 3);
 
-                console.log('Citas a mostrar:', citasOrdenadas);
 
                 if (citasOrdenadas.length === 0) {
                     this.proximasCitasDiv.innerHTML = '<p class="loading-citas">No tienes citas próximas</p>';
@@ -391,7 +583,6 @@ class CitasController {
                 let html = '';
                 citasOrdenadas.forEach(cita => {
                     try {
-                        // Formatear fecha para mostrar
                         const [año, mes, dia] = cita.fecha.split('-');
                         const fechaObj = new Date(año, mes - 1, dia);
                         const fechaFormateada = fechaObj.toLocaleDateString('es-ES', {
@@ -401,7 +592,6 @@ class CitasController {
                             day: 'numeric'
                         });
 
-                        // Formatear hora para mostrar (quitar minutos si son :00)
                         const horaMostrar = cita.hora.endsWith(':00') ? cita.hora.slice(0, -3) : cita.hora;
 
                         html += `
@@ -417,7 +607,6 @@ class CitasController {
                 });
 
                 this.proximasCitasDiv.innerHTML = html;
-                console.log('HTML generado correctamente');
             } else {
                 console.error('Error al obtener citas:', resultado.error);
                 this.proximasCitasDiv.innerHTML = '<p class="loading-citas">Error al cargar las citas</p>';
@@ -461,26 +650,14 @@ class CitasController {
         }
     }
 
-    async logout() {
-        try {
-            await auth.signOut();
-            window.location.href = '/user/visitor/login/login.html';
-        } catch (error) {
-            console.error('Error al cerrar sesión:', error);
-        }
-    }
 }
 
-// Inicializar el controlador cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     window.citasController = new CitasController();
 });
 
-// Funciones globales
 window.cerrarModal = () => {
     if (window.citasController) {
         window.citasController.cerrarModal();
     }
 };
-
-

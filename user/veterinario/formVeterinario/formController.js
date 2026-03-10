@@ -28,11 +28,10 @@ class FormVeterinarioController {
         try {
             await this.checkAuth();
 
-            // Pequeño retraso para asegurar DOM listo
             setTimeout(() => {
                 this.setupEventListeners();
                 this.generarHorariosPorDefecto();
-                this.mostrarDatosUsuario(); // Asegúrate que se llame así
+                this.mostrarDatosUsuario();
                 this.setupImagePreview();
             }, 200);
 
@@ -65,10 +64,6 @@ class FormVeterinarioController {
             return;
         }
 
-        console.log('Usuario autenticado UID:', user.uid);
-        console.log('Email:', user.email);
-
-        // 1. Mostrar email en header y campo
         const userEmailSpan = document.getElementById('userEmail');
         if (userEmailSpan) {
             userEmailSpan.textContent = user.email;
@@ -79,68 +74,52 @@ class FormVeterinarioController {
             emailInput.value = user.email;
         }
 
-        // 2. Obtener datos de la colección "usuarios" usando el UID
         try {
-            console.log('Buscando en colección "usuarios" con UID:', user.uid);
-
-            // Referencia al documento usando el UID
-            const userDocRef = doc(db, 'usuarios', user.uid);
+            //por UID
+            const userDocRef = doc(db, 'usarios', user.uid);
             const userDoc = await getDoc(userDocRef);
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                console.log('✅ Datos encontrados:', userData);
 
-                // Mapear los campos según tu estructura
                 const primerNombreInput = document.getElementById('primerNombre');
                 if (primerNombreInput && userData.primer_nombre) {
                     primerNombreInput.value = userData.primer_nombre;
-                    console.log('Primer nombre cargado:', userData.primer_nombre);
                 }
 
                 const segundoNombreInput = document.getElementById('segundoNombre');
                 if (segundoNombreInput && userData.segundo_nombre) {
                     segundoNombreInput.value = userData.segundo_nombre;
-                    console.log('Segundo nombre cargado:', userData.segundo_nombre);
                 }
 
                 const apellidoPatInput = document.getElementById('apellidoPat');
                 if (apellidoPatInput && userData.apellido_paterno) {
                     apellidoPatInput.value = userData.apellido_paterno;
-                    console.log('Apellido paterno cargado:', userData.apellido_paterno);
                 }
 
                 const apellidoMatInput = document.getElementById('apellidoMat');
                 if (apellidoMatInput && userData.apellido_materno) {
                     apellidoMatInput.value = userData.apellido_materno;
-                    console.log('Apellido materno cargado:', userData.apellido_materno);
                 }
 
-                // También podrías cargar el teléfono si existe
                 const telefonoInput = document.getElementById('telefono');
                 if (telefonoInput && userData.telefono) {
                     telefonoInput.value = userData.telefono;
                 }
 
             } else {
-                console.log('❌ No se encontró documento para UID:', user.uid);
-                console.log('Intentando buscar por email...');
-
-                // Fallback: buscar por email
+                //intentar por email
                 await this.buscarUsuarioPorEmail(user.email);
             }
         } catch (error) {
-            console.error('Error al obtener datos del usuario:', error);
             this.mostrarNotificacion('Error al cargar datos del perfil', 'error');
         }
     }
 
-    // Método de respaldo por si no encuentra por UID
     async buscarUsuarioPorEmail(email) {
         if (!email) return;
 
         try {
-            console.log('Buscando usuario con email:', email);
 
             const q = query(collection(db, 'usuarios'), where('email', '==', email));
             const querySnapshot = await getDocs(q);
@@ -148,7 +127,6 @@ class FormVeterinarioController {
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
-                console.log('✅ Usuario encontrado por email:', userData);
 
                 // Mapear los campos
                 const primerNombreInput = document.getElementById('primerNombre');
@@ -178,41 +156,12 @@ class FormVeterinarioController {
 
                 this.mostrarNotificacion('Datos cargados correctamente', 'success');
             } else {
-                console.log('❌ No se encontró usuario con email:', email);
+                console.log('no se encontro:', email);
             }
         } catch (error) {
-            console.error('Error al buscar por email:', error);
+            console.error(error);
         }
     }
-
-    // Método de respaldo por si no encuentra por UID
-    async buscarUsuarioPorEmail(email) {
-        if (!email) return;
-
-        try {
-            const q = query(collection(db, 'usarios'), where('email', '==', email));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                const userData = querySnapshot.docs[0].data();
-                console.log('Usuario encontrado por email:', userData);
-
-                // Mapear los campos igual que arriba
-                document.getElementById('primerNombre').value = userData.primer_nombre || '';
-                document.getElementById('segundoNombre').value = userData.segundo_nombre || '';
-                document.getElementById('apellidoPat').value = userData.apellido_paterno || '';
-                document.getElementById('apellidoMat').value = userData.apellido_materno || '';
-
-                this.mostrarNotificacion('Datos cargados correctamente', 'success');
-            }
-        } catch (error) {
-            console.error('Error al buscar por email:', error);
-        }
-    }
-
-
-
-
 
     capitalizarPrimeraLetra(texto) {
         if (!texto) return '';
@@ -223,7 +172,6 @@ class FormVeterinarioController {
         const container = document.getElementById('horariosContainer');
         const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 
-        // Horarios por defecto
         const horariosDefault = {
             lunes: { activo: true, apertura: '09:00', cierre: '18:00' },
             martes: { activo: true, apertura: '09:00', cierre: '18:00' },
@@ -254,7 +202,6 @@ class FormVeterinarioController {
 
         container.innerHTML = html;
 
-        // Configurar listeners para checkboxes
         dias.forEach(dia => {
             const checkbox = document.getElementById(`${dia}_activo`);
             if (checkbox) {
@@ -273,18 +220,14 @@ class FormVeterinarioController {
 
         if (nuevoPaso < 1 || nuevoPaso > this.totalSteps) return;
 
-        // Validar paso actual antes de avanzar
         if (direccion === 'next' && !this.validarPasoActual()) {
             return;
         }
 
-        // Ocultar paso actual
         document.getElementById(`step${this.currentStep}`).classList.remove('active');
 
-        // Mostrar nuevo paso
         document.getElementById(`step${nuevoPaso}`).classList.add('active');
 
-        // Actualizar progreso
         document.querySelectorAll('.progress-step').forEach((step, index) => {
             if (index + 1 <= nuevoPaso) {
                 step.classList.add('active');
@@ -329,7 +272,7 @@ class FormVeterinarioController {
             this.mostrarNotificacion('El teléfono debe tener al menos 10 dígitos', 'error');
             return false;
         }
-        if (!cedula) { // NUEVA VALIDACIÓN
+        if (!cedula) {
             this.mostrarNotificacion('Por favor ingresa tu cédula profesional', 'error');
             return false;
         }
@@ -368,13 +311,13 @@ class FormVeterinarioController {
     }
 
     setupImagePreview() {
-        // Previsualización foto de perfil
+        // foto de perfil
         const fotoPerfil = document.getElementById('fotoPerfil');
         if (fotoPerfil) {
             fotoPerfil.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // Validar tamaño (2MB máx)
+                    // (2MB máx)
                     if (file.size > 2 * 1024 * 1024) {
                         this.mostrarNotificacion('La imagen no debe superar los 2MB', 'error');
                         e.target.value = '';
@@ -397,13 +340,13 @@ class FormVeterinarioController {
             });
         }
 
-        // Previsualización foto de clínica
+        //foto de clínica
         const fotoClinica = document.getElementById('fotoClinica');
         if (fotoClinica) {
             fotoClinica.addEventListener('change', (e) => {
                 const file = e.target.files[0];
                 if (file) {
-                    // Validar tamaño (5MB máx)
+                    // (5MB máx)
                     if (file.size > 5 * 1024 * 1024) {
                         this.mostrarNotificacion('La imagen no debe superar los 5MB', 'error');
                         e.target.value = '';
@@ -457,14 +400,12 @@ class FormVeterinarioController {
             if (fotoClinicaInput.files[0]) {
                 fotoClinicaBase64 = await this.convertirImagenABase64(fotoClinicaInput.files[0]);
             }
-
-            // Recolectar especialidades
+            //recoleccion de inf
             const especialidades = [];
             document.querySelectorAll('input[name="especialidades"]:checked').forEach(cb => {
                 especialidades.push(cb.value);
             });
 
-            // Recolectar horarios
             const horarioSemanal = [];
             const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 
@@ -481,7 +422,6 @@ class FormVeterinarioController {
                 });
             });
 
-            // Construir objeto del veterinario (con los nuevos campos)
             const veterinarioData = {
                 primerNombre: document.getElementById('primerNombre').value,
                 segundoNombre: document.getElementById('segundoNombre').value || null,
@@ -505,7 +445,6 @@ class FormVeterinarioController {
                 fechaActualizacion: serverTimestamp()
             };
 
-            // Guardar en Firestore
             const docRef = await addDoc(collection(db, this.veterinariosCollection), veterinarioData);
 
             console.log('Veterinario registrado con ID:', docRef.id);
@@ -534,7 +473,6 @@ class FormVeterinarioController {
     }
 
     mostrarNotificacion(mensaje, tipo = 'info') {
-        // Crear elemento de notificación
         const notificacion = document.createElement('div');
         notificacion.className = `notificacion notificacion-${tipo}`;
         notificacion.textContent = mensaje;
@@ -559,7 +497,7 @@ class FormVeterinarioController {
     }
 
     setupEventListeners() {
-        // Botones de siguiente - Verificar que existan
+        //btn sig
         const nextButtons = document.querySelectorAll('.next-step');
         if (nextButtons.length > 0) {
             nextButtons.forEach(btn => {
@@ -567,7 +505,7 @@ class FormVeterinarioController {
             });
         }
 
-        // Botones de anterior - Verificar que existan
+        //btn ant
         const prevButtons = document.querySelectorAll('.prev-step');
         if (prevButtons.length > 0) {
             prevButtons.forEach(btn => {
@@ -575,32 +513,27 @@ class FormVeterinarioController {
             });
         }
 
-        // Submit del formulario - Verificar que exista
         const registroForm = document.getElementById('registroVetForm');
         if (registroForm) {
             registroForm.addEventListener('submit', (e) => this.handleSubmit(e));
         }
 
-        // Logout - Verificar que exista
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                this.logout();
-            });
-        }
+        // const logoutBtn = document.getElementById('logoutBtn');
+        // if (logoutBtn) {
+        //     logoutBtn.addEventListener('click', (e) => {
+        //         e.preventDefault();
+        //         this.logout();
+        //     });
+        // }
 
-        // Setup image previews (solo si los elementos existen)
         this.setupImagePreview();
     }
 
 
 }
 
-// Inicializar
 const formController = new FormVeterinarioController();
 
-// Hacer disponible globalmente
 window.cerrarModal = () => formController.cerrarModal();
 
 export default formController;

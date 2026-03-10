@@ -1,5 +1,4 @@
-// models/Citas.js
-import { db, auth } from '../config/firebase-config.js';
+import { db, auth } from '/config/firebase-config.js';
 import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 class Citas {
@@ -9,57 +8,7 @@ class Citas {
         this.citasCollection = 'citas';
     }
 
-    // Crear una nueva cita (ahora con veterinarioId)
-    async crearCita(datosCita, imagenFile) {
-        try {
-            const user = this.auth.currentUser;
-            if (!user) throw new Error('Usuario no autenticado');
 
-            // Verificar que el horario sigue disponible
-            const horarioDisponible = await this.verificarHorarioDisponible(
-                datosCita.veterinarioId,
-                datosCita.fecha,
-                datosCita.hora
-            );
-
-            if (!horarioDisponible) {
-                return { success: false, error: 'Horario no disponible' };
-            }
-
-            let imagenBase64 = null;
-            
-            if (imagenFile) {
-                imagenBase64 = await this.convertirImagenABase64(imagenFile);
-            }
-
-            const citaData = {
-                ...datosCita,
-                usuarioId: user.uid,
-                usuarioEmail: user.email,
-                imagenMascota: imagenBase64,
-                estado: 'pendiente',
-                fechaCreacion: serverTimestamp(),
-                fechaActualizacion: serverTimestamp(),
-                historialCambios: [{
-                    estado: 'pendiente',
-                    fecha: new Date().toISOString(),
-                    por: user.uid
-                }]
-            };
-
-            const docRef = await addDoc(collection(this.db, this.citasCollection), citaData);
-            
-            // Marcar el horario como no disponible
-            await this.marcarHorarioNoDisponible(datosCita.veterinarioId, datosCita.fecha, datosCita.hora);
-            
-            return { success: true, id: docRef.id, data: citaData };
-        } catch (error) {
-            console.error('Error al crear cita:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
-    // Obtener citas de un veterinario específico
     async obtenerCitasVeterinario(veterinarioId, filtros = {}) {
         try {
             let q = query(
@@ -69,11 +18,10 @@ class Citas {
                 orderBy('hora', 'desc')
             );
 
-            // Aplicar filtros adicionales
             if (filtros.estado) {
                 q = query(q, where('estado', '==', filtros.estado));
             }
-            
+
             if (filtros.fecha) {
                 q = query(q, where('fecha', '==', filtros.fecha));
             }
@@ -95,7 +43,6 @@ class Citas {
         }
     }
 
-    // Actualizar estado de una cita (veterinario)
     async actualizarEstadoCita(citaId, nuevoEstado, notas = '') {
         try {
             const user = this.auth.currentUser;
@@ -103,14 +50,14 @@ class Citas {
 
             const citaRef = doc(this.db, this.citasCollection, citaId);
             const citaSnap = await getDoc(citaRef);
-            
+
             if (!citaSnap.exists()) {
                 return { success: false, error: 'Cita no encontrada' };
             }
 
             const citaData = citaSnap.data();
             const historialCambios = citaData.historialCambios || [];
-            
+
             historialCambios.push({
                 estado: nuevoEstado,
                 fecha: new Date().toISOString(),
@@ -132,29 +79,6 @@ class Citas {
         }
     }
 
-    // Verificar disponibilidad de horario para un veterinario
-    async verificarHorarioDisponible(veterinarioId, fecha, hora) {
-        try {
-            const q = query(
-                collection(this.db, this.citasCollection),
-                where('veterinarioId', '==', veterinarioId),
-                where('fecha', '==', fecha),
-                where('hora', '==', hora),
-                where('estado', 'in', ['pendiente', 'aceptada'])
-            );
-
-            const querySnapshot = await getDocs(q);
-            return querySnapshot.empty;
-        } catch (error) {
-            console.error('Error al verificar disponibilidad:', error);
-            return false;
-        }
-    }
-
-    // Marcar horario como no disponible
-    async marcarHorarioNoDisponible(veterinarioId, fecha, hora) {
-        // Implementaremos después con la colección de horarios
-    }
 
     convertirImagenABase64(file) {
         return new Promise((resolve, reject) => {
@@ -165,15 +89,69 @@ class Citas {
         });
     }
 
-    // Crear una nueva cita
-    async crearCita(datosCita, imagenFile) {
+
+
+    async verificarDisponibilidadHorario(veterinarioId, fecha, hora) {
+        try {
+
+            const q = query(
+                collection(this.db, this.citasCollection),
+                where('veterinarioId', '==', veterinarioId),
+                where('fecha', '==', fecha),
+                where('hora', '==', hora),
+                where('estado', 'in', ['pendiente', 'aceptada'])
+            );
+
+            const querySnapshot = await getDocs(q);
+            const disponible = querySnapshot.empty;
+
+            return disponible;
+        } catch (error) {
+            console.error('Error al verificar disponibilidad:', error);
+            return false;
+        }
+    }
+
+    async obtenerHorariosOcupados(veterinarioId, fecha) {
+        try {
+            const q = query(
+                collection(this.db, this.citasCollection),
+                where('veterinarioId', '==', veterinarioId),
+                where('fecha', '==', fecha),
+                where('estado', 'in', ['pendiente', 'aceptada'])
+            );
+
+            const querySnapshot = await getDocs(q);
+            const horariosOcupados = [];
+
+            querySnapshot.forEach(doc => {
+                horariosOcupados.push(doc.data().hora);
+            });
+
+            return horariosOcupados;
+        } catch (error) {
+            console.error('Error al obtener horarios ocupados:', error);
+            return [];
+        }
+    }
+
+
+    async crearCitaConTransaccion(datosCita, imagenFile) {
         try {
             const user = this.auth.currentUser;
             if (!user) throw new Error('Usuario no autenticado');
 
-            let imagenBase64 = null;
+            const disponible = await this.verificarDisponibilidadHorario(
+                datosCita.veterinarioId,
+                datosCita.fecha,
+                datosCita.hora
+            );
 
-            // Convertir imagen a base64 si existe
+            if (!disponible) {
+                throw new Error('El horario ya no está disponible');
+            }
+
+            let imagenBase64 = null;
             if (imagenFile) {
                 imagenBase64 = await this.convertirImagenABase64(imagenFile);
             }
@@ -183,7 +161,6 @@ class Citas {
                 usuarioId: user.uid,
                 usuarioEmail: user.email,
                 imagenMascota: imagenBase64,
-                estado: 'pendiente', // pendiente, confirmada, cancelada, completada
                 fechaCreacion: serverTimestamp(),
                 fechaActualizacion: serverTimestamp()
             };
@@ -196,16 +173,14 @@ class Citas {
         }
     }
 
-    // Obtener citas del usuario actual
-    // En models/Citas.js, modifica temporalmente para más logs:
+
+
     async obtenerCitasUsuario() {
         try {
             const user = this.auth.currentUser;
-            console.log('Usuario actual:', user?.uid, user?.email);
 
             if (!user) throw new Error('Usuario no autenticado');
 
-            console.log('Consultando Firestore...');
             const q = query(
                 collection(this.db, this.citasCollection),
                 where('usuarioId', '==', user.uid),
@@ -213,11 +188,9 @@ class Citas {
             );
 
             const querySnapshot = await getDocs(q);
-            console.log('Documentos encontrados:', querySnapshot.size);
 
             const citas = [];
             querySnapshot.forEach((doc) => {
-                console.log('Documento:', doc.id, doc.data());
                 citas.push({
                     id: doc.id,
                     ...doc.data()
@@ -246,7 +219,6 @@ class Citas {
         }
     }
 
-    // Actualizar una cita
     async actualizarCita(citaId, datosActualizados) {
         try {
             const user = this.auth.currentUser;
@@ -264,7 +236,6 @@ class Citas {
         }
     }
 
-    // Cancelar una cita
     async cancelarCita(citaId) {
         try {
             const user = this.auth.currentUser;
@@ -283,7 +254,6 @@ class Citas {
         }
     }
 
-    // Verificar disponibilidad de horario
     async verificarDisponibilidad(fecha, hora) {
         try {
             const q = query(
@@ -306,7 +276,6 @@ class Citas {
         }
     }
 
-    // Convertir imagen a base64
     convertirImagenABase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
