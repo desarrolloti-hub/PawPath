@@ -212,13 +212,6 @@ function checkUserAuthentication() {
 
                 // Actualizar información del usuario - NOMBRE Y APELLIDO
                 if (userNameDisplay) {
-<<<<<<< HEAD
-                    // Intentar obtener el nombre del usuario
-                    const nombre = session.displayName ||
-                        localStorage.getItem('userEmail')?.split('@')[0] ||
-                        'Usuario';
-                    userNameDisplay.textContent = nombre;
-=======
                     // Obtener los datos del localStorage
                     const primerNombre = localStorage.getItem('user_primer_nombre') || '';
                     const segundoNombre = localStorage.getItem('user_segundo_nombre') || '';
@@ -268,7 +261,6 @@ function checkUserAuthentication() {
                     
                     userNameDisplay.textContent = nombreMostrar;
                     console.log('✅ Nombre mostrado:', nombreMostrar); // Para debugging
->>>>>>> b4a62304dc376c9d488e49bac321e9c72824f79f
                 }
 
                 // Mostrar el rol del usuario
@@ -311,27 +303,6 @@ function checkUserAuthentication() {
     return false;
 }
 
-<<<<<<< HEAD
-// Función para cerrar sesión
-function handleLogout() {
-    // Limpiar localStorage
-    localStorage.removeItem('userSession');
-    localStorage.removeItem('currentUserId');
-    localStorage.removeItem('userEmail');
-    localStorage.removeItem('currentUserRole');
-
-    // Actualizar UI
-    checkUserAuthentication();
-
-    // Mostrar mensaje
-    alert('Sesión cerrada correctamente');
-
-    // Opcional: recargar la página para resetear todo
-    // window.location.reload();
-}
-
-=======
->>>>>>> b4a62304dc376c9d488e49bac321e9c72824f79f
 // Event Listeners principales
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM cargado - Inicializando index.js');
