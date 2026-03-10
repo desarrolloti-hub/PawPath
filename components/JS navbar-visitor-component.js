@@ -2,7 +2,7 @@
     'use strict';
 
     // =============================================
-    // ESTILOS CSS HÍBRIDOS (ESCRITORIO + SIDEBAR)
+    // ESTILOS CSS (TUS ESTILOS ORIGINALES)
     // =============================================
     function addStyles() {
         const style = document.createElement('style');
@@ -26,7 +26,6 @@
                 z-index: 1000;
             }
 
-            /* FORZAR TODOS LOS TEXTOS A BLANCO EN EL NAVBAR */
             .paw-navbar-desktop,
             .paw-navbar-desktop *,
             .paw-navbar-desktop a,
@@ -87,7 +86,6 @@
                 color: white !important; 
             }
 
-            /* Tarjeta de usuario en Escritorio - TODO BLANCO */
             .user-card-desktop {
                 display: flex; 
                 align-items: center; 
@@ -119,7 +117,6 @@
                 color: white !important;
             }
 
-            /* --- SIDEBAR PARA MÓVIL - LETRAS SIEMPRE BLANCAS --- */
             .paw-sidebar {
                 position: fixed; 
                 top: 0; 
@@ -133,7 +130,6 @@
                 overflow-y: auto;
             }
             
-            /* FORZAR TODOS LOS TEXTOS A BLANCO EN EL SIDEBAR */
             .paw-sidebar,
             .paw-sidebar *,
             .paw-sidebar div,
@@ -197,7 +193,6 @@
                 color: white !important; 
             }
 
-            /* Secciones del Sidebar */
             .sidebar-section { 
                 margin: 10px 15px; 
                 border-radius: 8px; 
@@ -250,7 +245,6 @@
                 color: white !important;
             }
 
-            /* Botón de cierre de sesión mejorado */
             .logout-btn {
                 width: 100%; 
                 padding: 12px; 
@@ -284,7 +278,6 @@
                 color: #ff6b6b !important;
             }
 
-            /* Botón de salir en escritorio */
             .desktop-logout-btn {
                 background: rgba(255,255,255,0.1); 
                 border: none; 
@@ -314,7 +307,6 @@
                 color: white !important;
             }
 
-            /* Estilos para texto en el sidebar */
             #sideUserName,
             #sideUserRole,
             .sidebar-section h2,
@@ -322,7 +314,6 @@
                 color: white !important;
             }
 
-            /* --- MEDIA QUERIES PARA RESPONSIVE --- */
             @media (max-width: 992px) {
                 .paw-navbar-desktop { display: none; }
                 .paw-toggle-btn { display: flex; }
@@ -337,35 +328,83 @@
     }
 
     // =============================================
-    // FUNCIÓN DE CIERRE DE SESIÓN (extraída de RSI)
+    // FUNCIÓN DE LOGOUT FORZADO
     // =============================================
-    async function handleLogout() {
+    async function logout() {
         try {
-            // Si hay Firebase, intentar cerrar sesión de Firebase
+            console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
+            
+            // 1. Deshabilitar persistencia de Firebase
             if (typeof firebase !== 'undefined' && firebase.auth) {
+                try {
+                    await firebase.auth().setPersistence('none');
+                    console.log('✅ Persistencia deshabilitada');
+                } catch (e) {
+                    console.log('No se pudo cambiar persistencia:', e);
+                }
+                
+                // 2. Cerrar sesión
                 await firebase.auth().signOut();
+                console.log('✅ Firebase signOut OK');
             }
             
-            // Limpiar localStorage
+            // 3. Usar AuthManager si existe
+            if (window.authManager && typeof window.authManager.logout === 'function') {
+                await window.authManager.logout();
+            }
+            
+            // 4. LIMPIAR TODO ABSOLUTAMENTE
+            console.log('🧹 LIMPIANDO ALMACENAMIENTO');
+            
+            // LocalStorage - eliminar todo
             localStorage.clear();
             
-            // Mostrar mensaje de confirmación
-            alert('Sesión cerrada correctamente');
+            // SessionStorage - eliminar todo
+            sessionStorage.clear();
             
-            // Redirigir al inicio
-            window.location.href = '/';
+            // Cookies - eliminar todas
+            document.cookie.split(";").forEach(function(c) { 
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            });
+            
+            // 5. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
+            sessionStorage.setItem('logout_event', Date.now().toString());
+            
+            console.log('✅ TODO LIMPIADO - REDIRIGIENDO');
+            
+            // 6. Redirigir con parámetro para evitar caché
+            window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
+            
         } catch (error) {
-            console.error('Error al cerrar sesión:', error);
+            console.error('❌ Error al cerrar sesión:', error);
             
-            // En caso de error con Firebase, igual limpiar localStorage
+            // Forzar limpieza
             localStorage.clear();
-            alert('Sesión cerrada correctamente');
-            window.location.href = '/';
+            sessionStorage.clear();
+            window.location.href = '/user/visitor/login/login.html?force=true';
         }
     }
 
-    function createElements() {
-        // 1. Barra de Escritorio
+    // =============================================
+    // DETECTAR CIERRE DE SESIÓN EN OTRAS PESTAÑAS
+    // =============================================
+    function setupCrossTabLogout() {
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'logout_event') {
+                console.log('🔔 Detectado logout en otra pestaña');
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.reload();
+            }
+        });
+    }
+
+    // =============================================
+    // CREAR ELEMENTOS DEL NAVBAR
+    // =============================================
+    function createNavbar() {
+        if (document.querySelector('.paw-navbar-desktop')) return;
+        
         const navbar = document.createElement('nav');
         navbar.className = 'paw-navbar-desktop';
         navbar.innerHTML = `
@@ -383,15 +422,14 @@
             <div id="userActionDesktop"></div>
         `;
 
-        // 2. Sidebar de Móvil
         const sidebar = document.createElement('div');
         sidebar.className = 'paw-sidebar';
         sidebar.id = 'pawSidebar';
         sidebar.innerHTML = `
             <div style="padding: 40px 20px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1);">
                 <img src="/assets/images/PawPahtLogo.png" style="width:70px; border-radius:50%; border:3px solid #ff6b6b;">
-                <h2 id="sideUserName" style="margin: 10px 0 5px; font-size: 1.2rem; color: white !important;">Usuario</h2>
-                <p id="sideUserRole" style="font-size:0.8rem; color: #ffd93d !important; margin:0;">USUARIO</p>
+                <h2 id="sideUserName" style="margin: 10px 0 5px; font-size: 1.2rem;">Usuario</h2>
+                <p id="sideUserRole" style="font-size:0.8rem; color: #ffd93d; margin:0;">USUARIO</p>
             </div>
             
             <div class="sidebar-section">
@@ -415,7 +453,6 @@
             </div>
         `;
 
-        // 3. Botón flotante y Overlay
         const toggleBtn = document.createElement('button');
         toggleBtn.className = 'paw-toggle-btn';
         toggleBtn.id = 'pawToggleBtn';
@@ -428,26 +465,26 @@
         document.body.prepend(navbar, sidebar, toggleBtn, overlay);
     }
 
-    function setupLogic() {
+    // =============================================
+    // CONFIGURAR NAVBAR
+    // =============================================
+    function setupNavbar() {
         const toggleBtn = document.getElementById('pawToggleBtn');
         const sidebar = document.getElementById('pawSidebar');
         const overlay = document.getElementById('pawOverlay');
-        const sidebarLinks = sidebar.querySelectorAll('.sidebar-link');
-        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-
-        // Función para abrir/cerrar el menú
+        
+        if (!toggleBtn || !sidebar || !overlay) return;
+        
         const toggleMenu = () => {
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
         };
 
-        // Eventos de apertura/cierre
         toggleBtn.onclick = toggleMenu;
         overlay.onclick = toggleMenu;
 
-        // Auto-cierre al tocar un enlace dentro del sidebar
-        sidebarLinks.forEach(link => {
+        sidebar.querySelectorAll('.sidebar-link').forEach(link => {
             link.addEventListener('click', () => {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
@@ -455,47 +492,63 @@
             });
         });
 
-        // Evento de cierre de sesión para el botón del sidebar
+        // BOTONES DE LOGOUT
+        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
         if (sidebarLogoutBtn) {
             sidebarLogoutBtn.addEventListener('click', (e) => {
                 e.preventDefault();
-                handleLogout();
+                e.stopPropagation();
+                logout();
             });
         }
 
-        // Cargar datos del usuario
-        const pNombre = localStorage.getItem('user_primer_nombre');
-        const sNombre = localStorage.getItem('user_segundo_nombre');
-        const aPaterno = localStorage.getItem('user_apellido_paterno');
-        const rol = localStorage.getItem('user_rol');
+        cargarDatosUsuario();
+    }
+
+    // =============================================
+    // CARGAR DATOS DEL USUARIO
+    // =============================================
+    function cargarDatosUsuario() {
+        // Verificar si hay datos en localStorage
+        let userData = null;
+        let pNombre = null;
+        let aPaterno = null;
+        let rol = null;
         
-        // Determinar inicial y nombre completo
-        let initial = 'U';
-        let fullName = 'Usuario';
-        
-        if (pNombre) {
-            initial = pNombre.charAt(0).toUpperCase();
-            
-            // Usar formato: Primer Nombre + Apellido Paterno (si existe)
-            if (pNombre && aPaterno) {
-                fullName = `${pNombre} ${aPaterno}`;
-            } else if (pNombre && sNombre) {
-                fullName = `${pNombre} ${sNombre}`;
-            } else {
-                fullName = pNombre;
+        try {
+            const fullData = localStorage.getItem('userFullData');
+            if (fullData) {
+                userData = JSON.parse(fullData);
+                pNombre = userData.primer_nombre;
+                aPaterno = userData.apellido_paterno;
+                rol = userData.rol;
             }
+            
+            if (!pNombre) pNombre = localStorage.getItem('user_primer_nombre');
+            if (!aPaterno) aPaterno = localStorage.getItem('user_apellido_paterno');
+            if (!rol) rol = localStorage.getItem('user_rol');
+            
+        } catch (error) {
+            console.error('Error leyendo datos:', error);
         }
 
-        // Actualizar Escritorio
         const userAction = document.getElementById('userActionDesktop');
-        if (userAction) {
-            if (pNombre) {
+        const sideUserName = document.getElementById('sideUserName');
+        const sideUserRole = document.getElementById('sideUserRole');
+
+        if (pNombre) {
+            // Hay usuario logueado
+            const initial = pNombre.charAt(0).toUpperCase();
+            const fullName = aPaterno ? `${pNombre} ${aPaterno}` : pNombre;
+            const userRole = rol ? rol.toUpperCase() : 'USUARIO';
+
+            if (userAction) {
                 userAction.innerHTML = `
                     <div class="user-card-desktop">
                         <div class="avatar-mini">${initial}</div>
                         <div style="display:flex; flex-direction:column">
-                            <span style="font-size:0.85rem; font-weight:700; color: white !important;">${fullName}</span>
-                            <span style="font-size:0.65rem; opacity:0.7; color: white !important;">${(rol || 'Usuario').toUpperCase()}</span>
+                            <span style="font-size:0.85rem; font-weight:700;">${fullName}</span>
+                            <span style="font-size:0.65rem; opacity:0.7;">${userRole}</span>
                         </div>
                         <button class="desktop-logout-btn" id="desktopLogoutBtn">
                             <i class="fas fa-sign-out-alt"></i> Salir
@@ -503,297 +556,81 @@
                     </div>
                 `;
                 
-                // Evento de cierre de sesión para el botón de escritorio
                 const desktopLogoutBtn = document.getElementById('desktopLogoutBtn');
                 if (desktopLogoutBtn) {
                     desktopLogoutBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        handleLogout();
+                        e.stopPropagation();
+                        logout();
                     });
                 }
-            } else {
+            }
+
+            if (sideUserName) sideUserName.textContent = fullName;
+            if (sideUserRole) sideUserRole.textContent = userRole;
+            
+        } else {
+            // No hay usuario - mostrar botón de login
+            if (userAction) {
                 userAction.innerHTML = `
                     <div style="display:flex; gap:10px;">
-                        <a href="/user/visitor/login/login.html" style="background:white; color:#090979; padding:8px 20px; border-radius:20px; text-decoration:none; font-weight:bold;">Iniciar sesión</a>
+                        <a href="/user/visitor/login/login.html" style="background:; color:#090979; padding:8px 20px; border-radius:20px; text-decoration:none; font-weight:bold;">Iniciar sesión</a>
                     </div>
                 `;
             }
-        }
-
-        // Actualizar Sidebar
-        const sideUserName = document.getElementById('sideUserName');
-        const sideUserRole = document.getElementById('sideUserRole');
-        
-        if (sideUserName) {
-            sideUserName.textContent = fullName;
-            sideUserName.style.color = 'white !important';
-        }
-        if (sideUserRole) {
-            sideUserRole.textContent = (rol || 'Usuario').toUpperCase();
-            sideUserRole.style.color = '#ffd93d !important';
+            
+            if (sideUserName) sideUserName.textContent = 'Invitado';
+            if (sideUserRole) sideUserRole.textContent = 'VISITANTE';
         }
     }
 
+    // =============================================
+    // VERIFICAR SESIÓN EN FIREBASE
+    // =============================================
+    function verificarSesionFirebase() {
+        if (typeof firebase !== 'undefined' && firebase.auth) {
+            firebase.auth().onAuthStateChanged((user) => {
+                console.log('🔔 Estado Firebase:', user ? 'logueado' : 'no logueado');
+                
+                // Si Firebase dice que no hay usuario pero hay datos en localStorage, limpiar
+                if (!user) {
+                    const hasData = localStorage.getItem('userFullData');
+                    if (hasData) {
+                        console.log('⚠️ Datos fantasma detectados, limpiando...');
+                        localStorage.clear();
+                        sessionStorage.clear();
+                        cargarDatosUsuario();
+                    }
+                }
+            });
+        }
+    }
 
-    // Iniciar sistema
-    addStyles();
-    createElements();
-    setupLogic();
+    // =============================================
+    // INICIAR TODO
+    // =============================================
+    function init() {
+        addStyles();
+        createNavbar();
+        setupNavbar();
+        setupCrossTabLogout();
+        verificarSesionFirebase();
+        
+        // Verificar cada segundo
+        setInterval(cargarDatosUsuario, 1000);
+        
+        // Al volver a la pestaña
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                cargarDatosUsuario();
+            }
+        });
+    }
 
-    render(); {
-        this.innerHTML = `
-            <style>
-                .navbar-visitor {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 1rem 2rem;
-                    background: #33105c;
-                    background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
-                    color: white;
-                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-                    position: sticky;
-                    top: 0;
-                    z-index: 1000;
-                }
-                
-                .nav-brand {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    text-decoration: none;
-                    color: white;
-                }
-                
-                .nav-brand img {
-                    height: 40px;
-                    width: 40px;
-                    border-radius: 50%;
-                }
-                
-                .nav-menu {
-                    display: flex;
-                    gap: 2rem;
-                    list-style: none;
-                    margin: 0;
-                    padding: 0;
-                }
-                
-                .nav-menu a {
-                    color: white;
-                    text-decoration: none;
-                    font-weight: 500;
-                    transition: all 0.3s;
-                    padding: 0.5rem 1rem;
-                    border-radius: 20px;
-                }
-                
-                .nav-menu a:hover {
-                    background: rgba(255,255,255,0.1);
-                    transform: translateY(-2px);
-                }
-                
-                .nav-actions {
-                    display: flex;
-                    gap: 1rem;
-                    align-items: center;
-                }
-                
-                .btn-nav {
-                    padding: 0.5rem 1.5rem;
-                    border-radius: 20px;
-                    border: none;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    font-size: 0.9rem;
-                }
-                
-                .btn-login {
-                    background: white;
-                    color: #1A535C;
-                }
-                
-                .btn-login:hover {
-                    background: #f0f0f0;
-                    transform: translateY(-2px);
-                }
-                
-                .btn-register {
-                    background: #FF6B6B;
-                    color: white;
-                }
-                
-                .btn-register:hover {
-                    background: #ff5252;
-                    transform: translateY(-2px);
-                }
-                
-                /* Estilos para el menú de usuario */
-                .user-nav-menu {
-                    display: flex;
-                    align-items: center;
-                    gap: 1rem;
-                    background: rgba(255, 255, 255, 0.1);
-                    backdrop-filter: blur(10px);
-                    padding: 0.3rem 0.5rem 0.3rem 1rem;
-                    border-radius: 40px;
-                    border: 1px solid rgba(255, 255, 255, 0.2);
-                }
-                
-                .user-nav-info {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.8rem;
-                }
-                
-                .user-nav-avatar {
-                    width: 35px;
-                    height: 35px;
-                    background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: bold;
-                    font-size: 1rem;
-                    box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
-                }
-                
-                .user-nav-details {
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .user-nav-name {
-                    font-weight: 600;
-                    font-size: 0.9rem;
-                    color: white;
-                    line-height: 1.2;
-                }
-                
-                .user-nav-role {
-                    font-size: 0.7rem;
-                    color: rgba(255,255,255,0.7);
-                    text-transform: capitalize;
-                }
-                
-                .btn-logout {
-                    background: rgba(255, 255, 255, 0.15);
-                    color: white;
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    padding: 0.4rem 1rem;
-                    font-size: 0.85rem;
-                }
-                
-                .btn-logout:hover {
-                    background: rgba(255, 255, 255, 0.25);
-                    border-color: rgba(255, 255, 255, 0.5);
-                }
-                
-                .btn-logout i {
-                    margin-right: 0.3rem;
-                }
-                
-                .mobile-toggle {
-                    display: none;
-                    background: none;
-                    border: none;
-                    color: white;
-                    font-size: 1.5rem;
-                    cursor: pointer;
-                }
-                
-                @media (max-width: 768px) {
-                    .nav-menu {
-                        display: none;
-                        position: absolute;
-                        top: 100%;
-                        left: 0;
-                        right: 0;
-                        background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
-                        flex-direction: column;
-                        padding: 1rem;
-                        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-                        z-index: 999;
-                    }
-                    
-                    .nav-actions {
-                        display: none;
-                        position: absolute;
-                        top: calc(100% + 200px);
-                        left: 0;
-                        right: 0;
-                        background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
-                        flex-direction: column;
-                        padding: 1rem;
-                        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
-                        z-index: 999;
-                    }
-                    
-                    .nav-menu.show {
-                        display: flex;
-                    }
-                    
-                    .nav-actions.show {
-                        display: flex;
-                    }
-                    
-                    .mobile-toggle {
-                        display: block;
-                    }
-                    
-                    .user-nav-menu {
-                        flex-direction: column;
-                        width: 100%;
-                        background: transparent;
-                        backdrop-filter: none;
-                        padding: 0;
-                    }
-                    
-                    .user-nav-info {
-                        width: 100%;
-                        justify-content: center;
-                    }
-                    
-                    .btn-logout {
-                        width: 100%;
-                    }
-                    
-                    .nav-actions a {
-                        width: 100%;
-                    }
-                    
-                    .nav-actions .btn-nav {
-                        width: 100%;
-                    }
-                }
-            </style>
-            
-            <nav class="navbar-visitor">
-                <a href="/" class="nav-brand">
-                    <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo">
-                    <span>PawPath</span>
-                </a>
-                
-                <button class="mobile-toggle" id="menuToggle">☰</button>
-                
-                <ul class="nav-menu" id="navMenu">
-                    <li><a href="/" class="active">Inicio</a></li>
-                    <li><a href="/user/visitor/foro/foro.html">Foro</a></li>
-                    <li><a href="#map">Mapa</a></li>
-                    <li><a href="/user/visitor/citas/citas.html">Agenda tu Cita</a></li>
-                    <li><a href="#planes">Planes</a></li>
-                </ul>
-                
-                <div class="nav-actions" id="navActions">
-                    <!-- Este contenido se actualizará dinámicamente -->
-                </div>
-            </nav>
-        `;
-    }   
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
 
 })();
