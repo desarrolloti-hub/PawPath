@@ -131,9 +131,9 @@ class NavbarAdmin extends HTMLElement {
                     </li>
                     <hr>
                     <li><a href="/user/administrator/dashAdmin/dashboard.html">🏠 Inicio</a></li>
-                    <li><a href="/user/administrator/GestionUsuarios/admin_dashboard.html">👥 Usuarios</a></li>
-                    <li><a href="#">🐾 Mascotas</a></li>
-                    <li><a href="#">🩺 Veterinarios</a></li>
+                    <li><a href="/user/administrator/GestionUsuarios/admin_usuarios.html">👥 Usuarios</a></li>
+                    <li><a href="/user/administrator/GestionMascotas/admin_mascotas.html">🐾 Mascotas</a></li>
+                    <li><a href="/user/administrator/GestionVeterinarios/admin_veterinarios.html">🩺 Veterinarios</a></li>
                     <li><a href="#">📊 Reportes</a></li>
                     <li><a href="#">💳 Suscripciones</a></li>
                 </ul>
