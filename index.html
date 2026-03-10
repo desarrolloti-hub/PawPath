@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,8 @@
     <!-- Fuente moderna de Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <!-- Iconos de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Styles para el perfil de usuario -->
@@ -25,7 +27,7 @@
             border-radius: 50px;
             border: 1px solid rgba(255, 107, 107, 0.2);
         }
-        
+
         .user-avatar {
             width: 45px;
             height: 45px;
@@ -39,23 +41,23 @@
             font-size: 1.2rem;
             box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
         }
-        
+
         .user-info {
             display: flex;
             flex-direction: column;
         }
-        
+
         .user-greeting {
             font-size: 0.85rem;
             color: #666;
         }
-        
+
         .user-name {
             font-weight: 700;
             color: #FF6B6B;
             font-size: 1rem;
         }
-        
+
         .user-role-badge {
             background: rgba(255, 107, 107, 0.1);
             padding: 0.25rem 0.75rem;
@@ -65,7 +67,7 @@
             font-weight: 600;
             text-transform: capitalize;
         }
-        
+
         .logout-btn {
             background: none;
             border: 1px solid rgba(255, 107, 107, 0.3);
@@ -79,13 +81,13 @@
             align-items: center;
             gap: 0.5rem;
         }
-        
+
         .logout-btn:hover {
             background: #FF6B6B;
             color: white;
             border-color: #FF6B6B;
         }
-        
+
         .hero-buttons {
             display: flex;
             gap: 1rem;
@@ -94,6 +96,7 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navbar dinámico -->
     <navbar-visitor></navbar-visitor>
@@ -111,9 +114,10 @@
                         El lugar donde el <span class="gradient-text">amor por los animales</span> encuentra su camino
                     </h1>
                     <p class="hero-subtitle">
-                        PawPath es la plataforma integral que conecta a dueños, rescatistas y veterinarios para crear una red de apoyo y cuidado animal.
+                        PawPath es la plataforma integral que conecta a dueños, rescatistas y veterinarios para crear
+                        una red de apoyo y cuidado animal.
                     </p>
-                    
+
                     <!-- Contenedor para botones de autenticación (visible solo si NO está logueado) -->
                     <div class="hero-buttons" id="auth-buttons-container">
                         <button class="btn btn-primary" id="btn-register">
@@ -167,15 +171,18 @@
                             <i class="fas fa-search"></i>
                         </div>
                         <h3>Foro de Rescate</h3>
-                        <p>Reporta mascotas perdidas o encontradas. Sube fotos y ayuda a reunir familias en tiempo real.</p>
-                        <a href="#" class="feature-link">Explorar foro <i class="fas fa-arrow-right"></i></a>
+                        <p>Reporta mascotas perdidas o encontradas. Sube fotos y ayuda a reunir familias en tiempo real.
+                        </p>
+                        <a href="/user/visitor/foro/foro.html" class="feature-link">Explorar foro <i
+                                class="fas fa-arrow-right"></i></a>
                     </div>
                     <div class="feature-card">
                         <div class="feature-icon-wrapper">
                             <i class="fas fa-clinic-medical"></i>
                         </div>
                         <h3>Veterinarios Pro</h3>
-                        <p>Expedientes digitales, recetas electrónicas y una agenda inteligente para el cuidado profesional.</p>
+                        <p>Expedientes digitales, recetas electrónicas y una agenda inteligente para el cuidado
+                            profesional.</p>
                         <a href="#" class="feature-link">Conocer más <i class="fas fa-arrow-right"></i></a>
                     </div>
                     <div class="feature-card">
@@ -183,7 +190,8 @@
                             <i class="fas fa-heart"></i>
                         </div>
                         <h3>Caridad Gratuita</h3>
-                        <p>Reportes de extravíos y ayuda callejera siempre gratuitos. Porque ayudar no debería tener costo.</p>
+                        <p>Reportes de extravíos y ayuda callejera siempre gratuitos. Porque ayudar no debería tener
+                            costo.</p>
                         <a href="#" class="feature-link">Ver iniciativas <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
@@ -202,9 +210,12 @@
                     <!-- Las tarjetas se cargan dinámicamente con JS -->
                 </div>
                 <div class="section-footer">
-                    <button class="btn btn-outline" onclick="window.location='#forum'">
-                        Ver todas las publicaciones <i class="fas fa-arrow-right"></i>
-                    </button>
+                    <a href="/user/visitor/foro/foro.html">
+                        <button class="btn btn-outline" onclick="window.location='#forum'">
+                            Ver todas las publicaciones <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </a>
+
                 </div>
             </div>
         </section>
@@ -309,15 +320,17 @@
     </main>
 
     <!-- Footer -->
+
     <main-footer></main-footer>
 
     <!-- Scripts de componentes -->
     <script type="module" src="components/JS navbar-visitor-component.js"></script>
     <script type="module" src="components/JS forum-card-component.js"></script>
     <script type="module" src="components/JS FooterVisitor.js"></script>
-    
+
     <!-- Script principal separado -->
     <script type="module" src="index.js"></script>
     <script src="/config/personalisacion.js"></script>
 </body>
+
 </html>

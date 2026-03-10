@@ -40,27 +40,96 @@ class ControladorFormularioForo {
     
     obtenerUsuarioId() {
         try {
-            const sessionData = localStorage.getItem('userAuth');
-            if (sessionData) {
-                const parsedData = JSON.parse(sessionData);
-                return parsedData.userId || parsedData.uid || 'usuario_demo';
+            const sessionData = localStorage.getItem('userSession');
+            if (!sessionData) {
+                console.warn('No hay sesión activa (userSession)');
+                return 'usuario_demo_' + Date.now();
             }
+
+            // Intentar parsear como objeto
+            let parsedData;
+            try {
+                parsedData = JSON.parse(sessionData);
+            } catch (e) {
+                // Si no es JSON, quizás es un string plano (ej. el email)
+                console.warn('userSession no es un objeto JSON válido, se tratará como string');
+                parsedData = sessionData;
+            }
+
+            // Si es un string, asumimos que es el email (o tal vez el UID)
+            if (typeof parsedData === 'string') {
+                // Podría ser el email o el UID, lo usamos como identificador
+                return parsedData;
+            }
+
+            // Si es un objeto, buscamos propiedades comunes de ID
+            const posiblesId = [
+                parsedData.uid,
+                parsedData.userId,
+                parsedData.id,
+                parsedData.localId,
+                parsedData.sub,        // JWT
+                parsedData.user_id,
+                parsedData.userid
+            ].find(val => val !== undefined && val !== null);
+
+            if (posiblesId) {
+                return posiblesId;
+            }
+
+            // Si no encontramos ID, devolvemos el email como fallback
+            if (parsedData.email) {
+                console.warn('No se encontró un ID, usando email como identificador');
+                return parsedData.email;
+            }
+
+            // Último recurso
             return 'usuario_demo_' + Date.now();
         } catch (error) {
+            console.error('Error en obtenerUsuarioId:', error);
             return 'usuario_demo_' + Date.now();
         }
     }
     
     obtenerUsuarioNombre() {
         try {
-            const sessionData = localStorage.getItem('userAuth');
-            if (sessionData) {
-                const parsedData = JSON.parse(sessionData);
-                return parsedData.userName || parsedData.displayName || parsedData.email || 'Usuario';
+            const sessionData = localStorage.getItem('userSession');
+            if (!sessionData) return 'Usuario Demo';
+
+            let parsedData;
+            try {
+                parsedData = JSON.parse(sessionData);
+            } catch (e) {
+                // Si es un string, no podemos obtener nombre, devolvemos algo genérico
+                return 'Usuario';
             }
-            return 'Usuario Demo';
+
+            if (typeof parsedData === 'string') return 'Usuario';
+
+            // Buscar el nombre en propiedades comunes
+            const posiblesNombre = [
+                parsedData.nombre_completo,
+                parsedData.displayName,
+                parsedData.name,
+                parsedData.userName,
+                parsedData.nombre,
+                parsedData.fullName,
+                parsedData.email ? parsedData.email.split('@')[0] : null
+            ].find(val => val !== undefined && val !== null && val !== '');
+
+            if (posiblesNombre) {
+                return posiblesNombre;
+            }
+
+            // Si hay email, usar la parte local como nombre
+            if (parsedData.email) {
+                return parsedData.email.split('@')[0];
+            }
+
+            return 'Usuario';
         } catch (error) {
-            return 'Usuario Demo';
+            console.error('Error en obtenerUsuarioNombre:', error);
+            return 'Usuario';
         }
     }
     

@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Registro Veterinario</title>
+    <link rel="stylesheet" href="formVeterinario.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Header con navegación -->
+    <navbar-visitor></navbar-visitor>
+
+
+    <main class="main-container">
+        <div class="container">
+            <!-- Título de la página -->
+            <div class="page-header">
+                <h2>Registro de Veterinario</h2>
+                <p>Completa el formulario para registrar tu clínica veterinaria en PawPath</p>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- Formulario de registro -->
+                <div class="form-container">
+                    <div class="form-card">
+                        <!-- Barra de progreso -->
+                        <div class="progress-bar">
+                            <div class="progress-step active">
+                                <span class="step-number">1</span>
+                                <span class="step-label">Información personal</span>
+                            </div>
+                            <div class="progress-step">
+                                <span class="step-number">2</span>
+                                <span class="step-label">Datos de la clínica</span>
+                            </div>
+                            <div class="progress-step">
+                                <span class="step-number">3</span>
+                                <span class="step-label">Horarios</span>
+                            </div>
+                        </div>
+
+                        <form id="registroVetForm" class="veterinario-form">
+                            <!-- PASO 1: Información Personal -->
+                            <div class="form-step active" id="step1">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-user-md"></i> Información Personal</h3>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="primerNombre">Primer nombre *</label>
+                                        <input type="text" id="primerNombre" name="primerNombre" required
+                                            placeholder="Ej: Juan" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="segundoNombre">Segundo nombre (opcional)</label>
+                                        <input type="text" id="segundoNombre" name="segundoNombre"
+                                            placeholder="Ej: Carlos" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="apellidoPat">Apellido paterno *</label>
+                                        <input type="text" id="apellidoPat" name="apellidoPat" required
+                                            placeholder="Ej: Pérez" readonly>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="apellidoMat">Apellido materno (opcional)</label>
+                                        <input type="text" id="apellidoMat" name="apellidoMat"
+                                            placeholder="Ej: González" readonly>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="email">Email *</label>
+                                    <input type="email" id="email" name="email" required
+                                        placeholder="ejemplo@correo.com" readonly>
+                                    <small class="field-note">Este email será tu usuario de acceso</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="telefono">Teléfono *</label>
+                                    <input type="tel" id="telefono" name="telefono" required
+                                        placeholder="Ej: 555-123-4567">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="cedula">Cédula profesional *</label>
+                                    <input type="text" id="cedula" name="cedula" required placeholder="Ej: 12345678">
+                                    <small class="field-note">Ingresa el número de tu cédula profesional</small>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fotoPerfil">Foto de perfil (opcional)</label>
+                                    <div class="file-upload">
+                                        <input type="file" id="fotoPerfil" name="fotoPerfil" accept="image/*">
+                                        <div class="file-upload-label" id="fotoPerfilLabel">
+                                            <i class="fas fa-camera"></i>
+                                            <span>Haz clic para subir tu foto</span>
+                                            <small>Formatos: JPG, PNG (Máx. 2MB)</small>
+                                        </div>
+                                        <div id="fotoPerfilPreview" class="image-preview"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-primary next-step" data-next="2">
+                                        Siguiente <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- PASO 2: Datos de la Clínica -->
+                            <div class="form-step" id="step2">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-clinic-medical"></i> Datos de la Clínica</h3>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="nombreClinica">Nombre de la clínica *</label>
+                                    <input type="text" id="nombreClinica" name="nombreClinica" required
+                                        placeholder="Ej: Veterinaria Patitas">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="direccion">Dirección completa *</label>
+                                    <textarea id="direccion" name="direccion" rows="3" required
+                                        placeholder="Calle, número, colonia, ciudad, CP"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="fotoClinica">Foto de la clínica (opcional)</label>
+                                    <div class="file-upload">
+                                        <input type="file" id="fotoClinica" name="fotoClinica" accept="image/*">
+                                        <div class="file-upload-label" id="fotoClinicaLabel">
+                                            <i class="fas fa-building"></i>
+                                            <span>Haz clic para subir una foto de tu clínica</span>
+                                            <small>Formatos: JPG, PNG (Máx. 5MB)</small>
+                                        </div>
+                                        <div id="fotoClinicaPreview" class="image-preview"></div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="especialidades">Especialidades *</label>
+                                    <div class="checkbox-group">
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="perros"> Perros
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="gatos"> Gatos
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="aves"> Aves
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="roedores"> Roedores
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="reptiles"> Reptiles
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="emergencias">
+                                            Emergencias 24/7
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="cirugias"> Cirugías
+                                        </label>
+                                        <label class="checkbox-label">
+                                            <input type="checkbox" name="especialidades" value="hospitalizacion">
+                                            Hospitalización
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label for="duracionCita">Duración de cita (minutos) *</label>
+                                        <select id="duracionCita" name="duracionCita" required>
+                                            <option value="">Selecciona duración</option>
+                                            <option value="15">15 minutos</option>
+                                            <option value="30" selected>30 minutos</option>
+                                            <option value="45">45 minutos</option>
+                                            <option value="60">60 minutos</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="diasAnticipacion">Días de anticipación *</label>
+                                        <select id="diasAnticipacion" name="diasAnticipacion" required>
+                                            <option value="">Selecciona días</option>
+                                            <option value="7">7 días</option>
+                                            <option value="15">15 días</option>
+                                            <option value="30" selected>30 días</option>
+                                            <option value="60">60 días</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary prev-step" data-prev="1">
+                                        <i class="fas fa-arrow-left"></i> Anterior
+                                    </button>
+                                    <button type="button" class="btn btn-primary next-step" data-next="3">
+                                        Siguiente <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- PASO 3: Horarios -->
+                            <div class="form-step" id="step3">
+                                <div class="card-header">
+                                    <h3><i class="fas fa-clock"></i> Configuración de Horarios</h3>
+                                </div>
+
+                                <div class="horarios-container" id="horariosContainer">
+                                    <!-- Los horarios se generarán con JavaScript -->
+                                </div>
+
+                                <div class="form-group terms">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="terminos" required>
+                                        <span>Acepto los términos y condiciones de registro como veterinario en
+                                            PawPath</span>
+                                    </label>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="button" class="btn btn-secondary prev-step" data-prev="2">
+                                        <i class="fas fa-arrow-left"></i> Anterior
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="btnSubmit">
+                                        <span class="btn-text">Registrar Veterinario</span>
+                                        <span class="btn-loading" style="display: none;">Registrando...</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Panel lateral con información (inspirado en la imagen) -->
+                <div class="sidebar">
+                    <!-- Contactos de emergencia -->
+                    <div class="info-card emergency">
+                        <h3><i class="fas fa-phone-alt"></i> Contactos de emergencia</h3>
+                        <ul>
+                            <li><strong>Protectora Animal:</strong> 555-0001</li>
+                            <li><strong>Veterinaria 24h:</strong> 555-0002</li>
+                            <li><strong>Policía:</strong> 555-0003</li>
+                        </ul>
+                    </div>
+
+                    <!-- Consejos útiles -->
+                    <div class="info-card tips">
+                        <h3><i class="fas fa-lightbulb"></i> Consejos útiles</h3>
+                        <ul>
+                            <li>✓ Ten a mano tu cédula profesional</li>
+                            <li>✓ Prepara la dirección exacta de tu clínica</li>
+                            <li>✓ Define tus horarios de atención</li>
+                            <li>✓ Revisa las especialidades que ofreces</li>
+                        </ul>
+                    </div>
+
+                    <!-- Beneficios -->
+                    <div class="info-card benefits">
+                        <h3><i class="fas fa-star"></i> Beneficios de registrarte</h3>
+                        <ul>
+                            <li>✓ Llega a más dueños de mascotas</li>
+                            <li>✓ Gestiona citas fácilmente</li>
+                            <li>✓ Publica mascotas en adopción</li>
+                            <li>✓ Forma parte de la comunidad PawPath</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmación -->
+    <div id="modalConfirmacion" class="modal">
+        <div class="modal-content">
+            <i class="fas fa-check-circle modal-icon success"></i>
+            <h3>¡Registro exitoso!</h3>
+            <p>Tu clínica veterinaria ha sido registrada correctamente. En breve podrás acceder a tu panel.</p>
+            <div class="modal-actions">
+                <a href="../dashVeterinario/veterinario.html">
+                    <button class="btn btn-primary">
+                        Ir al panel
+                    </button>
+                </a>
+                <button class="btn btn-secondary" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="formController.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+</body>
+
+</html>

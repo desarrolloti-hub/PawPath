@@ -534,9 +534,267 @@
         }
     }
 
+<<<<<<< HEAD
     // Iniciar sistema
     addStyles();
     createElements();
     setupLogic();
+=======
+    render() {
+        this.innerHTML = `
+            <style>
+                .navbar-visitor {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 1rem 2rem;
+                    background: #33105c;
+                    background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
+                    color: white;
+                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                    position: sticky;
+                    top: 0;
+                    z-index: 1000;
+                }
+                
+                .nav-brand {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.8rem;
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    text-decoration: none;
+                    color: white;
+                }
+                
+                .nav-brand img {
+                    height: 40px;
+                    width: 40px;
+                    border-radius: 50%;
+                }
+                
+                .nav-menu {
+                    display: flex;
+                    gap: 2rem;
+                    list-style: none;
+                    margin: 0;
+                    padding: 0;
+                }
+                
+                .nav-menu a {
+                    color: white;
+                    text-decoration: none;
+                    font-weight: 500;
+                    transition: all 0.3s;
+                    padding: 0.5rem 1rem;
+                    border-radius: 20px;
+                }
+                
+                .nav-menu a:hover {
+                    background: rgba(255,255,255,0.1);
+                    transform: translateY(-2px);
+                }
+                
+                .nav-actions {
+                    display: flex;
+                    gap: 1rem;
+                    align-items: center;
+                }
+                
+                .btn-nav {
+                    padding: 0.5rem 1.5rem;
+                    border-radius: 20px;
+                    border: none;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s;
+                    font-size: 0.9rem;
+                }
+                
+                .btn-login {
+                    background: white;
+                    color: #1A535C;
+                }
+                
+                .btn-login:hover {
+                    background: #f0f0f0;
+                    transform: translateY(-2px);
+                }
+                
+                .btn-register {
+                    background: #FF6B6B;
+                    color: white;
+                }
+                
+                .btn-register:hover {
+                    background: #ff5252;
+                    transform: translateY(-2px);
+                }
+                
+                /* Estilos para el menú de usuario */
+                .user-nav-menu {
+                    display: flex;
+                    align-items: center;
+                    gap: 1rem;
+                    background: rgba(255, 255, 255, 0.1);
+                    backdrop-filter: blur(10px);
+                    padding: 0.3rem 0.5rem 0.3rem 1rem;
+                    border-radius: 40px;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+                
+                .user-nav-info {
+                    display: flex;
+                    align-items: center;
+                    gap: 0.8rem;
+                }
+                
+                .user-nav-avatar {
+                    width: 35px;
+                    height: 35px;
+                    background: linear-gradient(135deg, #FF6B6B, #FF8E8E);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 1rem;
+                    box-shadow: 0 4px 10px rgba(255, 107, 107, 0.3);
+                }
+                
+                .user-nav-details {
+                    display: flex;
+                    flex-direction: column;
+                }
+                
+                .user-nav-name {
+                    font-weight: 600;
+                    font-size: 0.9rem;
+                    color: white;
+                    line-height: 1.2;
+                }
+                
+                .user-nav-role {
+                    font-size: 0.7rem;
+                    color: rgba(255,255,255,0.7);
+                    text-transform: capitalize;
+                }
+                
+                .btn-logout {
+                    background: rgba(255, 255, 255, 0.15);
+                    color: white;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    padding: 0.4rem 1rem;
+                    font-size: 0.85rem;
+                }
+                
+                .btn-logout:hover {
+                    background: rgba(255, 255, 255, 0.25);
+                    border-color: rgba(255, 255, 255, 0.5);
+                }
+                
+                .btn-logout i {
+                    margin-right: 0.3rem;
+                }
+                
+                .mobile-toggle {
+                    display: none;
+                    background: none;
+                    border: none;
+                    color: white;
+                    font-size: 1.5rem;
+                    cursor: pointer;
+                }
+                
+                @media (max-width: 768px) {
+                    .nav-menu {
+                        display: none;
+                        position: absolute;
+                        top: 100%;
+                        left: 0;
+                        right: 0;
+                        background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
+                        flex-direction: column;
+                        padding: 1rem;
+                        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+                        z-index: 999;
+                    }
+                    
+                    .nav-actions {
+                        display: none;
+                        position: absolute;
+                        top: calc(100% + 200px);
+                        left: 0;
+                        right: 0;
+                        background: linear-gradient(90deg, rgba(51, 16, 92, 1) 20%, rgba(9, 9, 121, 1) 58%, rgba(0, 140, 255, 1) 100%);
+                        flex-direction: column;
+                        padding: 1rem;
+                        box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+                        z-index: 999;
+                    }
+                    
+                    .nav-menu.show {
+                        display: flex;
+                    }
+                    
+                    .nav-actions.show {
+                        display: flex;
+                    }
+                    
+                    .mobile-toggle {
+                        display: block;
+                    }
+                    
+                    .user-nav-menu {
+                        flex-direction: column;
+                        width: 100%;
+                        background: transparent;
+                        backdrop-filter: none;
+                        padding: 0;
+                    }
+                    
+                    .user-nav-info {
+                        width: 100%;
+                        justify-content: center;
+                    }
+                    
+                    .btn-logout {
+                        width: 100%;
+                    }
+                    
+                    .nav-actions a {
+                        width: 100%;
+                    }
+                    
+                    .nav-actions .btn-nav {
+                        width: 100%;
+                    }
+                }
+            </style>
+            
+            <nav class="navbar-visitor">
+                <a href="/" class="nav-brand">
+                    <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo">
+                    <span>PawPath</span>
+                </a>
+                
+                <button class="mobile-toggle" id="menuToggle">☰</button>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="/" class="active">Inicio</a></li>
+                    <li><a href="/user/visitor/foro/foro.html">Foro</a></li>
+                    <li><a href="#map">Mapa</a></li>
+                    <li><a href="/user/visitor/citas/citas.html">Agenda tu Cita</a></li>
+                    <li><a href="#planes">Planes</a></li>
+                </ul>
+                
+                <div class="nav-actions" id="navActions">
+                    <!-- Este contenido se actualizará dinámicamente -->
+                </div>
+            </nav>
+        `;
+    }
+>>>>>>> 4d6cfeff671b7946553b17523ac57f3af2953002
 
 })();
