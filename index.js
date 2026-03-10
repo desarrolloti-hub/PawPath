@@ -210,17 +210,70 @@ function checkUserAuthentication() {
                 if (authButtons) authButtons.style.display = 'none';
                 if (userProfile) userProfile.style.display = 'block';
 
-                // Actualizar información del usuario
+                // Actualizar información del usuario - NOMBRE Y APELLIDO
                 if (userNameDisplay) {
+<<<<<<< HEAD
                     // Intentar obtener el nombre del usuario
                     const nombre = session.displayName ||
                         localStorage.getItem('userEmail')?.split('@')[0] ||
                         'Usuario';
                     userNameDisplay.textContent = nombre;
+=======
+                    // Obtener los datos del localStorage
+                    const primerNombre = localStorage.getItem('user_primer_nombre') || '';
+                    const segundoNombre = localStorage.getItem('user_segundo_nombre') || '';
+                    const apellidoPaterno = localStorage.getItem('user_apellido_paterno') || '';
+                    const apellidoMaterno = localStorage.getItem('user_apellido_materno') || '';
+                    const nombreCompleto = localStorage.getItem('user_nombre_completo') || '';
+                    
+                    // Variable para el nombre a mostrar
+                    let nombreMostrar = '';
+                    
+                    // ESTRATEGIA 1: Usar primer nombre + apellido paterno (lo que pediste)
+                    if (primerNombre && apellidoPaterno) {
+                        nombreMostrar = `${primerNombre} ${apellidoPaterno}`;
+                    } 
+                    // ESTRATEGIA 2: Si no hay apellido paterno, solo el primer nombre
+                    else if (primerNombre) {
+                        nombreMostrar = primerNombre;
+                    }
+                    // ESTRATEGIA 3: Usar el nombre completo guardado
+                    else if (nombreCompleto) {
+                        const partes = nombreCompleto.split(' ');
+                        if (partes.length >= 2) {
+                            // Mostrar primer nombre + primer apellido
+                            nombreMostrar = `${partes[0]} ${partes[1]}`;
+                        } else {
+                            nombreMostrar = partes[0];
+                        }
+                    }
+                    // ESTRATEGIA 4: Usar el displayName de la sesión
+                    else if (session.displayName) {
+                        const partes = session.displayName.split(' ');
+                        if (partes.length >= 2) {
+                            nombreMostrar = `${partes[0]} ${partes[1]}`;
+                        } else {
+                            nombreMostrar = partes[0];
+                        }
+                    }
+                    // ESTRATEGIA 5: Usar el email (solo la parte antes del @) como último recurso
+                    else {
+                        const email = localStorage.getItem('userEmail') || session.email || '';
+                        if (email) {
+                            nombreMostrar = email.split('@')[0];
+                        } else {
+                            nombreMostrar = 'Usuario';
+                        }
+                    }
+                    
+                    userNameDisplay.textContent = nombreMostrar;
+                    console.log('✅ Nombre mostrado:', nombreMostrar); // Para debugging
+>>>>>>> b4a62304dc376c9d488e49bac321e9c72824f79f
                 }
 
+                // Mostrar el rol del usuario
                 if (userRoleDisplay) {
-                    const rol = session.userRole || 'usuario';
+                    const rol = localStorage.getItem('user_rol') || session.userRole || 'usuario';
                     // Traducir rol a español más amigable
                     const rolesDisplay = {
                         'administrador': 'Administrador',
@@ -230,9 +283,12 @@ function checkUserAuthentication() {
                     userRoleDisplay.textContent = rolesDisplay[rol] || rol;
                 }
 
+                // Actualizar el avatar con la inicial del primer nombre
                 if (userAvatar) {
-                    // Mostrar inicial del nombre
-                    const inicial = (userNameDisplay?.textContent?.charAt(0) || 'U').toUpperCase();
+                    const primerNombre = localStorage.getItem('user_primer_nombre') || 
+                                        userNameDisplay?.textContent?.split(' ')[0] || 
+                                        'U';
+                    const inicial = primerNombre.charAt(0).toUpperCase();
                     userAvatar.textContent = inicial;
                 }
 
@@ -241,14 +297,11 @@ function checkUserAuthentication() {
             } else {
                 // Sesión expirada
                 console.log('❌ Sesión expirada');
-                localStorage.removeItem('userSession');
-                localStorage.removeItem('currentUserId');
-                localStorage.removeItem('userEmail');
-                localStorage.removeItem('currentUserRole');
+                localStorage.clear(); // Limpiar todo el localStorage
             }
         } catch (error) {
             console.error('Error al verificar sesión:', error);
-            localStorage.removeItem('userSession');
+            localStorage.clear();
         }
     }
 
@@ -258,6 +311,7 @@ function checkUserAuthentication() {
     return false;
 }
 
+<<<<<<< HEAD
 // Función para cerrar sesión
 function handleLogout() {
     // Limpiar localStorage
@@ -276,6 +330,8 @@ function handleLogout() {
     // window.location.reload();
 }
 
+=======
+>>>>>>> b4a62304dc376c9d488e49bac321e9c72824f79f
 // Event Listeners principales
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM cargado - Inicializando index.js');
@@ -287,7 +343,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRegister = document.getElementById('btn-register');
     const btnLogin = document.getElementById('btn-login');
     const btnRegisterCta = document.getElementById('btn-register-cta');
-    const logoutBtn = document.getElementById('logout-btn');
 
     const urlRedireccionLogin = '/user/visitor/login/login.html';
 
@@ -310,11 +365,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             window.location.href = urlRedireccionLogin;
         });
-    }
-
-    // Botón de cerrar sesión
-    if (logoutBtn) {
-        logoutBtn.addEventListener('click', handleLogout);
     }
 
     // Cargar datos simulados
@@ -345,3 +395,13 @@ window.addEventListener('pageshow', (event) => {
         checkUserAuthentication();
     }
 });
+
+// Debug: Mostrar todos los datos del localStorage (opcional, para desarrollo)
+window.debugLocalStorage = function() {
+    console.log('📦 Contenido del localStorage:');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`${key}: ${value}`);
+    }
+};
