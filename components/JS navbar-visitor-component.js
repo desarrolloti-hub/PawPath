@@ -534,13 +534,13 @@
         }
     }
 
-<<<<<<< HEAD
+
     // Iniciar sistema
     addStyles();
     createElements();
     setupLogic();
-=======
-    render() {
+
+    render(); {
         this.innerHTML = `
             <style>
                 .navbar-visitor {
@@ -794,7 +794,6 @@
                 </div>
             </nav>
         `;
-    }
->>>>>>> 4d6cfeff671b7946553b17523ac57f3af2953002
+    }   
 
 })();
