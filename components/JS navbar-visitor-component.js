@@ -417,6 +417,7 @@
                 <li><a href="../user/visitor/foro/foro.html">Foro</a></li>
                 <li><a href="../user/visitor/MapaForo/mapaforo.html">Mapa</a></li>
                 <li><a href="../user/visitor/citas/citas.html">Agendar Cita</a></li>
+                <li><a href="../user/visitor/Mascotas/mascotas.html">Mis Mascotas</a></li>
                 <li><a href="#planes">Planes</a></li>
             </ul>
             <div id="userActionDesktop"></div>
@@ -442,6 +443,7 @@
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
                     <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
+                    <a href="/user/visitor/Mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
                 </div>
             </div>
