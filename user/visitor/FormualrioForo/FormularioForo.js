@@ -46,44 +46,35 @@ class ControladorFormularioForo {
                 return 'usuario_demo_' + Date.now();
             }
 
-            // Intentar parsear como objeto
             let parsedData;
             try {
                 parsedData = JSON.parse(sessionData);
             } catch (e) {
-                // Si no es JSON, quizás es un string plano (ej. el email)
                 console.warn('userSession no es un objeto JSON válido, se tratará como string');
                 parsedData = sessionData;
             }
 
-            // Si es un string, asumimos que es el email (o tal vez el UID)
             if (typeof parsedData === 'string') {
-                // Podría ser el email o el UID, lo usamos como identificador
                 return parsedData;
             }
 
-            // Si es un objeto, buscamos propiedades comunes de ID
             const posiblesId = [
                 parsedData.uid,
                 parsedData.userId,
                 parsedData.id,
                 parsedData.localId,
-                parsedData.sub,        // JWT
+                parsedData.sub,        
                 parsedData.user_id,
                 parsedData.userid
             ].find(val => val !== undefined && val !== null);
 
-            if (posiblesId) {
-                return posiblesId;
-            }
+            if (posiblesId) return posiblesId;
 
-            // Si no encontramos ID, devolvemos el email como fallback
             if (parsedData.email) {
                 console.warn('No se encontró un ID, usando email como identificador');
                 return parsedData.email;
             }
 
-            // Último recurso
             return 'usuario_demo_' + Date.now();
         } catch (error) {
             console.error('Error en obtenerUsuarioId:', error);
@@ -100,13 +91,11 @@ class ControladorFormularioForo {
             try {
                 parsedData = JSON.parse(sessionData);
             } catch (e) {
-                // Si es un string, no podemos obtener nombre, devolvemos algo genérico
                 return 'Usuario';
             }
 
             if (typeof parsedData === 'string') return 'Usuario';
 
-            // Buscar el nombre en propiedades comunes
             const posiblesNombre = [
                 parsedData.nombre_completo,
                 parsedData.displayName,
@@ -117,11 +106,8 @@ class ControladorFormularioForo {
                 parsedData.email ? parsedData.email.split('@')[0] : null
             ].find(val => val !== undefined && val !== null && val !== '');
 
-            if (posiblesNombre) {
-                return posiblesNombre;
-            }
+            if (posiblesNombre) return posiblesNombre;
 
-            // Si hay email, usar la parte local como nombre
             if (parsedData.email) {
                 return parsedData.email.split('@')[0];
             }
@@ -310,7 +296,7 @@ class ControladorFormularioForo {
     }
     
     async guardarPublicacion() {
-        if (!this.usuarioId) {
+        if (!this.usuarioId || this.usuarioId.startsWith('usuario_demo_')) {
             this.mostrarAlerta('Error', 'Debes iniciar sesión para publicar', 'error');
             return;
         }
