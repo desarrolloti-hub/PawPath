@@ -416,7 +416,7 @@
                 <li><a href="/">Inicio</a></li>
                 <li><a href="/user/visitor/foro/Foro.html">Foro</a></li>
                 <li><a href="#map">Mapa</a></li>
-                <li><a href="#veterinarios">Veterinarios</a></li>
+                <li><a href="/user/visitor/citas/Citas.html">Agendar Cita</a></li>
                 <li><a href="#planes">Planes</a></li>
             </ul>
             <div id="userActionDesktop"></div>

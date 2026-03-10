@@ -64,12 +64,15 @@ class CitasController {
 
     checkAuth() {
         return new Promise((resolve, reject) => {
-            onAuthStateChanged(auth, (user) => {
-                if (!user) {
+
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+
+                if (user) {
+                    resolve(user);
+                } else {
                     window.location.href = '/user/visitor/login/login.html';
                     reject(new Error('Usuario no autenticado'));
-                } else {
-                    resolve(user);
                 }
             });
         });

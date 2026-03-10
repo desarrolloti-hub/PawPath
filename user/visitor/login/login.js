@@ -30,19 +30,19 @@ class AuthManager {
         this.initializeDOMElements();
         this.attachEventListeners();
         this.setupAuthStateListener();
-        this.setPersistenceToNone(); // Deshabilitar persistencia
+        //this.setPersistenceToNone(); // Deshabilitar persistencia
         console.log('✅ AuthManager initialized');
     }
 
-    async setPersistenceToNone() {
-        try {
-            // Configurar para NO recordar sesión
-            await setPersistence(auth, inMemoryPersistence);
-            console.log('✅ Persistencia deshabilitada (inMemory)');
-        } catch (error) {
-            console.error('❌ Error al deshabilitar persistencia:', error);
-        }
-    }
+    // async setPersistenceToNone() {
+    //     try {
+    //         // Configurar para NO recordar sesión
+    //         await setPersistence(auth, browserLocalPersistence);
+    //         console.log('✅ Persistencia deshabilitada (inMemory)');
+    //     } catch (error) {
+    //         console.error('❌ Error al deshabilitar persistencia:', error);
+    //     }
+    // }
 
     initializeDOMElements() {
         // Containers
@@ -357,14 +357,14 @@ class AuthManager {
             console.log('🔐 Intentando login con email:', email);
             
             // Configurar persistencia a NONE antes de login
-            await setPersistence(auth, inMemoryPersistence);
+            await setPersistence(auth, browserLocalPersistence);
             
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
             console.log('✅ Login exitoso en Firebase Auth');
             
-            if (!user.emailVerified) {
+            if (user.email_verificado === false) {
                 console.log('⚠️ Email no verificado');
                 this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
                 await signOut(auth);
@@ -430,7 +430,7 @@ class AuthManager {
             console.log('📝 Intentando registrar usuario:', email);
             
             // Configurar persistencia a NONE
-            await setPersistence(auth, inMemoryPersistence);
+            await setPersistence(auth, browserLocalPersistence);
             
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
@@ -486,7 +486,7 @@ class AuthManager {
 
         try {
             // Configurar persistencia a NONE
-            await setPersistence(auth, inMemoryPersistence);
+            await setPersistence(auth, browserLocalPersistence);
             
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
