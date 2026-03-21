@@ -414,10 +414,10 @@
             </a>
             <ul class="paw-nav-links">
                 <li><a href="/">Inicio</a></li>
-                <li><a href="../user/visitor/foro/foro.html">Foro</a></li>
-                <li><a href="../user/visitor/MapaForo/mapaforo.html">Mapa</a></li>
-                <li><a href="../user/visitor/citas/citas.html">Agendar Cita</a></li>
-                <li><a href="../user/visitor/Mascotas/mascotas.html">Mis Mascotas</a></li>
+                <li><a href="/user/visitor/foro/foro.html">Foro</a></li>
+                <li><a href="/user/visitor/MapaForo/mapaforo.html">Mapa</a></li>
+                <li><a href="/user/visitor/citas/citas.html">Agendar Cita</a></li>
+                <li><a href="/user/visitor/Mascotas/mascotas.html">Mis Mascotas</a></li>
                 <li><a href="#planes">Planes</a></li>
             </ul>
             <div id="userActionDesktop"></div>
