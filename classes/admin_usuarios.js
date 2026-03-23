@@ -28,6 +28,7 @@ class Admin_usuarios {
         this.suspendido = false;
         this.estado = 'activo';
         this.collectionName = 'usarios';
+        this.vetCollection='veterinarios';
     }
 
     // ============ MÉTODOS DE INSTANCIA ============

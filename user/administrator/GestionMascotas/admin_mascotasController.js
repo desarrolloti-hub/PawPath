@@ -47,7 +47,7 @@ class Admin_mascotasController {
     renderizarTabla(mascotas) {
         console.log("🎨 Renderizando tabla de mascotas para admin");
 
-        const tbody = document.getElementById("tabla-usuarios");
+        const tbody = document.getElementById("tabla-mascotas");
         if (!tbody) {
             console.error("❌ No se encontró el elemento con ID 'tabla-usuarios'");
             return;
@@ -62,17 +62,16 @@ class Admin_mascotasController {
 
         mascotas.forEach(m => {
             const row = tbody.insertRow();
-
-            // ✅ DEFINIR idMostrar AQUÍ
             const idMostrar = m.id ? m.id.substring(0, 8) + '...' : 'N/A';
 
             row.innerHTML = `
-            <td title="${m.id}">${idMostrar}</td>
             <td>${this.escapeHtml(m.nombre || '')}</td>
             <td>${this.escapeHtml(m.especie || '')}</td>
-            <td>${this.escapeHtml(m.raza || '')}</td>
-            <td>${m.edad || '?'} años</td>
+            <td>${this.escapeHtml(m.genero || '')}</td>
+            <td>${this.escapeHtml(m.edad|| '?')} años</td>
             <td>${m.peso || '?'} kg</td>
+            <td>${m.raz || ''}</td>
+            <td><img src="${m.foto}" alt="foto mascota" >
             <td class="acciones">
                 <button class="btn-eliminar" onclick="adminMascotasController.eliminarMascota('${m.id}')">
                     <i class="fas fa-trash"></i>

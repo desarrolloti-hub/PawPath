@@ -2,7 +2,7 @@
 import { auth, db } from '/config/firebase-config.js';
 
 // Import additional functions directly from Firebase
-import { 
+import {
     signInWithEmailAndPassword,
     createUserWithEmailAndPassword,
     GoogleAuthProvider,
@@ -17,11 +17,11 @@ import {
     inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
-import { 
-    doc, 
+import {
+    doc,
     setDoc,
     getDoc,
-    serverTimestamp 
+    serverTimestamp
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 class AuthManager {
@@ -48,18 +48,18 @@ class AuthManager {
         // Containers
         this.loginContainer = document.getElementById('login-container');
         this.registerContainer = document.getElementById('register-container');
-        
+
         // Navigation links
         this.showRegisterLink = document.getElementById('show-register-link');
         this.showLoginLink = document.getElementById('show-login-link');
-        
+
         // Form titles
         this.formTitle = document.getElementById('form-title');
         this.formSubtitle = document.getElementById('form-subtitle');
         this.illustrationTitle = document.getElementById('illustration-title');
         this.illustrationText = document.getElementById('illustration-text');
         this.illustrationBenefits = document.getElementById('illustration-benefits');
-        
+
         // Login form elements
         this.loginForm = document.getElementById('login-form');
         this.loginEmail = document.getElementById('login-email');
@@ -67,7 +67,7 @@ class AuthManager {
         this.loginBtn = document.getElementById('login-btn');
         this.forgotPassword = document.getElementById('forgot-password');
         this.rememberMe = document.getElementById('remember-me');
-        
+
         // Register form elements
         this.registerForm = document.getElementById('register-form');
         this.primerNombre = document.getElementById('primer_nombre');
@@ -79,10 +79,10 @@ class AuthManager {
         this.confirmPassword = document.getElementById('confirm-password');
         this.registerBtn = document.getElementById('register-btn');
         this.termsCheckbox = document.getElementById('terms');
-        
+
         // Google auth button
         this.googleAuthBtn = document.getElementById('google-auth');
-        
+
         // Alert container
         this.alertContainer = document.getElementById('alert-container');
     }
@@ -102,13 +102,13 @@ class AuthManager {
         // Forms
         this.loginForm?.addEventListener('submit', (e) => this.handleLogin(e));
         this.registerForm?.addEventListener('submit', (e) => this.handleRegister(e));
-        
+
         // Google auth
         this.googleAuthBtn?.addEventListener('click', () => this.handleGoogleAuth());
-        
+
         // Forgot password
         this.forgotPassword?.addEventListener('click', (e) => this.handleForgotPassword(e));
-        
+
         // Password confirmation validation
         this.confirmPassword?.addEventListener('input', () => this.validatePasswordMatch());
 
@@ -126,10 +126,10 @@ class AuthManager {
             console.log('🔔 onAuthStateChanged disparado');
             if (user) {
                 console.log('✅ Usuario autenticado en Firebase Auth');
-                
+
                 const userData = await this.getUserData(user.uid);
                 this.saveUserDataToCache(user, userData);
-                
+
             } else {
                 console.log('❌ Usuario no autenticado en Firebase Auth');
                 this.clearSessionFromStorage();
@@ -139,11 +139,11 @@ class AuthManager {
 
     async getUserData(uid) {
         console.log('🔍 Buscando datos en Firestore para UID:', uid);
-        
+
         try {
             const userRef = doc(db, 'usarios', uid);
             const userSnap = await getDoc(userRef);
-            
+
             if (userSnap.exists()) {
                 return userSnap.data();
             } else {
@@ -158,7 +158,7 @@ class AuthManager {
     saveUserDataToCache(user, userData = null) {
         try {
             console.log('💾 Guardando datos en caché (localStorage)...');
-            
+
             if (user) {
                 const sessionData = {
                     uid: user.uid,
@@ -168,11 +168,11 @@ class AuthManager {
                     timestamp: Date.now(),
                     lastLogin: new Date().toISOString()
                 };
-                
+
                 localStorage.setItem('userSession', JSON.stringify(sessionData));
                 localStorage.setItem('currentUserId', user.uid);
                 localStorage.setItem('userEmail', user.email);
-                
+
                 if (userData) {
                     Object.keys(userData).forEach(key => {
                         if (typeof userData[key] !== 'object' || userData[key] === null) {
@@ -181,16 +181,16 @@ class AuthManager {
                             localStorage.setItem(`user_${key}`, JSON.stringify(userData[key]));
                         }
                     });
-                    
+
                     localStorage.setItem('currentUserRole', userData.rol || 'usuario');
-                    
+
                     if (userData.nombre_completo) {
                         localStorage.setItem('userDisplayName', userData.nombre_completo);
                     }
-                    
+
                     localStorage.setItem('userFullData', JSON.stringify(userData));
                 }
-                
+
                 console.log('✅ Datos guardados en caché correctamente');
             }
         } catch (error) {
@@ -200,7 +200,7 @@ class AuthManager {
 
     redirectBasedOnRole(role) {
         console.log('🔄 Redirigiendo según rol:', role);
-        
+
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
             'veterinario': '/user/veterinario/dashVeterinario/veterinario.html',
@@ -208,7 +208,7 @@ class AuthManager {
         };
 
         const route = roleRoutes[role] || roleRoutes['usuario'];
-        
+
         setTimeout(() => {
             console.log('🚀 Redirigiendo a:', route);
             window.location.href = route;
@@ -226,21 +226,21 @@ class AuthManager {
 
     clearSessionFromStorage() {
         console.log('🧹 Limpiando caché de usuario...');
-        
+
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key.startsWith('user_') || 
-                key === 'userSession' || 
-                key === 'currentUserId' || 
-                key === 'userEmail' || 
-                key === 'currentUserRole' || 
-                key === 'userFullData' || 
+            if (key.startsWith('user_') ||
+                key === 'userSession' ||
+                key === 'currentUserId' ||
+                key === 'userEmail' ||
+                key === 'currentUserRole' ||
+                key === 'userFullData' ||
                 key === 'userDisplayName') {
                 keysToRemove.push(key);
             }
         }
-        
+
         keysToRemove.forEach(key => localStorage.removeItem(key));
         console.log('✅ Caché de usuario limpiada');
     }
@@ -252,11 +252,11 @@ class AuthManager {
             <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
             <span>${message}</span>
         `;
-        
+
         if (this.alertContainer) {
             this.alertContainer.innerHTML = '';
             this.alertContainer.appendChild(alertDiv);
-            
+
             setTimeout(() => {
                 if (alertDiv.parentNode) {
                     alertDiv.remove();
@@ -269,12 +269,12 @@ class AuthManager {
 
     setLoading(button, isLoading) {
         if (!button) return;
-        
+
         const btnText = button.querySelector('.btn-text');
         const btnLoader = button.querySelector('.btn-loader');
-        
+
         button.disabled = isLoading;
-        
+
         if (btnText) btnText.style.display = isLoading ? 'none' : 'inline-block';
         if (btnLoader) btnLoader.style.display = isLoading ? 'inline-block' : 'none';
     }
@@ -284,7 +284,7 @@ class AuthManager {
     }
 
     validatePasswordMatch() {
-        if (this.confirmPassword?.value && 
+        if (this.confirmPassword?.value &&
             this.registerPassword?.value !== this.confirmPassword.value) {
             this.confirmPassword.style.borderColor = '#EF4444';
         } else {
@@ -332,17 +332,16 @@ class AuthManager {
         };
 
         const current = texts[formType];
-        
+
         if (this.formTitle) this.formTitle.textContent = current.title;
         if (this.formSubtitle) this.formSubtitle.textContent = current.subtitle;
         if (this.illustrationTitle) this.illustrationTitle.textContent = current.illTitle;
         if (this.illustrationText) this.illustrationText.textContent = current.illText;
         if (this.illustrationBenefits) this.illustrationBenefits.innerHTML = current.benefits;
     }
-
     async handleLogin(e) {
         e.preventDefault();
-        
+
         const email = this.loginEmail?.value.trim();
         const password = this.loginPassword?.value;
 
@@ -355,34 +354,52 @@ class AuthManager {
 
         try {
             console.log('🔐 Intentando login con email:', email);
-            
-            // Configurar persistencia a NONE antes de login
+
             await setPersistence(auth, browserLocalPersistence);
-            
+
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            
+
             console.log('✅ Login exitoso en Firebase Auth');
-            
-            if (user.email_verificado === false) {
-                console.log('⚠️ Email no verificado');
+
+            if (user.email_verificado==false) {
+                console.log('Email no verificado');
                 this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
                 await signOut(auth);
                 this.setLoading(this.loginBtn, false);
                 return;
             }
-            
+
             const userData = await this.getUserData(user.uid);
-            const userRole = userData?.rol || 'usuario';
-            
+
+            // Verificar si existe el documento
+            if (!userData) {
+                console.log(' Usuario sin documento en Firestore');
+                await signOut(auth);
+                this.showAlert('Error de configuración de cuenta. Contacta al administrador.', 'error');
+                this.setLoading(this.loginBtn, false);
+                return;
+            }
+
+            // ERIFICAR SUSPENSIÓN
+            if (userData.suspendido === true) {
+                console.log('⛔ Cuenta suspendida');
+                await signOut(auth);
+                this.showAlert('⚠️ Cuenta suspendida. No puedes acceder.', 'error');
+                this.setLoading(this.loginBtn, false);
+                return;
+            }
+
+            const userRole = userData.rol || 'usuario';
+
             console.log('🎯 Rol obtenido después de login:', userRole);
-            
+
             this.saveRememberedEmail(email);
             this.saveUserDataToCache(user, userData);
             this.showAlert('¡Bienvenido!', 'success');
-            
+
             this.redirectBasedOnRole(userRole);
-            
+
         } catch (error) {
             console.error('❌ Login error:', error);
             this.handleAuthError(error);
@@ -393,22 +410,22 @@ class AuthManager {
     async handleRegister(e) {
         e.preventDefault();
 
-        if (!this.primerNombre?.value.trim() || 
-            !this.apellidoPaterno?.value.trim() || 
+        if (!this.primerNombre?.value.trim() ||
+            !this.apellidoPaterno?.value.trim() ||
             !this.apellidoMaterno?.value.trim()) {
             this.showAlert('Completa todos los campos obligatorios', 'error');
             return;
         }
 
         const email = this.registerEmail?.value.trim();
-        
+
         if (!this.isValidEmail(email)) {
             this.showAlert('Correo electrónico inválido', 'error');
             return;
         }
 
         const password = this.registerPassword?.value;
-        
+
         if (password.length < 6) {
             this.showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
             return;
@@ -428,13 +445,13 @@ class AuthManager {
 
         try {
             console.log('📝 Intentando registrar usuario:', email);
-            
+
             // Configurar persistencia a NONE
             await setPersistence(auth, browserLocalPersistence);
-            
+
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            
+
             console.log('✅ Usuario creado en Auth:', user.uid);
 
             const userData = {
@@ -449,18 +466,18 @@ class AuthManager {
                 email_verificado: user.emailVerified,
                 uid: user.uid
             };
-            
+
             await setDoc(doc(db, 'usarios', user.uid), userData);
             console.log('✅ Documento creado en Firestore');
 
             console.log('📧 Enviando correo de verificación...');
             await sendEmailVerification(user);
             console.log('✅ Email de verificación enviado correctamente a:', email);
-            
+
             this.showAlert('¡Cuenta creada! Hemos enviado un correo de verificación a ' + email, 'success');
-            
+
             this.registerForm?.reset();
-            
+
             setTimeout(() => {
                 this.showLoginForm();
                 if (this.loginEmail) {
@@ -470,7 +487,7 @@ class AuthManager {
 
         } catch (error) {
             console.error('❌ Registration error:', error);
-            
+
             if (error.code === 'auth/email-already-in-use') {
                 this.showAlert('Este correo ya está registrado. ¿Olvidaste tu contraseña?', 'error');
             } else {
@@ -487,7 +504,7 @@ class AuthManager {
         try {
             // Configurar persistencia a NONE
             await setPersistence(auth, browserLocalPersistence);
-            
+
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
@@ -500,7 +517,7 @@ class AuthManager {
             if (!userSnap.exists()) {
                 const nameParts = user.displayName?.split(' ') || ['Usuario'];
                 const userData = this.parseGoogleUserName(nameParts);
-                
+
                 await setDoc(userRef, {
                     ...userData,
                     email: user.email,
@@ -514,12 +531,12 @@ class AuthManager {
 
             const userData = await this.getUserData(user.uid);
             const userRole = userData?.rol || 'usuario';
-            
+
             console.log('🎯 Rol de usuario Google:', userRole);
-            
+
             this.saveUserDataToCache(user, userData);
             this.showAlert('¡Bienvenido!', 'success');
-            
+
             this.redirectBasedOnRole(userRole);
 
         } catch (error) {
@@ -532,7 +549,7 @@ class AuthManager {
 
     async handleForgotPassword(e) {
         e.preventDefault();
-        
+
         const email = this.loginEmail?.value.trim();
 
         if (!email) {
@@ -550,7 +567,7 @@ class AuthManager {
             this.showAlert('Correo de recuperación enviado a ' + email, 'success');
         } catch (error) {
             console.error('Password reset error:', error);
-            
+
             if (error.code === 'auth/user-not-found') {
                 this.showAlert('No existe una cuenta con este correo', 'error');
             } else {
@@ -566,7 +583,7 @@ class AuthManager {
             this.apellidoPaterno?.value.trim(),
             this.apellidoMaterno?.value.trim()
         ].filter(Boolean);
-        
+
         return parts.join(' ');
     }
 
@@ -605,8 +622,8 @@ class AuthManager {
             'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
         };
 
-        const defaultMessage = context === 'login' 
-            ? 'Correo o contraseña incorrectos' 
+        const defaultMessage = context === 'login'
+            ? 'Correo o contraseña incorrectos'
             : 'Error al crear la cuenta';
 
         const message = errorMessages[error.code] || defaultMessage;
@@ -616,18 +633,18 @@ class AuthManager {
     async logout() {
         try {
             console.log('🚪 Cerrando sesión desde AuthManager...');
-            
+
             // Forzar signOut
             await signOut(auth);
-            
+
             // Limpiar localStorage
             this.clearSessionFromStorage();
-            
+
             // Limpiar sessionStorage
             sessionStorage.clear();
-            
+
             console.log('✅ Sesión cerrada correctamente');
-            
+
             // Redirigir con timestamp para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
             return true;
