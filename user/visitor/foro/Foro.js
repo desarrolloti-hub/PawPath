@@ -559,7 +559,7 @@ class ControladorForo {
     }
     
     async compartirPublicacion(pub) {
-        const url = `${window.location.origin}/detallesforo.html?id=${pub.id}`;
+        const url = `${window.location.origin}/user/visitor/foro/detallesforo.html?id=${pub.id}`;
         const texto = `🐾 ${pub.titulo} - ${pub.descripcion?.substring(0, 100)}...`;
         
         if (navigator.share) {
