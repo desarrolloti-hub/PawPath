@@ -29,8 +29,8 @@ class MascotasController {
         this.placeholderIcon = document.getElementById('placeholderIcon');
         this.esterilizadoRadios = document.getElementsByName('esterilizado');
 
-        // will hold image as DataURL for saving
-        this.fotoDataUrl = '';
+        // will hold images as DataURL array for saving
+        this.fotoDataUrl = [];
         this.uidUsuarioActual = null;
 
         this.modoEdicion = false;
@@ -86,27 +86,41 @@ class MascotasController {
         // Guardar o Actualizar
         this.btnGuardar.onclick = () => this.guardarMascota();
 
-        // Vista previa de la imagen al seleccionar archivo
+        // Vista previa de las imagenes al seleccionar archivos
         this.fotoMascota.onchange = (e) => {
-            const file = e.target.files[0];
-            if (file) {
+            const files = Array.from(e.target.files || []);
+            if (!files.length) return;
+
+            const totalBytes = files.reduce((sum, f) => sum + f.size, 0);
+            if (totalBytes > 1000000) {
+                this.mostrarAlerta('Límite excedido', `El peso total de las imágenes (${(totalBytes / 1024).toFixed(0)} KB) supera el límite de 1,000,000 bytes.`, 'warning');
+                this.fotoMascota.value = '';
+                return;
+            }
+
+            this.fotoDataUrl = [];
+            let cargadas = 0;
+            files.forEach((file, i) => {
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    this.fotoPreviewImg.src = e.target.result;
-                    this.fotoPreviewImg.style.display = 'block';
-                    if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
-                    this.fotoDataUrl = e.target.result; // keep for guardar
+                reader.onload = (ev) => {
+                    this.fotoDataUrl[i] = ev.target.result;
+                    cargadas++;
+                    if (cargadas === files.length) {
+                        this.fotoPreviewImg.src = this.fotoDataUrl[0];
+                        this.fotoPreviewImg.style.display = 'block';
+                        if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
+                    }
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         };
 
         // Cerrar modal si se hace clic fuera del recuadro blanco
-        window.onclick = (event) => {
+        window.addEventListener('click', (event) => {
             if (event.target == this.modalMascota) {
                 this.cerrarModal();
             }
-        };
+        });
     }
 
     abrirModal(id = null) {
@@ -169,7 +183,7 @@ class MascotasController {
                 </button>
                 
                 <div class="pet-img-container">
-                    <img src="${m.foto || 'https://via.placeholder.com/300x200?text=Sin+Foto'}" alt="${m.nombre}">
+                    <img src="${(Array.isArray(m.foto) ? m.foto[0] : m.foto) || 'https://via.placeholder.com/300x200?text=Sin+Foto'}" alt="${m.nombre}">
                 </div>
 
                 <div class="pet-info">
@@ -214,8 +228,8 @@ class MascotasController {
                 });
 
                 if (m.foto) {
-                    this.fotoDataUrl = m.foto;
-                    this.fotoPreviewImg.src = m.foto;
+                    this.fotoDataUrl = Array.isArray(m.foto) ? m.foto : [m.foto];
+                    this.fotoPreviewImg.src = this.fotoDataUrl[0];
                     this.fotoPreviewImg.style.display = 'block';
                     if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
                 }
@@ -229,6 +243,20 @@ class MascotasController {
         if (!this.uidUsuarioActual) {
             this.mostrarAlerta('Sesión requerida', 'Debes iniciar sesión para registrar una mascota.', 'warning');
             return;
+        }
+
+        // Validar tamaño total de imágenes al guardar
+        const archivos = Array.from(this.fotoMascota.files || []);
+        if (archivos.length > 0) {
+            const totalBytes = archivos.reduce((sum, f) => sum + f.size, 0);
+            if (totalBytes > 1000000) {
+                this.mostrarAlerta(
+                    'Imágenes demasiado pesadas',
+                    `El total de las imágenes seleccionadas es ${(totalBytes / 1024).toFixed(0)} KB. El límite permitido es 1,000,000 bytes (≈ 976 KB). Por favor elige imágenes más pequeñas.`,
+                    'warning'
+                );
+                return;
+            }
         }
 
         const esterilizadoValue = Array.from(this.esterilizadoRadios).find(r => r.checked)?.value;
@@ -246,7 +274,7 @@ class MascotasController {
             esterilizadoValue,
             this.historialMedico.value,
             this.uidUsuarioActual,
-            this.fotoDataUrl || null,
+            this.fotoDataUrl.length ? this.fotoDataUrl : null,
             this.mascotaId.value || null // id
         );
 
@@ -256,21 +284,7 @@ class MascotasController {
                 this.mostrarAlerta('Éxito', resultado.message, 'success');
                 this.cerrarModal();
                 this.cargarMascotas();
-            } else {
-                this.mostrarAlerta('Error', resultado.error || 'No se pudo guardar', 'error');
-            }
-        } catch (error) {
-            console.error('Error al guardar mascota:', error);
-            this.mostrarAlerta('Error', 'No se pudo guardar la información', 'error');
-        }
 
-        try {
-            const resultado = await mascota.guardar();
-            if (resultado.success) {
-                this.mostrarAlerta('Éxito', resultado.message, 'success');
-                this.cerrarModal();
-                this.cargarMascotas();
-                
                 // DISPARAR EVENTO PARA NOTIFICAR AL FORMULARIO DE CITAS
                 const event = new CustomEvent('mascotaCreada', {
                     detail: { mascota: mascota.toObject() }
@@ -328,7 +342,7 @@ class MascotasController {
         this.microchipMascota.value = '';
         this.historialMedico.value = '';
         this.fotoMascota.value = '';
-        this.fotoDataUrl = '';
+        this.fotoDataUrl = [];
         this.fotoPreviewImg.src = '';
         this.fotoPreviewImg.style.display = 'none';
         if (this.placeholderIcon) this.placeholderIcon.style.display = 'block';

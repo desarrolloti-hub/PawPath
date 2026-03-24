@@ -6,6 +6,9 @@ class MascotaDetalleController {
         this.idMascota = new URLSearchParams(window.location.search).get('id');
         this.fotoDataUrl = '';
         this.mascotaActual = null;
+        this.fotosCarrusel = [];
+        this.indiceFotoActual = 0;
+        this.intervaloCarrusel = null;
 
         this.cacheDom();
         this.initEvents();
@@ -58,6 +61,14 @@ class MascotaDetalleController {
         this.btnCancelar.onclick = () => this.cerrarModal();
         this.btnGuardar.onclick = () => this.guardarCambios();
 
+        this.petFoto.style.cursor = 'pointer';
+        this.petFoto.onclick = () => {
+            if (this.fotosCarrusel.length > 1) {
+                this.siguienteFoto();
+                this.iniciarCarrusel();
+            }
+        };
+
         this.fotoMascota.onchange = (e) => {
             const file = e.target.files[0];
             if (!file) return;
@@ -77,6 +88,39 @@ class MascotaDetalleController {
                 this.cerrarModal();
             }
         };
+    }
+
+    normalizarFotos(foto) {
+        if (Array.isArray(foto)) return foto.filter((f) => typeof f === 'string' && f.trim() !== '');
+        if (typeof foto === 'string' && foto.trim() !== '') return [foto];
+        return [];
+    }
+
+    mostrarFotoActual() {
+        if (!this.fotosCarrusel.length) {
+            this.petFoto.src = 'https://via.placeholder.com/320x320?text=Sin+Foto';
+            return;
+        }
+        this.petFoto.src = this.fotosCarrusel[this.indiceFotoActual];
+    }
+
+    siguienteFoto() {
+        if (this.fotosCarrusel.length <= 1) return;
+        this.indiceFotoActual = (this.indiceFotoActual + 1) % this.fotosCarrusel.length;
+        this.mostrarFotoActual();
+    }
+
+    iniciarCarrusel() {
+        this.detenerCarrusel();
+        if (this.fotosCarrusel.length <= 1) return;
+        this.intervaloCarrusel = setInterval(() => this.siguienteFoto(), 3500);
+    }
+
+    detenerCarrusel() {
+        if (this.intervaloCarrusel) {
+            clearInterval(this.intervaloCarrusel);
+            this.intervaloCarrusel = null;
+        }
     }
 
     async init() {
@@ -119,7 +163,10 @@ class MascotaDetalleController {
 
     renderDetalle() {
         const m = this.mascotaActual;
-        this.petFoto.src = m.foto || 'https://via.placeholder.com/320x320?text=Sin+Foto';
+        this.fotosCarrusel = this.normalizarFotos(m.foto);
+        this.indiceFotoActual = 0;
+        this.mostrarFotoActual();
+        this.iniciarCarrusel();
         this.petEspecie.textContent = m.especie || 'Sin especie';
         this.petNombre.textContent = m.nombre || 'Sin nombre';
         this.petRaza.textContent = m.raza || 'Raza no especificada';
@@ -147,9 +194,9 @@ class MascotaDetalleController {
         this.microchipMascota.value = m.microchip || '';
         this.historialMedico.value = m.historialMedico || '';
 
-        this.fotoDataUrl = m.foto || '';
-        if (this.fotoDataUrl) {
-            this.fotoPreviewImg.src = this.fotoDataUrl;
+        this.fotoDataUrl = this.normalizarFotos(m.foto);
+        if (this.fotoDataUrl.length > 0) {
+            this.fotoPreviewImg.src = this.fotoDataUrl[0];
             this.fotoPreviewImg.style.display = 'block';
             if (this.placeholderIcon) this.placeholderIcon.style.display = 'none';
         } else {
@@ -177,6 +224,7 @@ class MascotaDetalleController {
 
     async guardarCambios() {
         const esterilizadoValue = Array.from(this.esterilizadoRadios).find((r) => r.checked)?.value || 'No';
+        const fotos = this.normalizarFotos(this.fotoDataUrl);
 
         const mascotaActualizada = new Mascota(
             this.nombreMascota.value,
@@ -190,7 +238,7 @@ class MascotaDetalleController {
             esterilizadoValue,
             this.historialMedico.value,
             this.uidUsuarioActual,
-            this.fotoDataUrl || null,
+            fotos.length ? fotos : null,
             this.mascotaId.value
         );
 
@@ -218,4 +266,10 @@ class MascotaDetalleController {
 
 document.addEventListener('DOMContentLoaded', () => {
     window.mascotaDetalleController = new MascotaDetalleController();
+});
+
+window.addEventListener('beforeunload', () => {
+    if (window.mascotaDetalleController) {
+        window.mascotaDetalleController.detenerCarrusel();
+    }
 });
