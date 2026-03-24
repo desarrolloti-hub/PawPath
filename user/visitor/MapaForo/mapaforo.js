@@ -1,5 +1,7 @@
-import { db } from '/config/firebase-config.js';
+// MapaForo.js
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
 import { 
+    getFirestore,
     collection, 
     query, 
     where, 
@@ -7,20 +9,66 @@ import {
     orderBy 
 } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 
+// Configuración de Firebase - REEMPLAZA CON TUS DATOS REALES
+const firebaseConfig = {
+    apiKey: "AIzaSyABACTyV6lId6OAiRorJF_DMXHuCTycMoY",
+    authDomain: "pawpath-mx.firebaseapp.com",
+    projectId: "pawpath-mx",
+    storageBucket: "pawpath-mx.firebasestorage.app",
+    messagingSenderId: "511881737688",
+    appId: "1:511881737688:web:5326412bffef94f7ecaead",
+    measurementId: "G-2WG7WEV833"
+};
+// Inicializar Firebase
+let db;
+try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    console.log('✅ Firebase inicializado correctamente');
+} catch (error) {
+    console.error('❌ Error inicializando Firebase:', error);
+}
+
 class ControladorMapaForo {
     constructor() {
+        // Verificar que Firebase esté inicializado
+        if (!db) {
+            console.error('❌ Firebase no está inicializado');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de configuración',
+                    text: 'No se pudo conectar con la base de datos. Por favor, contacta al administrador.'
+                });
+            }
+            return;
+        }
+
+        // Verificar que Leaflet esté cargado
+        if (typeof L === 'undefined') {
+            console.error('❌ Leaflet no está cargado');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de mapa',
+                    text: 'La biblioteca de mapas no se cargó correctamente.'
+                });
+            }
+            return;
+        }
+
         this.mapa = null;
         this.marcadores = [];
         this.publicaciones = [];
         this.layerGroup = null;
-        this.geocoderCache = new Map(); // Cache para direcciones ya geocodificadas
+        this.geocoderCache = new Map();
         
-        // Límites de México (para restringir el mapa)
+        // Límites de México
         this.mexicoBounds = {
-            north: 32.718,  // Frontera norte
-            south: 14.532,  // Frontera sur
-            west: -118.455, // Baja California
-            east: -86.711   // Quintana Roo
+            north: 32.718,
+            south: 14.532,
+            west: -118.455,
+            east: -86.711
         };
         
         // Centro en Nezahualcóyotl
@@ -32,41 +80,71 @@ class ControladorMapaForo {
         this.btnActualizar = document.getElementById('btnActualizarMapa');
         this.btnMiUbicacion = document.getElementById('btnMiUbicacion');
         
-        this.inicializar();
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => this.inicializar());
+        } else {
+            this.inicializar();
+        }
     }
 
     async inicializar() {
+        console.log('🚀 Inicializando ControladorMapaForo...');
+        
+        // Esperar a que el elemento del mapa exista
+        const mapElement = document.getElementById('map');
+        if (!mapElement) {
+            console.error('❌ Elemento #map no encontrado en el DOM');
+            return;
+        }
+        
         await this.inicializarMapa();
         this.configurarEventos();
         await this.cargarPublicaciones();
+        
+        console.log('✅ Mapa inicializado correctamente');
     }
 
     inicializarMapa() {
         return new Promise((resolve) => {
-            // Crear mapa centrado en Nezahualcóyotl
-            this.mapa = L.map('map', {
-                center: this.centroNeza,
-                zoom: 13,
-                maxBounds: [
-                    [this.mexicoBounds.south, this.mexicoBounds.west],
-                    [this.mexicoBounds.north, this.mexicoBounds.east]
-                ],
-                maxBoundsViscosity: 1.0 // Hace que los límites sean estrictos
-            });
-            
-            // Capa de OpenStreetMap en español
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | PawPath',
-                language: 'es'
-            }).addTo(this.mapa);
+            try {
+                // Verificar que el elemento #map exista
+                const mapContainer = document.getElementById('map');
+                if (!mapContainer) {
+                    console.error('❌ Contenedor del mapa no encontrado');
+                    resolve();
+                    return;
+                }
 
-            // Agregar escala
-            L.control.scale({ imperial: false, metric: true }).addTo(this.mapa);
+                // Crear mapa centrado en Nezahualcóyotl
+                this.mapa = L.map('map', {
+                    center: this.centroNeza,
+                    zoom: 13,
+                    maxBounds: [
+                        [this.mexicoBounds.south, this.mexicoBounds.west],
+                        [this.mexicoBounds.north, this.mexicoBounds.east]
+                    ],
+                    maxBoundsViscosity: 1.0
+                });
+                
+                // Capa de OpenStreetMap
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors | PawPath',
+                    language: 'es'
+                }).addTo(this.mapa);
 
-            // Crear grupo de capas para marcadores
-            this.layerGroup = L.layerGroup().addTo(this.mapa);
-            
-            resolve();
+                // Agregar escala
+                L.control.scale({ imperial: false, metric: true }).addTo(this.mapa);
+
+                // Crear grupo de capas para marcadores
+                this.layerGroup = L.layerGroup().addTo(this.mapa);
+                
+                console.log('✅ Mapa creado exitosamente');
+                resolve();
+            } catch (error) {
+                console.error('❌ Error creando el mapa:', error);
+                resolve();
+            }
         });
     }
 
@@ -82,65 +160,82 @@ class ControladorMapaForo {
 
     irAMiUbicacion() {
         if (navigator.geolocation) {
-            Swal.fire({
-                title: 'Obteniendo ubicación',
-                text: 'Por favor espera...',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Obteniendo ubicación',
+                    text: 'Por favor espera...',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
             
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const { latitude, longitude } = position.coords;
                     this.mapa.setView([latitude, longitude], 15);
-                    Swal.close();
+                    
+                    if (typeof Swal !== 'undefined') {
+                        Swal.close();
+                    }
                     
                     // Agregar marcador temporal de tu ubicación
-                    L.marker([latitude, longitude], {
-                        icon: L.divIcon({
-                            className: 'ubicacion-actual',
-                            html: '<i class="fas fa-circle" style="color: #3b82f6; font-size: 16px;"></i>',
-                            iconSize: [16, 16]
-                        })
-                    }).addTo(this.mapa)
-                      .bindPopup('Tu ubicación actual')
-                      .openPopup();
+                    const ubicacionIcon = L.divIcon({
+                        className: 'ubicacion-actual',
+                        html: '<div style="background-color: #3b82f6; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 4px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [16, 16]
+                    });
+                    
+                    L.marker([latitude, longitude], { icon: ubicacionIcon })
+                        .addTo(this.mapa)
+                        .bindPopup('📍 Tu ubicación actual')
+                        .openPopup();
                 },
                 (error) => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'No se pudo obtener tu ubicación'
-                    });
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'No se pudo obtener tu ubicación. Por favor, verifica los permisos.'
+                        });
+                    }
                 }
             );
         } else {
-            Swal.fire({
-                icon: 'warning',
-                title: 'No soportado',
-                text: 'Tu navegador no soporta geolocalización'
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'No soportado',
+                    text: 'Tu navegador no soporta geolocalización'
+                });
+            }
         }
     }
 
     async cargarPublicaciones() {
+        if (!db) {
+            console.error('❌ Firebase no disponible');
+            return;
+        }
+
         try {
-            Swal.fire({
-                title: 'Cargando mapa...',
-                text: 'Buscando mascotas perdidas en tu área',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Cargando mapa...',
+                    text: 'Buscando mascotas perdidas en tu área',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+            }
 
             const pubsRef = collection(db, 'publicaciones');
             let q = query(pubsRef, orderBy('fechaPublicacion', 'desc'));
 
             // Aplicar filtro por tipo si existe
-            if (this.filtroTipo && this.filtroTipo.value) {
+            if (this.filtroTipo && this.filtroTipo.value && this.filtroTipo.value !== '') {
                 q = query(pubsRef, 
                     where('tipo', '==', this.filtroTipo.value), 
                     orderBy('fechaPublicacion', 'desc')
@@ -150,7 +245,6 @@ class ControladorMapaForo {
             const querySnapshot = await getDocs(q);
             this.publicaciones = [];
             
-            // Primero, recolectar todas las publicaciones
             querySnapshot.forEach((doc) => {
                 this.publicaciones.push({ 
                     id: doc.id, 
@@ -159,43 +253,50 @@ class ControladorMapaForo {
             });
 
             // Aplicar filtro de tiempo
-            if (this.filtroTiempo && this.filtroTiempo.value > 0) {
+            if (this.filtroTiempo && this.filtroTiempo.value && parseInt(this.filtroTiempo.value) > 0) {
                 const fechaLimite = new Date();
                 fechaLimite.setDate(fechaLimite.getDate() - parseInt(this.filtroTiempo.value));
                 
                 this.publicaciones = this.publicaciones.filter(pub => {
                     if (!pub.fechaPublicacion) return false;
-                    const fechaPub = pub.fechaPublicacion.toDate();
+                    const fechaPub = pub.fechaPublicacion.toDate ? pub.fechaPublicacion.toDate() : new Date(pub.fechaPublicacion);
                     return fechaPub >= fechaLimite;
                 });
             }
 
-            // Procesar ubicaciones
-            await this.procesarUbicaciones();
+            console.log(`📊 Cargadas ${this.publicaciones.length} publicaciones`);
             
+            await this.procesarUbicaciones();
             this.actualizarEstadisticas();
             
-            Swal.close();
+            if (typeof Swal !== 'undefined') {
+                Swal.close();
+            }
             
-            if (this.marcadores.length === 0) {
+            if (this.marcadores.length === 0 && typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'info',
                     title: 'Sin resultados',
                     text: 'No hay mascotas reportadas en esta área',
-                    timer: 3000
+                    timer: 3000,
+                    showConfirmButton: false
                 });
             }
         } catch (error) {
-            console.error("Error cargando publicaciones:", error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudieron cargar las publicaciones'
-            });
+            console.error("❌ Error cargando publicaciones:", error);
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudieron cargar las publicaciones. Verifica tu conexión.'
+                });
+            }
         }
     }
 
     async procesarUbicaciones() {
+        if (!this.layerGroup) return;
+        
         // Limpiar marcadores anteriores
         this.layerGroup.clearLayers();
         this.marcadores = [];
@@ -214,41 +315,46 @@ class ControladorMapaForo {
             }
             
             // Si tenemos coordenadas, crear marcador
-            if (coordenadas) {
-                // Verificar que esté dentro de México
-                if (this.estaEnMexico(coordenadas)) {
-                    const marcador = this.crearMarcador(pub, coordenadas);
-                    this.layerGroup.addLayer(marcador);
-                    this.marcadores.push(marcador);
-                }
+            if (coordenadas && this.estaEnMexico(coordenadas)) {
+                const marcador = this.crearMarcador(pub, coordenadas);
+                this.layerGroup.addLayer(marcador);
+                this.marcadores.push(marcador);
             }
         }
 
         // Ajustar zoom si hay marcadores
-        if (this.marcadores.length > 0) {
-            const group = L.featureGroup(this.marcadores);
-            this.mapa.fitBounds(group.getBounds().pad(0.1));
-        } else {
-            // Si no hay marcadores, volver a Neza
+        if (this.marcadores.length > 0 && this.mapa) {
+            try {
+                const group = L.featureGroup(this.marcadores);
+                this.mapa.fitBounds(group.getBounds().pad(0.1));
+            } catch (error) {
+                console.warn('Error ajustando bounds:', error);
+                this.mapa.setView(this.centroNeza, 13);
+            }
+        } else if (this.mapa) {
             this.mapa.setView(this.centroNeza, 13);
         }
     }
 
     async geocodificarDireccion(direccion) {
+        if (!direccion) return null;
+        
         // Verificar cache
         if (this.geocoderCache.has(direccion)) {
             return this.geocoderCache.get(direccion);
         }
 
         try {
-            // Usar Nominatim de OpenStreetMap para geocodificación (gratuito)
+            // Usar Nominatim de OpenStreetMap
             const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(direccion + ', México')}&limit=1`;
             
             const response = await fetch(url, {
                 headers: {
-                    'User-Agent': 'PawPath-App'
+                    'User-Agent': 'PawPath-App/1.0'
                 }
             });
+            
+            if (!response.ok) return null;
             
             const data = await response.json();
             
@@ -275,32 +381,24 @@ class ControladorMapaForo {
     crearMarcador(pub, coordenadas) {
         const [lat, lng] = coordenadas;
         
-        // Determinar icono según el tipo
         const icono = this.obtenerIcono(pub.tipo);
-        
-        // Crear marcador
         const marcador = L.marker([lat, lng], { icon: icono });
         
-        // Obtener primera foto o placeholder
-        const foto = pub.fotos?.[0] || 'https://via.placeholder.com/100x80';
+        const foto = pub.fotos && pub.fotos[0] ? pub.fotos[0] : 'https://via.placeholder.com/100x80?text=No+Image';
         
-        // Crear popup (aparece al hacer click)
         const popupContent = this.crearPopupContent(pub, foto);
         marcador.bindPopup(popupContent, {
             maxWidth: 300,
             minWidth: 250
         });
 
-        // Crear tooltip (aparece al hacer hover)
         const tooltipContent = this.crearTooltipContent(pub);
         marcador.bindTooltip(tooltipContent, {
             permanent: false,
             direction: 'top',
-            offset: [0, -30],
-            className: 'custom-tooltip'
+            offset: [0, -30]
         });
 
-        // Agregar evento click para ir a detalles
         marcador.on('click', () => {
             window.open(`/user/visitor/foro/detallesforo.html?id=${pub.id}`, '_blank');
         });
@@ -309,7 +407,6 @@ class ControladorMapaForo {
     }
 
     obtenerIcono(tipo) {
-        // Iconos personalizados según tipo
         const colores = {
             'Mascota Perdida': '#ef4444',
             'En Adopción': '#10b981',
@@ -342,7 +439,7 @@ class ControladorMapaForo {
                 align-items: center;
                 justify-content: center;
                 border: 3px solid white;
-                transition: transform 0.2s;
+                cursor: pointer;
             ">
                 <i class="fas ${iconoFA}" style="
                     color: white;
@@ -358,22 +455,32 @@ class ControladorMapaForo {
 
     crearPopupContent(pub, foto) {
         const tipoColor = this.obtenerColorTipo(pub.tipo);
+        const fechaTexto = pub.fechaPublicacion ? 
+            (pub.fechaPublicacion.toDate ? 
+                new Date(pub.fechaPublicacion.toDate()).toLocaleDateString('es-MX', {
+                    day: 'numeric',
+                    month: 'long',
+                    year: 'numeric'
+                }) : 
+                new Date(pub.fechaPublicacion).toLocaleDateString('es-MX')
+            ) : 'Fecha no disponible';
+        
         return `
-            <div class="map-popup" style="font-family: 'Plus Jakarta Sans', sans-serif;">
-                <div class="popup-image" style="position: relative;">
-                    <img src="${foto}" alt="${pub.titulo}" 
+            <div style="font-family: 'Plus Jakarta Sans', sans-serif; min-width: 250px;">
+                <div style="position: relative;">
+                    <img src="${foto}" alt="${pub.titulo || 'Sin título'}" 
                          style="width:100%; height:120px; object-fit:cover; border-radius:8px 8px 0 0;">
                     <span style="position: absolute; top: 8px; right: 8px; 
                                background: ${tipoColor}; color: white; 
                                padding: 4px 8px; border-radius: 20px; 
                                font-size: 11px; font-weight: 600;">
-                        ${pub.tipo}
+                        ${pub.tipo || 'Sin tipo'}
                     </span>
                 </div>
-                <div class="popup-content" style="padding: 12px;">
-                    <h3 style="margin:0 0 8px 0; font-size:16px; font-weight:700;">${pub.titulo}</h3>
+                <div style="padding: 12px;">
+                    <h3 style="margin:0 0 8px 0; font-size:16px; font-weight:700;">${pub.titulo || 'Sin título'}</h3>
                     <p style="margin:0 0 8px 0; font-size:13px; color:#666;">
-                        ${pub.descripcion?.substring(0, 100)}...
+                        ${pub.descripcion ? pub.descripcion.substring(0, 100) : 'Sin descripción'}...
                     </p>
                     <div style="display:flex; justify-content:space-around; margin:12px 0; padding:8px 0; border-top:1px solid #eee; border-bottom:1px solid #eee;">
                         <span style="font-size:12px;"><i class="fas fa-eye"></i> ${pub.vistas || 0}</span>
@@ -382,14 +489,10 @@ class ControladorMapaForo {
                     </div>
                     <div style="display:flex; align-items:center; gap:8px; font-size:11px; color:#999;">
                         <i class="fas fa-map-pin"></i>
-                        <span>${pub.direccion || 'Ubicación no especificada'}</span>
+                        <span>${pub.direccion || pub.ubicacionTexto || 'Ubicación no especificada'}</span>
                     </div>
                     <small style="display:block; margin-top:8px; color:#999;">
-                        <i class="fas fa-clock"></i> ${pub.fechaPublicacion ? new Date(pub.fechaPublicacion.toDate()).toLocaleDateString('es-MX', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric'
-                        }) : 'Fecha no disponible'}
+                        <i class="fas fa-clock"></i> ${fechaTexto}
                     </small>
                 </div>
             </div>
@@ -408,15 +511,15 @@ class ControladorMapaForo {
                 min-width: 220px;
                 font-family: 'Plus Jakarta Sans', sans-serif;
             ">
-                <strong style="font-size:14px; display:block; margin-bottom:4px;">${pub.titulo}</strong>
+                <strong style="font-size:14px; display:block; margin-bottom:4px;">${pub.titulo || 'Sin título'}</strong>
                 <div style="font-size:12px; color:#666; margin-bottom:6px;">
                     <span style="display:inline-block; padding:2px 8px; background:#f0f0f0; border-radius:12px;">
-                        ${pub.tipo}
+                        ${pub.tipo || 'Sin tipo'}
                     </span>
                 </div>
                 <div style="font-size:11px; color:#999; display:flex; align-items:center; gap:4px;">
                     <i class="fas fa-map-marker-alt" style="color: ${tipoColor};"></i>
-                    <span>${pub.direccion || 'Ubicación guardada'}</span>
+                    <span>${pub.direccion || pub.ubicacionTexto || 'Ubicación guardada'}</span>
                 </div>
                 ${pub.raza ? `<div style="font-size:11px; color:#999; margin-top:4px;">
                     <i class="fas fa-paw"></i> ${pub.raza}
@@ -437,17 +540,30 @@ class ControladorMapaForo {
     }
 
     actualizarEstadisticas() {
-        document.getElementById('totalMarcadores').textContent = this.publicaciones.length;
+        const totalEl = document.getElementById('totalMarcadores');
+        const perdidasEl = document.getElementById('totalPerdidas');
+        const adopcionEl = document.getElementById('totalAdopcion');
+        const avistamientosEl = document.getElementById('totalAvistamientos');
+        
+        if (totalEl) totalEl.textContent = this.publicaciones.length;
         
         const perdidas = this.publicaciones.filter(p => p.tipo === 'Mascota Perdida').length;
         const adopcion = this.publicaciones.filter(p => p.tipo === 'En Adopción').length;
         const avistamientos = this.publicaciones.filter(p => p.tipo === 'Avistamiento').length;
         
-        document.getElementById('totalPerdidas').textContent = perdidas;
-        document.getElementById('totalAdopcion').textContent = adopcion;
-        document.getElementById('totalAvistamientos').textContent = avistamientos;
+        if (perdidasEl) perdidasEl.textContent = perdidas;
+        if (adopcionEl) adopcionEl.textContent = adopcion;
+        if (avistamientosEl) avistamientosEl.textContent = avistamientos;
     }
 }
 
 // Inicializar cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', () => new ControladorMapaForo());
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        console.log('📱 DOM cargado, inicializando mapa...');
+        new ControladorMapaForo();
+    });
+} else {
+    console.log('📱 DOM ya cargado, inicializando mapa...');
+    new ControladorMapaForo();
+}
