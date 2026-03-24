@@ -50,7 +50,7 @@ class MascotaDetalleController {
 
     initEvents() {
         this.btnVolver.onclick = () => {
-            window.location.href = '/user/visitor/Mascotas/mascotas.html';
+            window.location.href = '/user/visitor/mascotas/mascotas.html';
         };
 
         this.btnEditarMascota.onclick = () => this.abrirModal();
@@ -88,7 +88,7 @@ class MascotaDetalleController {
         if (!this.idMascota) {
             this.mostrarAlerta('Aviso', 'No se recibio una mascota para consultar.', 'warning');
             setTimeout(() => {
-                window.location.href = '/user/visitor/Mascotas/mascotas.html';
+                window.location.href = '/user/visitor/mascotas/mascotas.html';
             }, 1200);
             return;
         }
@@ -108,7 +108,7 @@ class MascotaDetalleController {
         if (mascota.uidUsuario !== this.uidUsuarioActual) {
             this.mostrarAlerta('Acceso denegado', 'Esta mascota no pertenece a tu cuenta.', 'error');
             setTimeout(() => {
-                window.location.href = '/user/visitor/Mascotas/mascotas.html';
+                window.location.href = '/user/visitor/mascotas/mascotas.html';
             }, 1400);
             return;
         }

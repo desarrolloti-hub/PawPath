@@ -188,7 +188,7 @@ class MascotasController {
 
     irADetalle(idMascota) {
         if (!idMascota) return;
-        window.location.href = `/user/visitor/Mascotas/mascota-detalle.html?id=${encodeURIComponent(idMascota)}`;
+        window.location.href = `/user/visitor/mascotas/mascota-detalle.html?id=${encodeURIComponent(idMascota)}`;
     }
 
     async cargarDatosMascota(id) {
