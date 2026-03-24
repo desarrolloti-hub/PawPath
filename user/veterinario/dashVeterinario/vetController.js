@@ -112,7 +112,6 @@ class VetController {
             this.cargarPublicaciones(),
             this.cargarSolicitudesAdopcion(),
             this.cargarReclamos()
-            
         ]);
         this.actualizarEstadisticas();
         this.actualizarBadges();
@@ -136,6 +135,7 @@ class VetController {
     async cargarPublicaciones() {
         if (!this.veterinarioActual) return;
 
+
         try {
             const publicacionesRef = collection(db, 'publicaciones');
             const q = query(
@@ -148,6 +148,7 @@ class VetController {
             this.publicaciones = [];
             
             querySnapshot.forEach(doc => {
+                const data = doc.data();
                 this.publicaciones.push({
                     id: doc.id,
                     ...doc.data()
@@ -173,54 +174,68 @@ class VetController {
     }
 
     async cargarSolicitudesAdopcion() {
-        // estatico
-        this.solicitudesAdopcion = [
-            {
-                id: '1',
-                solicitante: 'Juan Pérez',
-                email: 'juan@email.com',
-                mascota: 'Max (Labrador)',
-                fecha: '2026-03-08',
-                estado: 'pendiente',
-                mensaje: 'Me gustaría adoptar a Max'
-            },
-            {
-                id: '2',
-                solicitante: 'María García',
-                email: 'maria@email.com',
-                mascota: 'Luna (Gata)',
-                fecha: '2026-03-07',
-                estado: 'aprobada',
-                mensaje: 'Tengo experiencia con gatos'
-            }
-        ];
-        this.renderizarSolicitudesAdopcion();
+        if (!this.veterinarioActual) return;
+
+        try {
+            const solicitudesRef = collection(db, 'solicitudesAdopcion');
+            const q = query(
+                solicitudesRef,
+                where('veterinarioId', '==', this.veterinarioActual.id),
+                orderBy('fechaSolicitud', 'desc')
+            );
+            
+            const querySnapshot = await getDocs(q);
+            this.solicitudesAdopcion = [];
+            
+            querySnapshot.forEach(doc => {
+                const data = doc.data();
+                this.solicitudesAdopcion.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            this.renderizarSolicitudesAdopcion();
+            this.renderizarSolicitudesRecientes();
+            this.actualizarBadges();
+
+            
+        } catch (error) {
+            console.error('Error cargando solicitudes:', error);
+        }
     }
 
+       
     async cargarReclamos() {
-        // estatitco
-        this.reclamos = [
-            {
-                id: '1',
-                reclamante: 'Carlos López',
-                email: 'carlos@email.com',
-                mascota: 'Rocky (Perro)',
-                fecha: '2026-03-08',
-                estado: 'pendiente',
-                descripcion: 'Creo que Rocky es mi perro perdido'
-            },
-            {
-                id: '2',
-                reclamante: 'Ana Martínez',
-                email: 'ana@email.com',
-                mascota: 'Michi (Gato)',
-                fecha: '2026-03-06',
-                estado: 'verificados',
-                descripcion: 'Tiene una mancha en la oreja'
-            }
-        ];
-        this.renderizarReclamos();
+        if (!this.veterinarioActual) return;
+
+        try {
+            const reclamosRef = collection(db, 'reclamosMascotas');
+            const q = query(
+                reclamosRef,
+                where('veterinarioId', '==', this.veterinarioActual.id),
+                orderBy('fechaReclamo', 'desc')
+            );
+            
+            const querySnapshot = await getDocs(q);
+            this.reclamos = [];
+            
+            querySnapshot.forEach(doc => {
+                this.reclamos.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+                        
+            this.renderizarReclamos();
+            this.renderizarReclamosRecientes();
+            
+        } catch (error) {
+            console.error('❌ Error cargando reclamos:', error);
+            this.mostrarNotificacion('Error al cargar reclamos', 'error');
+        }
     }
+
+    
 
     actualizarEstadisticas() {
         const hoy = new Date().toISOString().split('T')[0];
@@ -334,28 +349,6 @@ class VetController {
         container.innerHTML = html;
     }
 
-    // renderizarPublicaciones() {
-    //     const container = document.getElementById('publicacionesGrid');
-    //     const filtradas = this.publicaciones.filter(p => {
-    //         if (this.filtros.publicaciones === 'adopcion') return p.tipo === 'En Adopción';
-    //         if (this.filtros.publicaciones === 'perdidos') return p.tipo === 'Mascota Perdida';
-    //         if (this.filtros.publicaciones === 'encontrados') return p.tipo === 'Mascota Encontrada';
-    //         return true;
-    //     });
-
-    //     if (filtradas.length === 0) {
-    //         container.innerHTML = '<p class="loading">No tienes publicaciones</p>';
-    //         return;
-    //     }
-
-    //     let html = '';
-    //     filtradas.forEach(pub => {
-    //         html += this.generarCardPublicacion(pub);
-    //     });
-
-    //     container.innerHTML = html;
-    // }
-
     renderizarPublicaciones() {
         const container = document.getElementById('publicacionesGrid');
         if (!container) return;
@@ -384,69 +377,6 @@ class VetController {
         container.innerHTML = html;
     }
 
-    // generarCardPublicacion(pub) {
-    //     const fecha = pub.fechaPublicacion?.toDate?.() || new Date(pub.fechaPublicacion);
-    //     const fechaFormateada = fecha.toLocaleDateString('es-ES');
-        
-    //     let botonesAdicionales = '';
-        
-    //     // Botón para ver solicitudes según tipo
-    //     if (pub.tipo === 'En Adopción') {
-    //         botonesAdicionales = `
-    //             <button class="btn-icon" onclick="vetController.verSolicitudes('adopcion', '${pub.id}')">
-    //                 <i class="fas fa-users"></i> Solicitudes (${this.contarSolicitudesAdopcion(pub.id)})
-    //             </button>
-    //         `;
-    //     } else if (pub.tipo === 'Mascota Encontrada') {
-    //         botonesAdicionales = `
-    //             <button class="btn-icon" onclick="vetController.verSolicitudes('reclamo', '${pub.id}')">
-    //                 <i class="fas fa-clipboard-list"></i> Reclamos (${this.contarReclamos(pub.id)})
-    //             </button>
-    //         `;
-    //     }
-        
-    //     // Mostrar imagen principal si existe
-    //     const fotoPrincipal = pub.fotos?.[0] || 'https://via.placeholder.com/300x200?text=Sin+imagen';
-        
-    //     return `
-    //         <div class="publicacion-card">
-    //             <div class="publicacion-imagen" onclick="vetController.verDetalle('publicacion', '${pub.id}')">
-    //                 <img src="${fotoPrincipal}" alt="${pub.titulo}">
-    //                 <span class="publicacion-tipo">${pub.tipo}</span>
-    //             </div>
-    //             <div class="publicacion-contenido">
-    //                 <h3 class="publicacion-titulo">${pub.titulo}</h3>
-    //                 <div class="publicacion-metadata">
-    //                     <span class="publicacion-categoria"><i class="fas fa-tag"></i> ${pub.categoria || 'Sin categoría'}</span>
-    //                     <span class="publicacion-tiempo"><i class="far fa-clock"></i> ${fechaFormateada}</span>
-    //                 </div>
-    //                 <p class="publicacion-descripcion">${pub.descripcion?.substring(0, 100)}${pub.descripcion?.length > 100 ? '...' : ''}</p>
-    //                 ${pub.ubicacionTexto ? `
-    //                     <div class="publicacion-ubicacion">
-    //                         <i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}
-    //                     </div>
-    //                 ` : ''}
-    //                 <div class="publicacion-footer">
-    //                     <div class="publicacion-estadisticas">
-    //                         <span><i class="far fa-eye"></i> ${pub.vistas || 0}</span>
-    //                         <span><i class="far fa-heart"></i> ${pub.likes || 0}</span>
-    //                         <span><i class="far fa-comment"></i> ${pub.comentarios || 0}</span>
-    //                     </div>
-    //                     <div class="publicacion-acciones">
-    //                         ${botonesAdicionales}
-    //                         <button class="btn-icon" onclick="vetController.editarPublicacion('${pub.id}')">
-    //                             <i class="fas fa-edit"></i>
-    //                         </button>
-    //                         <button class="btn-icon btn-danger" onclick="vetController.eliminarPublicacion('${pub.id}')">
-    //                             <i class="fas fa-trash"></i>
-    //                         </button>
-    //                     </div>
-    //                 </div>
-    //             </div>
-    //         </div>
-    //     `;
-    // }
-
     generarCardPublicacion(pub) {
         const fecha = pub.fechaPublicacion?.toDate?.() || new Date(pub.fechaPublicacion);
         const fechaFormateada = fecha.toLocaleDateString('es-ES');
@@ -471,7 +401,7 @@ class VetController {
         
         return `
             <div class="publicacion-card">
-                <div class="publicacion-imagen" onclick="vetController.verDetalle('publicacion', '${pub.id}')">
+                <div class="publicacion-imagen" >
                     <img src="${fotoPrincipal}" alt="${pub.titulo}">
                     <span class="publicacion-tipo">${pub.tipo}</span>
                 </div>
@@ -524,82 +454,99 @@ class VetController {
         this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
     }
 
+
+    // renderizarSolicitudesAdopcion() {
+    //     const container = document.getElementById('solicitudesGrid');
+    //     if (!container) {
+    //         return;
+    //     }
+    //     let filtradas = this.solicitudesAdopcion;
+        
+    //     if (this.filtros.adopciones === 'pendientes') {
+    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
+
+    //     } else if (this.filtros.adopciones === 'aprobadas') {
+    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
+    //     } else if (this.filtros.adopciones === 'rechazadas') {
+    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
+    //     }
+        
+    //     if (filtradas.length === 0) {
+    //         container.innerHTML = '<p class="loading">No hay solicitudes de adopción</p>';
+    //         return;
+    //     }
+        
+    //     let html = '';
+    //     filtradas.forEach(sol => {
+    //         html += this.generarCardSolicitudAdopcion(sol);
+    //     });
+        
+    //     container.innerHTML = html;
+    // }
+
     renderizarSolicitudesAdopcion() {
         const container = document.getElementById('solicitudesGrid');
-        const filtradas = this.solicitudesAdopcion.filter(s => {
-            if (this.filtros.adopciones === 'pendientes') return s.estado === 'pendiente';
-            if (this.filtros.adopciones === 'aprobadas') return s.estado === 'aprobada';
-            if (this.filtros.adopciones === 'rechazadas') return s.estado === 'rechazada';
-            return true;
-        });
-
+        if (!container) return;
+        
+        let filtradas = this.solicitudesAdopcion;
+        
+        if (this.filtros.adopciones === 'pendientes') {
+            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
+        } else if (this.filtros.adopciones === 'aprobadas') {
+            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
+        } else if (this.filtros.adopciones === 'rechazadas') {
+            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
+        }
+        
         if (filtradas.length === 0) {
-            container.innerHTML = '<p class="loading">No hay solicitudes para mostrar</p>';
+            container.innerHTML = '<p class="loading">No hay solicitudes de adopción en este estado</p>';
             return;
         }
-
+        
         let html = '';
         filtradas.forEach(sol => {
-            html += this.generarCardSolicitud(sol, 'adopcion');
+            html += this.generarCardSolicitudAdopcion(sol);
         });
-
+        
         container.innerHTML = html;
-
-+        this.renderizarSolicitudesRecientes();
     }
 
-    renderizarReclamos() {
-        const container = document.getElementById('reclamosGrid');
-        const filtradas = this.reclamos.filter(r => {
-            if (this.filtros.reclamos === 'pendientes') return r.estado === 'pendiente';
-            if (this.filtros.reclamos === 'verificados') return r.estado === 'verificados';
-            if (this.filtros.reclamos === 'aprobados') return r.estado === 'aprobados';
-            if (this.filtros.reclamos === 'rechazados') return r.estado === 'rechazados';
-            return true;
-        });
-
-        if (filtradas.length === 0) {
-            container.innerHTML = '<p class="loading">No hay reclamos para mostrar</p>';
-            return;
-        }
-
-        let html = '';
-        filtradas.forEach(rec => {
-            html += this.generarCardSolicitud(rec, 'reclamo');
-        });
-
-        container.innerHTML = html;
-
-        this.renderizarReclamosRecientes();
-    }
-
-    generarCardSolicitud(item, tipo) {
-        const esAdopcion = tipo === 'adopcion';
-        const titulo = esAdopcion ? 'Solicitud de adopción' : 'Reclamo de mascota';
-        const persona = esAdopcion ? item.solicitante : item.reclamante;
-        const email = item.email;
-
+    generarCardSolicitudAdopcion(sol) {
+        const fecha = new Date(sol.fechaSolicitud);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        
         return `
             <div class="solicitud-card">
                 <div class="cita-header">
-                    <span class="cita-estado estado-${item.estado}">${item.estado}</span>
-                    <span class="cita-fecha">${item.fecha}</span>
+                    <span class="cita-estado estado-${sol.estado}">${sol.estado}</span>
+                    <span class="cita-fecha">${fechaFormateada}</span>
                 </div>
                 <div class="cita-body">
                     <div class="cita-mascota">
-                        <i class="fas fa-user"></i> ${persona}
+                        <i class="fas fa-user"></i> ${sol.usuarioNombre || 'Anónimo'}
                     </div>
                     <div class="cita-detalle">
-                        <p><strong>Email:</strong> ${email}</p>
-                        <p><strong>Mascota:</strong> ${item.mascota}</p>
-                        <p><strong>Mensaje:</strong> ${(item.mensaje || item.descripcion || '').substring(0, 50)}...</p>
+                        <p><strong>Email:</strong> ${sol.usuarioEmail || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${sol.telefono || 'No especificado'}</p>
+                        <p><strong>Mensaje:</strong> ${(sol.mensaje || '').substring(0, 80)}${sol.mensaje?.length > 80 ? '...' : ''}</p>
                     </div>
+                    ${sol.pruebas && sol.pruebas.length > 0 ? `
+                        <div class="pruebas-container">
+                            <strong>📸 Pruebas:</strong>
+                            <div class="pruebas-miniaturas">
+                                ${sol.pruebas.slice(0, 3).map(foto => `
+                                    <img src="${foto}" class="prueba-thumb" onclick="vetController.verImagen('${foto}')">
+                                `).join('')}
+                                ${sol.pruebas.length > 3 ? `<span class="mas-fotos">+${sol.pruebas.length - 3}</span>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="cita-footer">
-                    <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;" onclick="vetController.verDetalle('${tipo}', '${item.id}')">
+                    <button class="btn-icon btn-ver" onclick="vetController.verDetalleSolicitudAdopcion('${sol.id}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;" onclick="vetController.abrirModalEstado('${tipo}', '${item.id}', '${item.estado}')">
+                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoAdopcion('${sol.id}', '${sol.estado}')">
                         <i class="fas fa-check-circle"></i> Estado
                     </button>
                 </div>
@@ -607,59 +554,363 @@ class VetController {
         `;
     }
 
+    verDetalleSolicitudAdopcion(solicitudId) {
+        const solicitud = this.solicitudesAdopcion.find(s => s.id === solicitudId);
+        if (!solicitud) {
+            this.mostrarNotificacion('Solicitud no encontrada', 'error');
+            return;
+        }
+        
+        const fecha = new Date(solicitud.fechaSolicitud);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        let pruebasHtml = '';
+        if (solicitud.pruebas && solicitud.pruebas.length > 0) {
+            pruebasHtml = `
+                <div class="detalle-pruebas">
+                    <strong>📸 Pruebas adjuntas:</strong>
+                    <div class="pruebas-galeria">
+                        ${solicitud.pruebas.map((foto, idx) => `
+                            <img src="${foto}" alt="Prueba ${idx + 1}" class="prueba-imagen" onclick="vetController.verImagen('${foto}')">
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        const contenido = `
+            <div class="detalle-solicitud">
+                <div class="detalle-campo">
+                    <strong>🐾 Publicación:</strong>
+                    <p>${solicitud.publicacionId}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>👤 Solicitante:</strong>
+                    <p>${solicitud.usuarioNombre || 'No especificado'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>📧 Email:</strong>
+                    <p>${solicitud.usuarioEmail || 'No especificado'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>📞 Teléfono:</strong>
+                    <p>${solicitud.telefono || 'No especificado'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>📍 Dirección:</strong>
+                    <p>${solicitud.direccion || 'No especificada'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>💬 Mensaje:</strong>
+                    <p>${solicitud.mensaje || 'No especificado'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>🐕 Experiencia con mascotas:</strong>
+                    <p>${solicitud.experiencia || 'No especificada'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>🐶 ¿Tiene otras mascotas?:</strong>
+                    <p>${solicitud.tieneOtrasMascotas ? 'Sí' : 'No'}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>📅 Fecha de solicitud:</strong>
+                    <p>${fechaFormateada}</p>
+                </div>
+                <div class="detalle-campo">
+                    <strong>🏷️ Estado:</strong>
+                    <p><span class="estado-badge estado-${solicitud.estado}">${solicitud.estado}</span></p>
+                </div>
+                ${solicitud.notasVeterinario ? `
+                    <div class="detalle-campo">
+                        <strong>📝 Notas del veterinario:</strong>
+                        <p>${solicitud.notasVeterinario}</p>
+                    </div>
+                ` : ''}
+                ${pruebasHtml}
+            </div>
+        `;
+        
+        document.getElementById('modalTitulo').textContent = 'Detalles de la solicitud de adopción';
+        document.getElementById('modalBody').innerHTML = contenido;
+        document.getElementById('detalleModal').style.display = 'flex';
+    }
+
+    // Método para ver imagen ampliada
+    verImagen(url) {
+        Swal.fire({
+            imageUrl: url,
+            imageAlt: 'Imagen ampliada',
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: 'auto',
+            padding: '0',
+            background: 'transparent',
+            backdrop: 'rgba(0,0,0,0.9)'
+        });
+    }
+
+    abrirModalEstadoAdopcion(solicitudId, estadoActual) {
+        document.getElementById('itemIdActual').value = solicitudId;
+        document.getElementById('itemTipoActual').value = 'adopcion';
+        
+        const select = document.getElementById('nuevoEstado');
+        select.innerHTML = `
+            <option value="pendiente" ${estadoActual === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+            <option value="aprobada" ${estadoActual === 'aprobada' ? 'selected' : ''}>Aprobada</option>
+            <option value="rechazada" ${estadoActual === 'rechazada' ? 'selected' : ''}>Rechazada</option>
+        `;
+        
+        document.getElementById('estadoModal').style.display = 'flex';
+    }
+
+    renderizarReclamos() {
+        const container = document.getElementById('reclamosGrid');
+        if (!container) {
+            return;
+        }
+        
+        
+        let filtradas = this.reclamos;
+        
+        if (this.filtros.reclamos === 'pendientes') {
+            filtradas = this.reclamos.filter(r => r.estado === 'pendiente');
+        } else if (this.filtros.reclamos === 'verificados') {
+            filtradas = this.reclamos.filter(r => r.estado === 'verificados');
+        } else if (this.filtros.reclamos === 'aprobados') {
+            filtradas = this.reclamos.filter(r => r.estado === 'aprobados');
+        } else if (this.filtros.reclamos === 'rechazados') {
+            filtradas = this.reclamos.filter(r => r.estado === 'rechazados');
+        }
+        
+        
+        if (filtradas.length === 0) {
+            container.innerHTML = '<p class="loading">No hay reclamos para mostrar</p>';
+            return;
+        }
+        
+        let html = '';
+        filtradas.forEach(rec => {
+            html += this.generarCardReclamo(rec);
+        });
+        
+        container.innerHTML = html;
+    }
+
+    generarCardReclamo(rec) {
+        const fecha = rec.fechaReclamo?.toDate ? rec.fechaReclamo.toDate() : new Date(rec.fechaReclamo);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        
+        // Determinar clase de estado
+        let estadoClass = 'estado-pendiente';
+        if (rec.estado === 'verificados') estadoClass = 'estado-verificacion';
+        if (rec.estado === 'aprobados') estadoClass = 'estado-aprobada';
+        if (rec.estado === 'rechazados') estadoClass = 'estado-rechazada';
+        
+        // Mostrar primeras pruebas como miniaturas
+        let pruebasHtml = '';
+        if (rec.pruebas && rec.pruebas.length > 0) {
+            pruebasHtml = `
+                <div class="pruebas-container">
+                    <strong>📸 Pruebas:</strong>
+                    <div class="pruebas-miniaturas">
+                        ${rec.pruebas.slice(0, 3).map(foto => `
+                            <img src="${foto}" class="prueba-thumb" onclick="vetController.verImagen('${foto}')">
+                        `).join('')}
+                        ${rec.pruebas.length > 3 ? `<span class="mas-fotos">+${rec.pruebas.length - 3}</span>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+        
+        return `
+            <div class="reclamo-card">
+                <div class="cita-header">
+                    <span class="cita-estado ${estadoClass}">${rec.estado}</span>
+                    <span class="cita-fecha">${fechaFormateada}</span>
+                </div>
+                <div class="cita-body">
+                    <div class="cita-mascota">
+                        <i class="fas fa-user"></i> ${rec.usuarioNombre || 'Anónimo'}
+                    </div>
+                    <div class="cita-detalle">
+                        <p><strong>Email:</strong> ${rec.usuarioEmail || 'No especificado'}</p>
+                        <p><strong>Teléfono:</strong> ${rec.telefono || 'No especificado'}</p>
+                        <p><strong>Descripción:</strong> ${(rec.descripcion || '').substring(0, 80)}${rec.descripcion?.length > 80 ? '...' : ''}</p>
+                    </div>
+                    ${pruebasHtml}
+                </div>
+                <div class="cita-footer">
+                    <button class="btn-icon btn-ver" onclick="vetController.verDetalleReclamo('${rec.id}')">
+                        <i class="fas fa-eye"></i> Ver
+                    </button>
+                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoReclamo('${rec.id}', '${rec.estado}')">
+                        <i class="fas fa-check-circle"></i> Estado
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    verDetalleReclamo(reclamoId) {
+        const reclamo = this.reclamos.find(r => r.id === reclamoId);
+        if (!reclamo) return;
+        
+        const fecha = reclamo.fechaReclamo?.toDate ? reclamo.fechaReclamo.toDate() : new Date(reclamo.fechaReclamo);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+            year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+        
+        let pruebasHtml = '';
+        if (reclamo.pruebas && reclamo.pruebas.length > 0) {
+            pruebasHtml = `
+                <div class="detalle-pruebas">
+                    <strong>📸 Pruebas adjuntas:</strong>
+                    <div class="pruebas-galeria">
+                        ${reclamo.pruebas.map((foto, idx) => `
+                            <img src="${foto}" alt="Prueba ${idx + 1}" class="prueba-imagen" onclick="vetController.verImagen('${foto}')">
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+        
+        const contenido = `
+            <div class="detalle-solicitud">
+                <div class="detalle-campo"><strong>🐾 Publicación ID:</strong><p>${reclamo.publicacionId || 'No especificada'}</p></div>
+                <div class="detalle-campo"><strong>👤 Reclamante:</strong><p>${reclamo.usuarioNombre || 'No especificado'}</p></div>
+                <div class="detalle-campo"><strong>📧 Email:</strong><p>${reclamo.usuarioEmail || 'No especificado'}</p></div>
+                <div class="detalle-campo"><strong>📞 Teléfono:</strong><p>${reclamo.telefono || 'No especificado'}</p></div>
+                <div class="detalle-campo"><strong>📝 Descripción del reclamo:</strong><p>${reclamo.descripcion || 'No especificada'}</p></div>
+                <div class="detalle-campo"><strong>📅 Fecha del reclamo:</strong><p>${fechaFormateada}</p></div>
+                <div class="detalle-campo"><strong>🏷️ Estado actual:</strong><p><span class="estado-badge estado-${reclamo.estado}">${reclamo.estado}</span></p></div>
+                ${reclamo.notasVeterinario ? `<div class="detalle-campo"><strong>📝 Notas del veterinario:</strong><p>${reclamo.notasVeterinario}</p></div>` : ''}
+                ${pruebasHtml}
+            </div>
+        `;
+        
+        document.getElementById('modalTitulo').textContent = 'Detalles del reclamo';
+        document.getElementById('modalBody').innerHTML = contenido;
+        document.getElementById('detalleModal').style.display = 'flex';
+    }
+
+    abrirModalEstadoReclamo(reclamoId, estadoActual) {
+        document.getElementById('itemIdActual').value = reclamoId;
+        document.getElementById('itemTipoActual').value = 'reclamo';
+        
+        const select = document.getElementById('nuevoEstado');
+        select.innerHTML = `
+            <option value="pendiente" ${estadoActual === 'pendiente' ? 'selected' : ''}>📌 Pendiente</option>
+            <option value="verificados" ${estadoActual === 'verificados' ? 'selected' : ''}>🔍 En verificación</option>
+            <option value="aprobados" ${estadoActual === 'aprobados' ? 'selected' : ''}>✅ Aprobado</option>
+            <option value="rechazados" ${estadoActual === 'rechazados' ? 'selected' : ''}>❌ Rechazado</option>
+        `;
+        
+        document.getElementById('estadoModal').style.display = 'flex';
+    }
+
+    // async guardarCambioEstado(e) {
+    //     e.preventDefault();
+
+    //     const id = document.getElementById('itemIdActual').value;
+    //     const tipo = document.getElementById('itemTipoActual').value;
+    //     const nuevoEstado = document.getElementById('nuevoEstado').value;
+    //     const notas = document.getElementById('notasEstado').value;
+
+    //     if (tipo === 'cita') {
+    //         const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
+    //         if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
+    //     } 
+    //     else if (tipo === 'adopcion') {
+    //         await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
+    //     } 
+    //     else if (tipo === 'reclamo') {
+    //         await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
+    //     }
+
+    //     this.cerrarEstadoModal();
+    //     await this.cargarTodo();
+    // }
+
+
+
     renderizarSolicitudesRecientes() {
         const container = document.getElementById('solicitudesRecientes');
-        const recientes = this.solicitudesAdopcion.slice(0, 3);
-
-        if (recientes.length === 0) {
-            container.innerHTML = '<p class="loading">No hay solicitudes recientes</p>';
+        if (!container) {
             return;
         }
 
+        const pendientes = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
+
+        if (pendientes.length === 0) {
+            container.innerHTML = '<p class="loading">No hay solicitudes pendientes</p>';
+            return;
+        }
+
+        const recientes = this.solicitudesAdopcion.slice(0, 3);
+
         let html = '';
         recientes.forEach(sol => {
+            const fecha = new Date(sol.fechaSolicitud);
+            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            
             html += `
-                <div class="cita-card" style="margin-bottom: 10px;">
+                <div class="cita-card" style="margin-bottom: 10px; cursor: pointer;" onclick="vetController.verDetalleSolicitudAdopcion('${sol.id}')">
                     <div class="cita-header">
                         <span class="cita-estado estado-${sol.estado}">${sol.estado}</span>
-                        <span class="cita-fecha">${sol.fecha}</span>
+                        <span class="cita-fecha">${fechaFormateada}</span>
                     </div>
                     <div class="cita-body">
-                        <strong>${sol.solicitante}</strong> - ${sol.mascota}
+                        <strong>${sol.usuarioNombre || 'Anónimo'}</strong> - ${sol.usuarioEmail || 'Sin email'}
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">${(sol.mensaje || '').substring(0, 60)}${sol.mensaje?.length > 60 ? '...' : ''}</p>
                     </div>
                 </div>
             `;
         });
-
+        
         container.innerHTML = html;
     }
 
     renderizarReclamosRecientes() {
         const container = document.getElementById('reclamosRecientes');
-        const recientes = this.reclamos.slice(0, 3);
-
-        if (recientes.length === 0) {
-            container.innerHTML = '<p class="loading">No hay reclamos recientes</p>';
+        if (!container) return;
+        
+        const pendientes = this.reclamos.filter(r => r.estado === 'pendiente');
+        
+        if (pendientes.length === 0) {
+            container.innerHTML = '<p class="loading">No hay reclamos pendientes</p>';
             return;
         }
-
+        
+        const recientes = pendientes.slice(0, 3);
+        
         let html = '';
         recientes.forEach(rec => {
+            const fecha = rec.fechaReclamo?.toDate ? rec.fechaReclamo.toDate() : new Date(rec.fechaReclamo);
+            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            
             html += `
-                <div class="cita-card" style="margin-bottom: 10px;">
+                <div class="cita-card" style="margin-bottom: 10px; cursor: pointer;" onclick="vetController.verDetalleReclamo('${rec.id}')">
                     <div class="cita-header">
-                        <span class="cita-estado estado-${rec.estado}">${rec.estado}</span>
-                        <span class="cita-fecha">${rec.fecha}</span>
+                        <span class="cita-estado estado-pendiente">${rec.estado}</span>
+                        <span class="cita-fecha">${fechaFormateada}</span>
                     </div>
                     <div class="cita-body">
-                        <strong>${rec.reclamante}</strong> - ${rec.mascota}
+                        <strong>${rec.usuarioNombre || 'Anónimo'}</strong> - ${rec.usuarioEmail || 'Sin email'}
+                        <p style="font-size: 0.8rem; color: #666; margin-top: 5px;">${(rec.descripcion || '').substring(0, 50)}...</p>
                     </div>
                 </div>
             `;
         });
-
+        
         container.innerHTML = html;
     }
+
 
     configurarFormularioHorarios() {
         const horarioGrid = document.getElementById('horarioGrid');
@@ -742,13 +993,116 @@ class VetController {
         );
 
         if (result.success) {
-            this.mostrarNotificacion('Horario guardado correctamente', 'success');
             this.veterinarioActual.horarioSemanal = horarioConfig;
             this.veterinarioActual.duracionCita = duracionCita;
             this.veterinarioActual.diasAnticipacion = diasAnticipacion;
+            
+            this.mostrarNotificacion('Horario guardado correctamente', 'success');
         } else {
             this.mostrarNotificacion('Error: ' + result.error, 'error');
         }
+    }
+
+    async cargarHorariosDisponibles() {
+        console.log('🕒 Cargando horarios disponibles...');
+
+        const veterinarioId = document.getElementById('veterinario')?.value;
+        const fecha = document.getElementById('fecha')?.value;
+        const horaSelect = document.getElementById('hora');
+
+        if (!veterinarioId || !fecha) {
+            horaSelect.innerHTML = '<option value="">Primero selecciona veterinario y fecha</option>';
+            return;
+        }
+
+        try {
+            horaSelect.innerHTML = '<option value="">Cargando horarios...</option>';
+            horaSelect.disabled = true;
+
+            const vetResult = await this.vetModel.obtenerVeterinarioPorId(veterinarioId);
+            
+            let vetSeleccionado;
+            if (vetResult.success) {
+                vetSeleccionado = vetResult.data;
+            } else {
+                vetSeleccionado = this.veterinarios.find(v => v.id === veterinarioId);
+            }
+            
+            if (!vetSeleccionado) {
+                horaSelect.innerHTML = '<option value="">Error: Veterinario no encontrado</option>';
+                horaSelect.disabled = false;
+                return;
+            }
+
+            console.log('✅ Horario del veterinario:', vetSeleccionado.horarioSemanal);
+
+            if (!vetSeleccionado.horarioSemanal || vetSeleccionado.horarioSemanal.length === 0) {
+                horaSelect.innerHTML = '<option value="">El veterinario no tiene horario configurado</option>';
+                horaSelect.disabled = false;
+                return;
+            }
+
+            const horariosOcupados = await this.citasModel.obtenerHorariosOcupados(veterinarioId, fecha);
+            const horariosDisponibles = this.generarHorarios(vetSeleccionado, horariosOcupados);
+
+            let options = '<option value="">Selecciona una hora</option>';
+            horariosDisponibles.forEach(hora => {
+                options += `<option value="${hora}">${hora}</option>`;
+            });
+
+            horaSelect.innerHTML = options;
+            horaSelect.disabled = false;
+
+        } catch (error) {
+            console.error('❌ Error al cargar horarios:', error);
+            horaSelect.innerHTML = '<option value="">Error al cargar horarios</option>';
+            horaSelect.disabled = false;
+        }
+    }
+
+
+
+    generarHorarios(vet, horariosOcupados = []) {
+        if (!vet || !vet.horarioSemanal) return [];
+        
+        const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+        const fechaInput = document.getElementById('fecha')?.value;
+        if (!fechaInput) return [];
+        
+        const fecha = new Date(fechaInput);
+        const diaSemana = dias[fecha.getDay()];
+        
+        const horarioDia = vet.horarioSemanal.find(h => h.dia === diaSemana);
+        
+        if (!horarioDia || !horarioDia.activo) {
+            console.log(`⚠️ Veterinario no atiende los ${diaSemana}`);
+            return [];
+        }
+
+        const duracion = vet.duracionCita || 30;
+        const horarios = [];
+        
+        const [horaInicio, minInicio] = horarioDia.apertura.split(':').map(Number);
+        const [horaFin, minFin] = horarioDia.cierre.split(':').map(Number);
+        
+        let horaActual = horaInicio;
+        let minActual = minInicio;
+        
+        while (horaActual < horaFin || (horaActual === horaFin && minActual < minFin)) {
+            const horaStr = `${horaActual.toString().padStart(2, '0')}:${minActual.toString().padStart(2, '0')}`;
+            
+            if (!horariosOcupados.includes(horaStr)) {
+                horarios.push(horaStr);
+            }
+            
+            minActual += duracion;
+            if (minActual >= 60) {
+                horaActual += Math.floor(minActual / 60);
+                minActual = minActual % 60;
+            }
+        }
+        
+        return horarios;
     }
 
     cambiarSeccion(seccion) {
@@ -795,7 +1149,10 @@ class VetController {
         this.cargarCitas();
     }
 
+
+
     aplicarFiltroAdopciones(filtro) {
+
         document.querySelectorAll('#adopciones-section .filter-btn').forEach(btn => {
             if (btn.dataset.filter === filtro) {
                 btn.classList.add('active');
@@ -803,21 +1160,11 @@ class VetController {
                 btn.classList.remove('active');
             }
         });
+        
         this.filtros.adopciones = filtro;
         this.renderizarSolicitudesAdopcion();
     }
 
-    aplicarFiltroReclamos(filtro) {
-        document.querySelectorAll('#reclamos-section .filter-btn').forEach(btn => {
-            if (btn.dataset.filter === filtro) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
-            }
-        });
-        this.filtros.reclamos = filtro;
-        this.renderizarReclamos();
-    }
 
     aplicarFiltroPublicaciones(tipo) {
         document.querySelectorAll('.pub-tab').forEach(btn => {
@@ -829,6 +1176,21 @@ class VetController {
         });
         this.filtros.publicaciones = tipo;
         this.renderizarPublicaciones();
+    }
+
+    aplicarFiltroReclamos(filtro) {
+        
+        document.querySelectorAll('#reclamos-section .filter-btn').forEach(btn => {
+            if (btn.dataset.filter === filtro) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+        
+        this.filtros.reclamos = filtro;
+        
+        this.renderizarReclamos();
     }
 
     verDetalle(tipo, id) {
@@ -880,15 +1242,6 @@ class VetController {
 
                 `;
 
-        // for (let [key, value] of Object.entries(item)) {
-        //     if (key !== 'id' && typeof value !== 'object') {
-                
-        //         contenido += `
-        //         <p><strong>${key}:</strong> ${value}</p>
-        //         `
-        //         ;
-        //     }
-        // }
 
         document.getElementById('modalBody').innerHTML = contenido;
         document.getElementById('detalleModal').style.display = 'flex';
@@ -927,106 +1280,28 @@ class VetController {
 
     async guardarCambioEstado(e) {
         e.preventDefault();
-
+        
         const id = document.getElementById('itemIdActual').value;
         const tipo = document.getElementById('itemTipoActual').value;
         const nuevoEstado = document.getElementById('nuevoEstado').value;
         const notas = document.getElementById('notasEstado').value;
-
-        // Solo procesar si es una cita (por ahora)
-        if (tipo !== 'cita') {
-            this.mostrarNotificacion(`Estado actualizado a ${nuevoEstado}`, 'success');
-            this.cerrarEstadoModal();
-            await this.cargarTodo();
-            return;
-        }
-
-        // Mostrar loading
-        const btnSubmit = document.querySelector('#estadoForm button[type="submit"]');
-        const originalText = btnSubmit.innerHTML;
-        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
-        btnSubmit.disabled = true;
-
-        try {
-            // Llamar al modelo para actualizar en Firestore
+        
+        if (tipo === 'cita') {
             const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
-
-            if (result.success) {
-                this.mostrarNotificacion(`Cita ${result.message || 'actualizada correctamente'}`, 'success');
-                this.cerrarEstadoModal();
-                await this.cargarTodo(); // Recargar todas las citas
-            } else {
-                this.mostrarNotificacion(`Error: ${result.error}`, 'error');
-            }
-        } catch (error) {
-            console.error('Error al actualizar estado:', error);
-            this.mostrarNotificacion('Error al actualizar el estado', 'error');
-        } finally {
-            btnSubmit.innerHTML = originalText;
-            btnSubmit.disabled = false;
+            if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
+        } else if (tipo === 'adopcion') {
+            await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
+        } else if (tipo === 'reclamo') {
+            await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
         }
+        
+        this.cerrarEstadoModal();
+        await this.cargarTodo();
     }
 
     nuevaPublicacion() {
         document.getElementById('publicacionModal').style.display = 'flex';
     }
-
-    // async guardarPublicacion(e) {
-    //     e.preventDefault();
-        
-    //     const tipo = document.getElementById('pubTipo').value;
-    //     const titulo = document.getElementById('pubTitulo').value;
-    //     const categoria = document.getElementById('pubCategoria').value;
-    //     const descripcion = document.getElementById('pubDescripcion').value;
-    //     const contacto = document.getElementById('pubContacto').value;
-    //     const ubicacionTexto = document.getElementById('pubUbicacion').value;
-    //     const recompensa = document.getElementById('pubRecompensa').value;
-    //     const fechaEvento = document.getElementById('pubFechaEvento').value;
-        
-    //     // Procesar fotos
-    //     const fotosInput = document.getElementById('pubFotos');
-    //     const fotos = [];
-        
-    //     for (const file of fotosInput.files) {
-    //         if (file.size > 2 * 1024 * 1024) {
-    //             this.mostrarNotificacion('Una imagen supera los 2MB', 'error');
-    //             return;
-    //         }
-    //         const base64 = await this.convertirImagenABase64(file);
-    //         fotos.push(base64);
-    //     }
-        
-    //     const publicacion = {
-    //         titulo,
-    //         tipo,
-    //         categoria,
-    //         descripcion,
-    //         contacto,
-    //         ubicacionTexto,
-    //         recompensa: tipo === 'Mascota Perdida' ? recompensa : '',
-    //         fechaEvento: tipo === 'Mascota Perdida' ? fechaEvento : null,
-    //         fotos,
-    //         usuarioId: auth.currentUser.uid,
-    //         usuarioNombre: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
-    //         veterinarioId: this.veterinarioActual.id,
-    //         fechaPublicacion: serverTimestamp(),
-    //         fechaActualizacion: serverTimestamp(),
-    //         vistas: 0,
-    //         likes: 0,
-    //         comentarios: 0,
-    //         usuariosLike: []
-    //     };
-        
-    //     try {
-    //         const docRef = await addDoc(collection(db, 'publicaciones'), publicacion);
-    //         this.mostrarNotificacion('Publicación creada exitosamente', 'success');
-    //         this.cerrarPublicacionModal();
-    //         await this.cargarPublicaciones();
-    //     } catch (error) {
-    //         console.error('Error:', error);
-    //         this.mostrarNotificacion('Error al publicar', 'error');
-    //     }
-    // }
 
     async guardarPublicacion(e) {
         e.preventDefault();
@@ -1041,13 +1316,11 @@ class VetController {
         const recompensa = document.getElementById('pubRecompensa').value;
         const fechaEvento = document.getElementById('pubFechaEvento').value;
         
-        // Validar campos requeridos
         if (!tipo || !titulo || !descripcion) {
             this.mostrarNotificacion('Completa los campos requeridos', 'warning');
             return;
         }
         
-        // Procesar fotos nuevas
         const fotosInput = document.getElementById('pubFotos');
         const fotos = [];
         
@@ -1060,7 +1333,6 @@ class VetController {
             fotos.push(base64);
         }
         
-        // Si hay fotos existentes en el preview, conservarlas
         const fotosExistentes = [];
         const fotosPreview = document.getElementById('pubFotosPreview');
         if (fotosPreview) {
@@ -1074,7 +1346,6 @@ class VetController {
         
         const todasFotos = [...fotosExistentes, ...fotos];
         
-        // Preparar datos
         const publicacionData = {
             titulo,
             tipo,
@@ -1090,12 +1361,10 @@ class VetController {
         
         try {
             if (publicacionId) {
-                // Actualizar publicación existente
                 const publicacionRef = doc(db, 'publicaciones', publicacionId);
                 await updateDoc(publicacionRef, publicacionData);
                 this.mostrarNotificacion('Publicación actualizada correctamente', 'success');
             } else {
-                // Crear nueva publicación
                 publicacionData.usuarioId = auth.currentUser.uid;
                 publicacionData.usuarioNombre = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
                 publicacionData.veterinarioId = this.veterinarioActual.id;
@@ -1109,12 +1378,10 @@ class VetController {
                 this.mostrarNotificacion('Publicación creada exitosamente', 'success');
             }
             
-            // Limpiar formulario
             document.getElementById('publicacionId').value = '';
             document.getElementById('pubFotos').value = '';
             document.getElementById('pubFotosPreview').innerHTML = '';
             
-            // Restaurar texto del botón
             const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
             if (btnGuardar) {
                 btnGuardar.innerHTML = '<i class="fas fa-save"></i> Publicar';
@@ -1149,7 +1416,6 @@ class VetController {
             fechaEventoGroup.style.display = tipo === 'Mascota Perdida' ? 'block' : 'none';
         });
         
-        // Evento de fotos
         const fotosInput = document.getElementById('pubFotos');
         const fotosPreview = document.getElementById('pubFotosPreview');
         
@@ -1185,7 +1451,6 @@ async editarPublicacion(id) {
         return;
     }
 
-    // Buscar la publicación
     const publicacion = this.publicaciones.find(p => p.id === id);
     if (!publicacion) {
         this.mostrarNotificacion('Publicación no encontrada', 'error');
@@ -1199,7 +1464,6 @@ async editarPublicacion(id) {
         const modal = document.getElementById('publicacionModal');
         if (!modal) return;
 
-        // Limpiar campos y cargar datos
         document.getElementById('publicacionId').value = publicacion.id;
         document.getElementById('pubTipo').value = publicacion.tipo;
         document.getElementById('pubTitulo').value = publicacion.titulo;
@@ -1208,7 +1472,7 @@ async editarPublicacion(id) {
         document.getElementById('pubContacto').value = publicacion.contacto || '';
         document.getElementById('pubUbicacion').value = publicacion.ubicacionTexto || '';
         
-        // Campos condicionales
+
         if (publicacion.recompensa) {
             document.getElementById('pubRecompensa').value = publicacion.recompensa;
         }
@@ -1298,6 +1562,55 @@ async editarPublicacion(id) {
         }
     }
 
+
+    async actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas) {
+        try {
+            const solicitudRef = doc(db, 'solicitudesAdopcion', id);
+            await updateDoc(solicitudRef, {
+                estado: nuevoEstado,
+                fechaRespuesta: serverTimestamp(),
+                notasVeterinario: notas || ''
+            });
+            
+            this.mostrarNotificacion(`Solicitud ${nuevoEstado} correctamente`, 'success');
+            await this.cargarSolicitudesAdopcion();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            this.mostrarNotificacion('Error al actualizar', 'error');
+        }
+    }
+
+    async actualizarEstadoReclamo(id, nuevoEstado, notas) {
+        try {
+            
+            const reclamoRef = doc(db, 'reclamosMascotas', id);
+            
+            const datosActualizar = {
+                estado: nuevoEstado,
+                fechaRespuesta: serverTimestamp()
+            };
+            
+            if (notas && notas.trim() !== '') {
+                datosActualizar.notasVeterinario = notas;
+            }
+            
+            await updateDoc(reclamoRef, datosActualizar);
+            
+            this.mostrarNotificacion(`Reclamo ${nuevoEstado} correctamente`, 'success');
+            
+            // Recargar la lista de reclamos
+            await this.cargarReclamos();
+            
+            return { success: true };
+            
+        } catch (error) {
+            console.error('❌ Error al actualizar reclamo:', error);
+            this.mostrarNotificacion('Error al actualizar el reclamo', 'error');
+            return { success: false, error: error.message };
+        }
+    }
+
     cerrarModal() {
         document.getElementById('detalleModal').style.display = 'none';
     }
@@ -1352,9 +1665,6 @@ async editarPublicacion(id) {
                 this.aplicarFiltroCitas(filtro);
             });
         });
-
-
-
 
         document.querySelectorAll('#adopciones-section .filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {

@@ -1288,3 +1288,210 @@ body {
     justify-content: center;
 }
 
+/* Pruebas en solicitudes */
+.pruebas-container {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.pruebas-miniaturas {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.prueba-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    transition: transform 0.2s;
+}
+
+.prueba-thumb:hover {
+    transform: scale(1.05);
+}
+
+/* Botón de solicitud en detalles */
+.btn-solicitar {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    font-size: 1rem;
+    justify-content: center;
+}
+
+.btn-solicitar i {
+    margin-right: 8px;
+}
+
+/* Estilos para pruebas en solicitudes */
+.pruebas-container {
+    margin-top: 12px;
+    padding-top: 8px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.pruebas-miniaturas {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+}
+
+.prueba-thumb {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    transition: transform 0.2s;
+}
+
+.prueba-thumb:hover {
+    transform: scale(1.05);
+}
+
+/* Estilos para el detalle de solicitud */
+.detalle-solicitud {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.detalle-campo {
+    padding: 8px 0;
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.detalle-campo strong {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--primary-color);
+    margin-bottom: 4px;
+}
+
+.detalle-campo p {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--gray-700);
+    word-break: break-word;
+}
+
+.estado-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.estado-pendiente {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.estado-aprobada {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.estado-rechazada {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Galería de pruebas en detalle */
+.pruebas-galeria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.prueba-imagen {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid var(--gray-200);
+    transition: transform 0.2s;
+}
+
+.prueba-imagen:hover {
+    transform: scale(1.05);
+}
+
+/* Estados para reclamos */
+.estado-verificacion {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.estado-aprobada {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.estado-rechazada {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* Badge para estado */
+.estado-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* Contenedor de pruebas */
+.detalle-pruebas {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.pruebas-galeria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.prueba-imagen {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 1px solid #e5e7eb;
+    transition: transform 0.2s;
+}
+
+.prueba-imagen:hover {
+    transform: scale(1.05);
+}
+
+.mas-fotos {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    background: #f3f4f6;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    color: #6b7280;
+}
+

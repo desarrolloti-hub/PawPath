@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Panel · PawPath</title>
+    <link rel="stylesheet" href="misCitas.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+
+<body>
+    <navbar-visitor></navbar-visitor>
+
+    <main class="panel-container">
+        <div class="container">
+            <!-- Header -->
+            <div class="page-header">
+                <div>
+                    <h1><i class="fas fa-user-circle"></i> Mi Panel</h1>
+                    <p>Gestiona tus citas, solicitudes de adopción y reclamos de mascotas</p>
+                </div>
+                <a href="/user/visitor/citas/citas.html" class="btn-agendar">
+                    <i class="fas fa-plus"></i> Agendar cita
+                </a>
+            </div>
+
+            <!-- Navegación principal -->
+            <div class="main-tabs">
+                <button class="main-tab active" data-main="citas">
+                    <i class="fas fa-calendar-alt"></i> Mis Citas
+                    <span class="badge" id="citasBadge">0</span>
+                </button>
+                <button class="main-tab" data-main="adopciones">
+                    <i class="fas fa-paw"></i> Solicitudes de Adopción
+                    <span class="badge" id="adopcionesBadge">0</span>
+                </button>
+                <button class="main-tab" data-main="reclamos">
+                    <i class="fas fa-clipboard-list"></i> Mis Reclamos
+                    <span class="badge" id="reclamosBadge">0</span>
+                </button>
+            </div>
+
+            <!-- ========== SECCIÓN CITAS ========== -->
+            <div id="citasSection" class="main-section active">
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-tab="proximas">
+                        <i class="fas fa-clock"></i> Próximas citas
+                        <span class="badge" id="proximasCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="historial">
+                        <i class="fas fa-history"></i> Historial
+                        <span class="badge" id="historialCount">0</span>
+                    </button>
+                    <button class="tab-btn" data-tab="todas">
+                        <i class="fas fa-list"></i> Todas
+                    </button>
+                </div>
+
+                <div class="filtros-bar">
+                    <div class="filtro-group">
+                        <label>Estado:</label>
+                        <select id="citasFiltroEstado">
+                            <option value="todos">Todos</option>
+                            <option value="pendiente">Pendiente</option>
+                            <option value="aceptada">Aceptada</option>
+                            <option value="rechazada">Rechazada</option>
+                            <option value="concluida">Concluida</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Ordenar por:</label>
+                        <select id="citasFiltroOrden">
+                            <option value="fecha_desc">Más recientes</option>
+                            <option value="fecha_asc">Más antiguas</option>
+                        </select>
+                    </div>
+                    <div class="filtro-group">
+                        <label>Buscar:</label>
+                        <input type="text" id="citasBuscar" placeholder="Veterinario, mascota...">
+                    </div>
+                    <button id="btnRefrescar" class="btn-refrescar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="items-lista" id="citasLista">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando tus citas...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== SECCIÓN SOLICITUDES DE ADOPCIÓN ========== -->
+            <div id="adopcionesSection" class="main-section">
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-adopcion-tab="pendientes">
+                        <i class="fas fa-hourglass-half"></i> Pendientes
+                        <span class="badge" id="adopcionesPendientesBadge">0</span>
+                    </button>
+                    <button class="tab-btn" data-adopcion-tab="aprobadas">
+                        <i class="fas fa-check-circle"></i> Aprobadas
+                    </button>
+                    <button class="tab-btn" data-adopcion-tab="rechazadas">
+                        <i class="fas fa-times-circle"></i> Rechazadas
+                    </button>
+                </div>
+
+                <div class="filtros-bar">
+                    <div class="filtro-group">
+                        <label>Buscar:</label>
+                        <input type="text" id="adopcionesBuscar" placeholder="Mascota, veterinario...">
+                    </div>
+                    <button id="btnRefrescarAdopciones" class="btn-refrescar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="items-lista" id="adopcionesLista">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando tus solicitudes...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========== SECCIÓN RECLAMOS ========== -->
+            <div id="reclamosSection" class="main-section">
+                <div class="tabs-container">
+                    <button class="tab-btn active" data-reclamo-tab="pendientes">
+                        <i class="fas fa-hourglass-half"></i> Pendientes
+                        <span class="badge" id="reclamosPendientesBadge">0</span>
+                    </button>
+                    <button class="tab-btn" data-reclamo-tab="verificados">
+                        <i class="fas fa-search"></i> En verificación
+                    </button>
+                    <button class="tab-btn" data-reclamo-tab="aprobados">
+                        <i class="fas fa-check-circle"></i> Aprobados
+                    </button>
+                    <button class="tab-btn" data-reclamo-tab="rechazados">
+                        <i class="fas fa-times-circle"></i> Rechazados
+                    </button>
+                </div>
+
+                <div class="filtros-bar">
+                    <div class="filtro-group">
+                        <label>Buscar:</label>
+                        <input type="text" id="reclamosBuscar" placeholder="Mascota, veterinario...">
+                    </div>
+                    <button id="btnRefrescarReclamos" class="btn-refrescar">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+
+                <div class="items-lista" id="reclamosLista">
+                    <div class="loading-state">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando tus reclamos...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sin resultados (compartido) -->
+            <div class="sin-resultados" id="sinResultados" style="display: none;">
+                <i class="fas fa-inbox"></i>
+                <h3>No hay elementos</h3>
+                <p id="sinResultadosTexto">No encontramos resultados para tu búsqueda</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de detalles -->
+    <div id="detalleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitulo"><i class="fas fa-info-circle"></i> Detalles</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer" id="modalFooter">
+                <button class="btn-cerrar" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="misCitas.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+</body>
+
+</html>
