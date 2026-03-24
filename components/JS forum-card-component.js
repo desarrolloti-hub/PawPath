@@ -1,12 +1,38 @@
 // forum-card-component.js
+import { db, auth } from '/config/firebase-config.js';
+import { 
+    collection, 
+    query, 
+    getDocs, 
+    doc, 
+    updateDoc, 
+    increment, 
+    arrayUnion, 
+    arrayRemove,
+    orderBy,
+    limit,
+    where
+} from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+
+// Componente para una sola card
 class ForumCard extends HTMLElement {
     constructor() {
         super();
+        this.post = null;
+        this.usuarioActual = null;
     }
     
     connectedCallback() {
-        this.render();
-        this.setupEventListeners();
+        this.escucharAuth();
+        const dataPost = this.getAttribute('data-post');
+        if (dataPost) {
+            try {
+                this.post = JSON.parse(dataPost);
+                this.render();
+            } catch(e) {
+                console.error('Error parsing post:', e);
+            }
+        }
     }
     
     static get observedAttributes() {
@@ -14,251 +40,309 @@ class ForumCard extends HTMLElement {
     }
     
     attributeChangedCallback(name, oldValue, newValue) {
-        if (name === 'data-post' && oldValue !== newValue) {
-            this.render();
+        if (name === 'data-post' && oldValue !== newValue && newValue) {
+            try {
+                this.post = JSON.parse(newValue);
+                this.render();
+            } catch (e) {
+                console.error('Error:', e);
+            }
         }
+    }
+    
+    async escucharAuth() {
+        auth.onAuthStateChanged((user) => {
+            this.usuarioActual = user;
+            if (this.post) this.render();
+        });
+    }
+    
+    formatearFecha(fecha) {
+        if (!fecha) return 'Reciente';
+        
+        let fechaObj;
+        if (fecha && typeof fecha.toDate === 'function') {
+            fechaObj = fecha.toDate();
+        } else if (fecha && fecha.seconds) {
+            fechaObj = new Date(fecha.seconds * 1000);
+        } else if (typeof fecha === 'string') {
+            fechaObj = new Date(fecha);
+        } else {
+            return 'Reciente';
+        }
+        
+        const ahora = new Date();
+        const diffHoras = Math.floor((ahora - fechaObj) / (1000 * 60 * 60));
+        
+        if (diffHoras < 1) return 'Hace unos minutos';
+        if (diffHoras < 24) return 'Hace ' + diffHoras + ' horas';
+        if (diffHoras < 48) return 'Ayer';
+        return 'Hace ' + Math.floor(diffHoras / 24) + ' dias';
+    }
+    
+    getCategoriaIcon(categoria) {
+        const icons = {
+            'Perros': 'fa-dog',
+            'Gatos': 'fa-cat',
+            'Aves': 'fa-dove',
+            'Roedores': 'fa-mouse',
+            'Reptiles': 'fa-lizard',
+            'Otros': 'fa-paw'
+        };
+        return icons[categoria] || 'fa-paw';
+    }
+    
+    getTipoStyles(tipo) {
+        const styles = {
+            'Mascota Perdida': { bg: '#ef4444', text: '#ffffff', label: 'Perdido', icon: 'fa-search' },
+            'Mascota Encontrada': { bg: '#10b981', text: '#ffffff', label: 'Encontrado', icon: 'fa-check-circle' },
+            'En Adopción': { bg: '#f59e0b', text: '#ffffff', label: 'En Adopcion', icon: 'fa-home' },
+            'Consejo de Cuidado': { bg: '#3b82f6', text: '#ffffff', label: 'Consejo', icon: 'fa-lightbulb' },
+            'Galería de Fotos': { bg: '#8b5cf6', text: '#ffffff', label: 'Galeria', icon: 'fa-images' }
+        };
+        return styles[tipo] || { bg: '#64748b', text: '#ffffff', label: 'Publicacion', icon: 'fa-paw' };
+    }
+    
+    getDefaultImage() {
+        return 'https://via.placeholder.com/400x250/CCCCCC/FFFFFF?text=PawPath';
+    }
+    
+    escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
     
     render() {
-        let post;
+        if (!this.post) {
+            this.innerHTML = '<div style="padding:20px;text-align:center;">Sin datos</div>';
+            return;
+        }
+        
+        const tipoStyles = this.getTipoStyles(this.post.tipo);
+        const categoriaIcon = this.getCategoriaIcon(this.post.categoria);
+        const fechaFormateada = this.formatearFecha(this.post.fechaPublicacion);
+        const foto = (this.post.fotos && this.post.fotos[0]) ? this.post.fotos[0] : this.getDefaultImage();
+        const isLiked = this.usuarioActual && this.post.usuariosLike && this.post.usuariosLike.indexOf(this.usuarioActual.uid) !== -1;
+        
+        let nombreUsuario = 'Anonimo';
+        if (this.post.usuarioNombre) {
+            nombreUsuario = this.post.usuarioNombre;
+        }
+        
+        const ubicacionHtml = this.post.ubicacionTexto ? '<div class="forum-location"><i class="fas fa-map-marker-alt"></i><span>' + this.escapeHtml(this.post.ubicacionTexto) + '</span></div>' : '';
+        
+        const recompensaHtml = this.post.recompensa ? '<div class="forum-recompensa"><i class="fas fa-trophy"></i><strong>Recompensa:</strong> ' + this.escapeHtml(this.post.recompensa) + '</div>' : '';
+        
+        this.innerHTML = 
+            '<div class="publicacion-card" onclick="window.location.href=\'/user/visitor/foro/detallesforo.html?id=' + this.post.id + '\'">' +
+                '<div class="publicacion-imagen">' +
+                    '<img src="' + foto + '" alt="' + this.escapeHtml(this.post.titulo) + '" onerror="this.src=\'' + this.getDefaultImage() + '\'">' +
+                    '<span class="publicacion-tipo" style="background: ' + tipoStyles.bg + ';">' + tipoStyles.label + '</span>' +
+                '</div>' +
+                '<div class="publicacion-contenido">' +
+                    '<div class="publicacion-metadata">' +
+                        '<span class="publicacion-categoria"><i class="fas ' + categoriaIcon + '"></i> ' + (this.post.categoria || 'Mascota') + '</span>' +
+                        '<span class="publicacion-tiempo"><i class="far fa-clock"></i> ' + fechaFormateada + '</span>' +
+                    '</div>' +
+                    '<h3 class="publicacion-titulo">' + this.escapeHtml(this.post.titulo) + '</h3>' +
+                    '<p class="publicacion-descripcion">' + this.escapeHtml((this.post.descripcion || '').substring(0, 120)) + ((this.post.descripcion && this.post.descripcion.length > 120) ? '...' : '') + '</p>' +
+                    ubicacionHtml +
+                    recompensaHtml +
+                    '<div class="publicacion-footer">' +
+                        '<div class="publicacion-estadisticas">' +
+                            '<span onclick="event.stopPropagation(); window.forumCardIncrementarVista(\'' + this.post.id + '\')" title="Vistas"><i class="far fa-eye"></i> ' + (this.post.vistas || 0) + '</span>' +
+                            '<span onclick="event.stopPropagation(); window.forumCardToggleLike(\'' + this.post.id + '\', ' + isLiked + ')" style="cursor:pointer; color: ' + (isLiked ? '#ef4444' : 'inherit') + '"><i class="' + (isLiked ? 'fas' : 'far') + ' fa-heart"></i> ' + (this.post.likes || 0) + '</span>' +
+                            '<span onclick="event.stopPropagation(); window.location.href=\'/user/visitor/foro/detallesforo.html?id=' + this.post.id + '\'"><i class="far fa-comment"></i> ' + (this.post.comentarios || 0) + '</span>' +
+                        '</div>' +
+                        '<div class="publicacion-usuario"><i class="fas fa-user-circle"></i> ' + this.escapeHtml(nombreUsuario) + '</div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+    }
+}
+
+// Componente para el listado de publicaciones
+class ForumList extends HTMLElement {
+    constructor() {
+        super();
+        this.publicaciones = [];
+        this.filtros = {
+            tipo: '',
+            categoria: '',
+            orden: 'reciente'
+        };
+    }
+    
+    connectedCallback() {
+        this.cargarPublicaciones();
+    }
+    
+    async cargarPublicaciones() {
+        this.innerHTML = '<div class="loading" style="display:flex;"><div class="spinner"></div><p>Cargando publicaciones...</p></div>';
+        
         try {
-            post = JSON.parse(this.getAttribute('data-post') || '{}');
-        } catch (e) {
-            post = {};
-        }
-        
-        const typeColors = {
-            'lost': { bg: '#FF6B6B', text: '#FFFFFF' },
-            'found': { bg: '#4ECDC4', text: '#000000' },
-            'rescue': { bg: '#FFE66D', text: '#000000' },
-            'default': { bg: '#6C757D', text: '#FFFFFF' }
-        };
-        
-        const typeLabels = {
-            'lost': '🐕 Perdido',
-            'found': '🐈 Encontrado',
-            'rescue': '🆘 Necesita Rescate',
-            'default': '📝 Publicación'
-        };
-        
-        const type = post.type || 'default';
-        const colors = typeColors[type] || typeColors.default;
-        const label = typeLabels[type] || typeLabels.default;
-        
-        this.innerHTML = `
-            <style>
-                .forum-card {
-                    background: white;
-                    border-radius: 15px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    transition: all 0.3s ease;
-                    height: 100%;
-                    display: flex;
-                    flex-direction: column;
-                }
-                
-                .forum-card:hover {
-                    transform: translateY(-5px);
-                    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
-                }
-                
-                .forum-card-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 0.8rem 1rem;
-                    font-weight: bold;
-                    font-size: 0.9rem;
-                }
-                
-                .forum-type {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.3rem;
-                }
-                
-                .forum-date {
-                    background: rgba(255,255,255,0.2);
-                    padding: 0.2rem 0.5rem;
-                    border-radius: 10px;
-                    font-size: 0.8rem;
-                }
-                
-                .forum-image {
-                    width: 100%;
-                    height: 200px;
-                    object-fit: cover;
-                    display: block;
-                }
-                
-                .forum-card-body {
-                    padding: 1rem;
-                    flex-grow: 1;
-                }
-                
-                .forum-card-body h4 {
-                    color: #1A535C;
-                    margin-bottom: 0.5rem;
-                    font-size: 1.2rem;
-                }
-                
-                .forum-location {
-                    display: flex;
-                    align-items: center;
-                    gap: 0.5rem;
-                    color: #6C757D;
-                    font-size: 0.9rem;
-                    margin-bottom: 0.8rem;
-                }
-                
-                .forum-description {
-                    color: #333;
-                    font-size: 0.95rem;
-                    line-height: 1.5;
-                    margin-bottom: 1rem;
-                }
-                
-                .forum-card-footer {
-                    padding: 1rem;
-                    border-top: 1px solid #eee;
-                    display: flex;
-                    gap: 0.5rem;
-                }
-                
-                .btn-forum {
-                    flex: 1;
-                    padding: 0.6rem;
-                    border: none;
-                    border-radius: 20px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    transition: all 0.3s;
-                    font-size: 0.9rem;
-                }
-                
-                .btn-contact {
-                    background: #4ECDC4;
-                    color: white;
-                }
-                
-                .btn-contact:hover {
-                    background: #3db9b0;
-                    transform: translateY(-2px);
-                }
-                
-                .btn-report {
-                    background: transparent;
-                    color: #6C757D;
-                    border: 1px solid #6C757D;
-                }
-                
-                .btn-report:hover {
-                    background: #f8f9fa;
-                }
-                
-                .btn-share {
-                    background: #FFE66D;
-                    color: #000;
-                }
-                
-                .btn-share:hover {
-                    background: #ffdd44;
-                }
-            </style>
+            const pubsRef = collection(db, 'publicaciones');
+            let q;
             
-            <div class="forum-card">
-                <div class="forum-card-header" style="background: ${colors.bg}; color: ${colors.text}">
-                    <span class="forum-type">${label}</span>
-                    <span class="forum-date">${post.date || 'Reciente'}</span>
-                </div>
-                
-                <img src="${post.image || 'https://via.placeholder.com/400x250/CCCCCC/FFFFFF?text=Sin+imagen'}" 
-                     alt="${post.animal || 'Animal'}" 
-                     class="forum-image"
-                     onerror="this.src='https://via.placeholder.com/400x250/CCCCCC/FFFFFF?text=Imagen+no+disponible'">
-                
-                <div class="forum-card-body">
-                    <h4>${post.animal || 'Animal'} - ${post.breed || 'Sin raza específica'}</h4>
-                    
-                    <div class="forum-location">
-                        <span>📍</span>
-                        <span>${post.location || 'Ubicación no especificada'}</span>
-                    </div>
-                    
-                    <p class="forum-description">
-                        ${post.description || 'Sin descripción disponible.'}
-                    </p>
-                </div>
-                
-                <div class="forum-card-footer">
-                    <button class="btn-forum btn-contact" onclick="this.contactOwner('${post.id || ''}')">
-                        ✉️ Contactar
-                    </button>
-                    <button class="btn-forum btn-report" onclick="this.reportPost('${post.id || ''}')">
-                        ⚠️ Reportar
-                    </button>
-                    <button class="btn-forum btn-share" onclick="this.sharePost('${post.id || ''}')">
-                        🔗 Compartir
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-    
-    setupEventListeners() {
-        // Los event listeners se configuran en los botones con onclick
-    }
-    
-    // Métodos para los botones
-    contactOwner(postId) {
-        if (postId) {
-            alert(`Contactando al dueño de la publicación ${postId}...`);
-        } else {
-            alert('Contactando al dueño...\nEn una implementación real, esto abriría un chat o mostraría información de contacto.');
-        }
-    }
-    
-    reportPost(postId) {
-        const reason = prompt('¿Por qué quieres reportar esta publicación?\n1. Contenido inapropiado\n2. Información falsa\n3. Otro');
-        if (reason) {
-            alert(`Publicación ${postId || ''} reportada por: ${reason}\nEl administrador revisará el contenido.`);
-            // Aquí enviarías el reporte al backend
-        }
-    }
-    
-    sharePost(postId) {
-        if (navigator.share) {
-            navigator.share({
-                title: 'Mira esta publicación de PawPath',
-                text: 'Encontré esta publicación en PawPath, puede que te interese',
-                url: window.location.href + '#post=' + (postId || '')
+            // Aplicar filtros
+            if (this.filtros.tipo && this.filtros.categoria) {
+                q = query(pubsRef, where('tipo', '==', this.filtros.tipo), where('categoria', '==', this.filtros.categoria), orderBy('fechaPublicacion', 'desc'));
+            } else if (this.filtros.tipo) {
+                q = query(pubsRef, where('tipo', '==', this.filtros.tipo), orderBy('fechaPublicacion', 'desc'));
+            } else if (this.filtros.categoria) {
+                q = query(pubsRef, where('categoria', '==', this.filtros.categoria), orderBy('fechaPublicacion', 'desc'));
+            } else {
+                q = query(pubsRef, orderBy('fechaPublicacion', 'desc'));
+            }
+            
+            const querySnapshot = await getDocs(q);
+            this.publicaciones = [];
+            
+            querySnapshot.forEach((doc) => {
+                this.publicaciones.push({ id: doc.id, ...doc.data() });
             });
-        } else {
-            alert('Enlace copiado al portapapeles');
-            // Fallback para navegadores que no soportan Web Share API
+            
+            this.renderPublicaciones();
+            
+        } catch (error) {
+            console.error('Error cargando:', error);
+            this.innerHTML = '<div class="sin-resultados"><i class="fas fa-exclamation-triangle"></i><h3>Error al cargar</h3><button onclick="location.reload()">Reintentar</button></div>';
+        }
+    }
+    
+    renderPublicaciones() {
+        if (this.publicaciones.length === 0) {
+            this.innerHTML = '<div class="sin-resultados"><i class="fas fa-search"></i><h3>No hay publicaciones</h3><p>Se el primero en compartir algo</p><a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Crear publicacion</a></div>';
+            return;
+        }
+        
+        const grid = document.createElement('div');
+        grid.className = 'publicaciones-grid';
+        
+        for (let i = 0; i < this.publicaciones.length; i++) {
+            const card = document.createElement('forum-card');
+            card.setAttribute('data-post', JSON.stringify(this.publicaciones[i]));
+            grid.appendChild(card);
+        }
+        
+        this.innerHTML = '';
+        this.appendChild(grid);
+    }
+    
+    // Métodos para filtros
+    filtrarPorTipo(tipo) {
+        this.filtros.tipo = tipo;
+        this.cargarPublicaciones();
+    }
+    
+    filtrarPorCategoria(categoria) {
+        this.filtros.categoria = categoria;
+        this.cargarPublicaciones();
+    }
+    
+    limpiarFiltros() {
+        this.filtros = { tipo: '', categoria: '', orden: 'reciente' };
+        this.cargarPublicaciones();
+    }
+}
+
+// Componente para las últimas 3 publicaciones (para el dashboard)
+class ForumUltimas extends HTMLElement {
+    constructor() {
+        super();
+        this.publicaciones = [];
+    }
+    
+    connectedCallback() {
+        this.cargarUltimas();
+    }
+    
+    async cargarUltimas() {
+        this.innerHTML = '<div class="loading" style="display:flex; padding:20px;"><div class="spinner"></div><p>Cargando...</p></div>';
+        
+        try {
+            const pubsRef = collection(db, 'publicaciones');
+            const q = query(pubsRef, orderBy('fechaPublicacion', 'desc'), limit(3));
+            const querySnapshot = await getDocs(q);
+            this.publicaciones = [];
+            
+            querySnapshot.forEach((doc) => {
+                this.publicaciones.push({ id: doc.id, ...doc.data() });
+            });
+            
+            if (this.publicaciones.length === 0) {
+                this.innerHTML = '<div style="text-align:center;padding:20px;"><p>No hay publicaciones recientes</p></div>';
+                return;
+            }
+            
+            const container = document.createElement('div');
+            container.style.cssText = 'display:flex;flex-direction:column;gap:20px;';
+            
+            for (let i = 0; i < this.publicaciones.length; i++) {
+                const card = document.createElement('forum-card');
+                card.setAttribute('data-post', JSON.stringify(this.publicaciones[i]));
+                container.appendChild(card);
+            }
+            
+            this.innerHTML = '';
+            this.appendChild(container);
+            
+        } catch (error) {
+            console.error('Error:', error);
+            this.innerHTML = '<div style="text-align:center;padding:20px;"><p>Error al cargar</p></div>';
         }
     }
 }
 
-// Hacer métodos accesibles globalmente
-ForumCard.prototype.contactOwner = function(postId) {
-    if (postId) {
-        alert(`Contactando al dueño de la publicación ${postId}...`);
-    } else {
-        alert('Contactando al dueño...');
+// Funciones globales
+window.forumCardIncrementarVista = async function(postId) {
+    try {
+        const docRef = doc(db, 'publicaciones', postId);
+        await updateDoc(docRef, { vistas: increment(1) });
+    } catch (e) {
+        console.error('Error:', e);
     }
 };
 
-ForumCard.prototype.reportPost = function(postId) {
-    const reason = prompt('¿Por qué quieres reportar esta publicación?\n1. Contenido inapropiado\n2. Información falsa\n3. Otro');
-    if (reason) {
-        alert(`Publicación ${postId || ''} reportada. Gracias por tu colaboración.`);
+window.forumCardToggleLike = async function(postId, currentlyLiked) {
+    if (!auth.currentUser) {
+        Swal.fire({
+            title: "Inicia sesion",
+            text: "Debes iniciar sesion para dar like",
+            icon: "warning",
+            confirmButtonText: "Iniciar sesion",
+            showCancelButton: true,
+            confirmButtonColor: "#3b82f6"
+        }).then((result) => {
+            if (result.isConfirmed) window.location.href = "/login.html";
+        });
+        return;
+    }
+    
+    try {
+        const docRef = doc(db, 'publicaciones', postId);
+        await updateDoc(docRef, {
+            likes: increment(currentlyLiked ? -1 : 1),
+            usuariosLike: currentlyLiked ? arrayRemove(auth.currentUser.uid) : arrayUnion(auth.currentUser.uid)
+        });
+        
+        const event = new CustomEvent('likeUpdated', { detail: { postId, liked: !currentlyLiked } });
+        window.dispatchEvent(event);
+        
+    } catch (e) {
+        console.error('Error:', e);
+        Swal.fire("Error", "No se pudo procesar tu like", "error");
     }
 };
 
-ForumCard.prototype.sharePost = function(postId) {
-    alert(`Compartiendo publicación ${postId || ''}...`);
-};
-
+// Registrar componentes
 customElements.define('forum-card', ForumCard);
+customElements.define('forum-list', ForumList);
+customElements.define('forum-ultimas', ForumUltimas);
+
+export { ForumCard, ForumList, ForumUltimas };
