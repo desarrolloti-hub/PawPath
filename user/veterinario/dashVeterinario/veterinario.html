@@ -20,8 +20,8 @@
             </div>
 
             <div class="vet-profile">
-                <div class="vet-avatar">
-                    <i class="fas fa-user-md"></i>
+                <div class="vet-avatar" id="vetFoto">
+                    <!-- <i class="fas fa-user-md"></i> -->
                 </div>
                 <div class="vet-info">
                     <span class="vet-name" id="vetName">Cargando...</span>
@@ -370,60 +370,76 @@
             <div class="modal-body">
                 <form id="publicacionForm">
                     <div class="form-group">
-                        <label for="pubTipo">Tipo de publicación</label>
+                        <label for="pubTipo">Tipo de publicación *</label>
                         <select id="pubTipo" required>
-                            <option value="adopcion">En adopción</option>
-                            <option value="perdido">Mascota perdida</option>
-                            <option value="encontrado">Mascota encontrada</option>
+                            <option value="">Selecciona un tipo</option>
+                            <option value="Mascota Perdida">🔍 Mascota Perdida</option>
+                            <option value="Mascota Encontrada">✅ Mascota Encontrada</option>
+                            <option value="En Adopción">🏠 En Adopción</option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="pubTitulo">Título</label>
-                        <input type="text" id="pubTitulo" required placeholder="Ej: Gatitos en adopción">
+                        <label for="pubTitulo">Título *</label>
+                        <input type="text" id="pubTitulo" required placeholder="Ej: Perro perdido en la colonia">
                     </div>
 
                     <div class="form-group">
-                        <label for="pubDescripcion">Descripción</label>
-                        <textarea id="pubDescripcion" rows="4" required
-                            placeholder="Describe la situación..."></textarea>
+                        <label for="pubCategoria">Categoría *</label>
+                        <select id="pubCategoria" required>
+                            <option value="">Selecciona una categoría</option>
+                            <option value="Perros">🐕 Perros</option>
+                            <option value="Gatos">🐈 Gatos</option>
+                            <option value="Aves">🦜 Aves</option>
+                            <option value="Roedores">🐭 Roedores</option>
+                            <option value="Reptiles">🦎 Reptiles</option>
+                            <option value="Otros">🐾 Otros</option>
+                        </select>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="pubEspecie">Especie</label>
-                            <select id="pubEspecie">
-                                <option value="perro">Perro</option>
-                                <option value="gato">Gato</option>
-                                <option value="otro">Otro</option>
-                            </select>
+                    <div class="form-group">
+                        <label for="pubDescripcion">Descripción *</label>
+                        <textarea id="pubDescripcion" rows="4" required placeholder="Describe la situación..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubContacto">Contacto *</label>
+                        <input type="text" id="pubContacto" required placeholder="Teléfono o email para contacto">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubUbicacion">Ubicación *</label>
+                        <input type="text" id="pubUbicacion" required placeholder="Ej: Colonia Centro, Calle Principal">
+                    </div>
+
+                    <div id="pubRecompensaGroup" class="form-group" style="display: none;">
+                        <label for="pubRecompensa">Recompensa</label>
+                        <input type="text" id="pubRecompensa" placeholder="Ej: $1000 pesos">
+                    </div>
+
+                    <div id="pubFechaEventoGroup" class="form-group" style="display: none;">
+                        <label for="pubFechaEvento">Fecha del evento</label>
+                        <input type="date" id="pubFechaEvento">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pubFotos">Fotos (máximo 5)</label>
+                        <div class="fotos-upload">
+                            <div id="pubFotosPreview" class="fotos-preview"></div>
+                            <input type="file" id="pubFotos" accept="image/*" multiple>
+                            <small>Máximo 5 imágenes, hasta 2MB cada una</small>
                         </div>
-                        <div class="form-group">
-                            <label for="pubEdad">Edad aproximada</label>
-                            <input type="text" id="pubEdad" placeholder="Ej: 3 meses">
-                        </div>
                     </div>
-
-                    <div class="form-group">
-                        <label for="pubUbicacion">Ubicación</label>
-                        <input type="text" id="pubUbicacion" required placeholder="Ej: Colonia Centro">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="pubImagen">Imagen (opcional)</label>
-                        <input type="file" id="pubImagen" accept="image/*">
-                    </div>
-
+                    <input type="hidden" id="publicacionId">
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">Publicar</button>
-                        <button type="button" class="btn-secondary"
-                            onclick="vetController.cerrarPublicacionModal()">Cancelar</button>
+                        <button type="button" class="btn-secondary" onclick="vetController.cerrarPublicacionModal()">Cancelar</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script type="module" src="vetController.js"></script>
 </body>
 

@@ -1,6 +1,6 @@
-import { auth } from '/config/firebase-config.js';
+import { auth, db  } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
 
 class VetController {
@@ -56,13 +56,20 @@ class VetController {
 
             const vetNameElement = document.getElementById('vetName');
             const vetSpecialtyElement = document.getElementById('vetSpecialty');
-
+            const vetFotoElement = document.getElementById('vetFoto');
             if (vetNameElement) {
-                vetNameElement.textContent = this.veterinarioActual.nombre || 'Veterinario';
+                vetNameElement.textContent = this.veterinarioActual.primerNombre || 'Veterinario';
             }
 
             if (vetSpecialtyElement) {
                 vetSpecialtyElement.textContent = this.veterinarioActual.especialidades?.join(', ') || 'Veterinario General';
+            }
+            if (vetFotoElement) {
+                if (this.veterinarioActual.fotoPerfil) {
+                    vetFotoElement.innerHTML = `<img class="vet-avatar" src="${this.veterinarioActual.fotoPerfil}" alt="Foto de ${this.veterinarioActual.primerNombre}">`;
+                } else {
+                    vetFotoElement.innerHTML = `<i class="fas fa-user-md"></i>`;
+                }
             }
 
 
@@ -105,6 +112,7 @@ class VetController {
             this.cargarPublicaciones(),
             this.cargarSolicitudesAdopcion(),
             this.cargarReclamos()
+            
         ]);
         this.actualizarEstadisticas();
         this.actualizarBadges();
@@ -126,30 +134,42 @@ class VetController {
     }
 
     async cargarPublicaciones() {
-        // met estatico
-        this.publicaciones = [
-            {
-                id: '1',
-                titulo: 'Gatitos en adopción',
-                tipo: 'adopcion',
-                especie: 'gato',
-                ubicacion: 'Colonia Centro',
-                fecha: '2026-03-08',
-                estado: 'activa',
-                descripcion: 'Tres gatitos de 2 meses en adopción'
-            },
-            {
-                id: '2',
-                titulo: 'Perro perdido - Labrador',
-                tipo: 'perdido',
-                especie: 'perro',
-                ubicacion: 'Colonia Roma',
-                fecha: '2026-03-07',
-                estado: 'activa',
-                descripcion: 'Se perdió labrador color dorado'
-            }
-        ];
-        this.renderizarPublicaciones();
+        if (!this.veterinarioActual) return;
+
+        try {
+            const publicacionesRef = collection(db, 'publicaciones');
+            const q = query(
+                publicacionesRef,
+                where('veterinarioId', '==', this.veterinarioActual.id),
+                orderBy('fechaPublicacion', 'desc')
+            );
+            
+            const querySnapshot = await getDocs(q);
+            this.publicaciones = [];
+            
+            querySnapshot.forEach(doc => {
+                this.publicaciones.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            this.renderizarPublicaciones();
+        } catch (error) {
+            console.error('Error cargando publicaciones:', error);
+            this.mostrarNotificacion('Error al cargar publicaciones', 'error');
+        }
+    }
+
+    contarSolicitudesAdopcion(publicacionId) {
+        // Temporal: retorna 0 hasta que implementemos las solicitudes
+        return 0;
+    }
+
+    // Método para contar reclamos de una publicación
+    contarReclamos(publicacionId) {
+        // Temporal: retorna 0 hasta que implementemos los reclamos
+        return 0;
     }
 
     async cargarSolicitudesAdopcion() {
@@ -264,14 +284,14 @@ class VetController {
                         <p><strong>Propietario:</strong> ${cita.usuarioEmail || 'No especificado'}</p>
                         <p><strong>Especie:</strong> ${cita.especie || 'No especificada'}</p>
                         <p><strong>Raza:</strong> ${cita.raza || 'No especificada'}</p>
-                        <p><strong>Motivo:</strong> ${cita.problemaSalud?.substring(0, 50)}${cita.problemaSalud?.length > 50 ? '...' : ''}</p>
+                        <p><strong>Motivo:</strong> ${cita.problemaSalud?.substring(0, 60)}${cita.problemaSalud?.length > 60 ? '...' : ''}</p>
                     </div>
                 </div>
                 <div class="cita-footer">
-                    <button class="btn-icon ver" onclick="vetController.verDetalle('cita', '${cita.id}')">
+                    <button class="btn-icon btn-ver" onclick="vetController.verDetalle('cita', '${cita.id}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button class="btn-icon aceptar" onclick="vetController.abrirModalEstado('cita', '${cita.id}', '${cita.estado}')">
+                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstado('cita', '${cita.id}', '${cita.estado}')">
                         <i class="fas fa-check-circle"></i> Estado
                     </button>
                 </div>
@@ -314,12 +334,45 @@ class VetController {
         container.innerHTML = html;
     }
 
+    // renderizarPublicaciones() {
+    //     const container = document.getElementById('publicacionesGrid');
+    //     const filtradas = this.publicaciones.filter(p => {
+    //         if (this.filtros.publicaciones === 'adopcion') return p.tipo === 'En Adopción';
+    //         if (this.filtros.publicaciones === 'perdidos') return p.tipo === 'Mascota Perdida';
+    //         if (this.filtros.publicaciones === 'encontrados') return p.tipo === 'Mascota Encontrada';
+    //         return true;
+    //     });
+
+    //     if (filtradas.length === 0) {
+    //         container.innerHTML = '<p class="loading">No tienes publicaciones</p>';
+    //         return;
+    //     }
+
+    //     let html = '';
+    //     filtradas.forEach(pub => {
+    //         html += this.generarCardPublicacion(pub);
+    //     });
+
+    //     container.innerHTML = html;
+    // }
+
     renderizarPublicaciones() {
         const container = document.getElementById('publicacionesGrid');
-        const filtradas = this.publicaciones.filter(p => p.tipo === this.filtros.publicaciones);
+        if (!container) return;
+        
+        let filtradas = this.publicaciones;
+        
+        // Aplicar filtro según la pestaña activa
+        if (this.filtros.publicaciones === 'adopcion') {
+            filtradas = this.publicaciones.filter(p => p.tipo === 'En Adopción');
+        } else if (this.filtros.publicaciones === 'perdidos') {
+            filtradas = this.publicaciones.filter(p => p.tipo === 'Mascota Perdida');
+        } else if (this.filtros.publicaciones === 'encontrados') {
+            filtradas = this.publicaciones.filter(p => p.tipo === 'Mascota Encontrada');
+        }
 
         if (filtradas.length === 0) {
-            container.innerHTML = '<p class="loading">No hay publicaciones para mostrar</p>';
+            container.innerHTML = '<p class="loading">No tienes publicaciones en esta categoría</p>';
             return;
         }
 
@@ -331,35 +384,144 @@ class VetController {
         container.innerHTML = html;
     }
 
+    // generarCardPublicacion(pub) {
+    //     const fecha = pub.fechaPublicacion?.toDate?.() || new Date(pub.fechaPublicacion);
+    //     const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        
+    //     let botonesAdicionales = '';
+        
+    //     // Botón para ver solicitudes según tipo
+    //     if (pub.tipo === 'En Adopción') {
+    //         botonesAdicionales = `
+    //             <button class="btn-icon" onclick="vetController.verSolicitudes('adopcion', '${pub.id}')">
+    //                 <i class="fas fa-users"></i> Solicitudes (${this.contarSolicitudesAdopcion(pub.id)})
+    //             </button>
+    //         `;
+    //     } else if (pub.tipo === 'Mascota Encontrada') {
+    //         botonesAdicionales = `
+    //             <button class="btn-icon" onclick="vetController.verSolicitudes('reclamo', '${pub.id}')">
+    //                 <i class="fas fa-clipboard-list"></i> Reclamos (${this.contarReclamos(pub.id)})
+    //             </button>
+    //         `;
+    //     }
+        
+    //     // Mostrar imagen principal si existe
+    //     const fotoPrincipal = pub.fotos?.[0] || 'https://via.placeholder.com/300x200?text=Sin+imagen';
+        
+    //     return `
+    //         <div class="publicacion-card">
+    //             <div class="publicacion-imagen" onclick="vetController.verDetalle('publicacion', '${pub.id}')">
+    //                 <img src="${fotoPrincipal}" alt="${pub.titulo}">
+    //                 <span class="publicacion-tipo">${pub.tipo}</span>
+    //             </div>
+    //             <div class="publicacion-contenido">
+    //                 <h3 class="publicacion-titulo">${pub.titulo}</h3>
+    //                 <div class="publicacion-metadata">
+    //                     <span class="publicacion-categoria"><i class="fas fa-tag"></i> ${pub.categoria || 'Sin categoría'}</span>
+    //                     <span class="publicacion-tiempo"><i class="far fa-clock"></i> ${fechaFormateada}</span>
+    //                 </div>
+    //                 <p class="publicacion-descripcion">${pub.descripcion?.substring(0, 100)}${pub.descripcion?.length > 100 ? '...' : ''}</p>
+    //                 ${pub.ubicacionTexto ? `
+    //                     <div class="publicacion-ubicacion">
+    //                         <i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}
+    //                     </div>
+    //                 ` : ''}
+    //                 <div class="publicacion-footer">
+    //                     <div class="publicacion-estadisticas">
+    //                         <span><i class="far fa-eye"></i> ${pub.vistas || 0}</span>
+    //                         <span><i class="far fa-heart"></i> ${pub.likes || 0}</span>
+    //                         <span><i class="far fa-comment"></i> ${pub.comentarios || 0}</span>
+    //                     </div>
+    //                     <div class="publicacion-acciones">
+    //                         ${botonesAdicionales}
+    //                         <button class="btn-icon" onclick="vetController.editarPublicacion('${pub.id}')">
+    //                             <i class="fas fa-edit"></i>
+    //                         </button>
+    //                         <button class="btn-icon btn-danger" onclick="vetController.eliminarPublicacion('${pub.id}')">
+    //                             <i class="fas fa-trash"></i>
+    //                         </button>
+    //                     </div>
+    //                 </div>
+    //             </div>
+    //         </div>
+    //     `;
+    // }
+
     generarCardPublicacion(pub) {
+        const fecha = pub.fechaPublicacion?.toDate?.() || new Date(pub.fechaPublicacion);
+        const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        
+        const fotoPrincipal = pub.fotos?.[0] || 'https://via.placeholder.com/300x200?text=Sin+imagen';
+        
+        // Botones según tipo
+        let botonesAdicionales = '';
+        if (pub.tipo === 'En Adopción') {
+            botonesAdicionales = `
+                <button class="btn-icon" onclick="vetController.verSolicitudesAdopcion('${pub.id}')">
+                    <i class="fas fa-users"></i> Solicitudes (0)
+                </button>
+            `;
+        } else if (pub.tipo === 'Mascota Encontrada') {
+            botonesAdicionales = `
+                <button class="btn-icon" onclick="vetController.verReclamos('${pub.id}')">
+                    <i class="fas fa-clipboard-list"></i> Reclamos (0)
+                </button>
+            `;
+        }
+        
         return `
             <div class="publicacion-card">
-                <div class="cita-header">
-                    <span class="cita-estado estado-${pub.estado === 'activa' ? 'pendiente' : 'concluida'}">${pub.estado}</span>
-                    <span class="cita-fecha">${pub.fecha}</span>
+                <div class="publicacion-imagen" onclick="vetController.verDetalle('publicacion', '${pub.id}')">
+                    <img src="${fotoPrincipal}" alt="${pub.titulo}">
+                    <span class="publicacion-tipo">${pub.tipo}</span>
                 </div>
-                <div class="cita-body">
-                    <div class="cita-mascota">
-                        <i class="fas fa-${pub.especie === 'perro' ? 'dog' : 'cat'}"></i> ${pub.titulo}
+                <div class="publicacion-contenido">
+                    <h3 class="publicacion-titulo">${this.escapeHtml(pub.titulo)}</h3>
+                    <div class="publicacion-metadata">
+                        <span class="publicacion-categoria"><i class="fas fa-tag"></i> ${pub.categoria || 'Sin categoría'}</span>
+                        <span class="publicacion-tiempo"><i class="far fa-clock"></i> ${fechaFormateada}</span>
                     </div>
-                    <div class="cita-detalle">
-                        <p><strong>Ubicación:</strong> ${pub.ubicacion}</p>
-                        <p><strong>Descripción:</strong> ${pub.descripcion.substring(0, 50)}...</p>
+                    <p class="publicacion-descripcion">${this.escapeHtml(pub.descripcion?.substring(0, 100))}${pub.descripcion?.length > 100 ? '...' : ''}</p>
+                    ${pub.ubicacionTexto ? `
+                        <div class="publicacion-ubicacion">
+                            <i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(pub.ubicacionTexto)}
+                        </div>
+                    ` : ''}
+                    <div class="publicacion-footer">
+                        <div class="publicacion-estadisticas">
+                            <span><i class="far fa-eye"></i> ${pub.vistas || 0}</span>
+                            <span><i class="far fa-heart"></i> ${pub.likes || 0}</span>
+                            <span><i class="far fa-comment"></i> ${pub.comentarios || 0}</span>
+                        </div>
+                        <div class="publicacion-acciones">
+                            ${botonesAdicionales}
+                            <button class="btn-icon" onclick="vetController.editarPublicacion('${pub.id}')">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn-icon btn-danger" onclick="vetController.eliminarPublicacion('${pub.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div class="cita-footer">
-                    <button class="btn-icon ver" onclick="vetController.verDetalle('publicacion', '${pub.id}')">
-                        <i class="fas fa-eye"></i> Ver
-                    </button>
-                    <button class="btn-icon edit" onclick="vetController.editarPublicacion('${pub.id}')">
-                        <i class="fas fa-edit"></i> Editar
-                    </button>
-                    <button class="btn-icon delete" onclick="vetController.eliminarPublicacion('${pub.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
                 </div>
             </div>
         `;
+    }
+
+    // Método auxiliar para escapar HTML y evitar XSS
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    async verSolicitudesAdopcion(publicacionId) {
+        this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
+    }
+
+    async verReclamos(publicacionId) {
+        this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
     }
 
     renderizarSolicitudesAdopcion() {
@@ -434,10 +596,10 @@ class VetController {
                     </div>
                 </div>
                 <div class="cita-footer">
-                    <button class="btn-icon ver" onclick="vetController.verDetalle('${tipo}', '${item.id}')">
+                    <button style="background-color: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;" onclick="vetController.verDetalle('${tipo}', '${item.id}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button class="btn-icon aceptar" onclick="vetController.abrirModalEstado('${tipo}', '${item.id}', '${item.estado}')">
+                    <button style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;" onclick="vetController.abrirModalEstado('${tipo}', '${item.id}', '${item.estado}')">
                         <i class="fas fa-check-circle"></i> Estado
                     </button>
                 </div>
@@ -695,13 +857,38 @@ class VetController {
         if (!item) return;
 
         document.getElementById('modalTitulo').textContent = titulo;
-
+        const urlImagen = item.imagenMascota || 'Sin imagen';
+        const fecha = item.fecha ? new Date(item.fecha).toLocaleDateString('es-ES', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        }) : 'No especificada';
         let contenido = '';
-        for (let [key, value] of Object.entries(item)) {
-            if (key !== 'id' && typeof value !== 'object') {
-                contenido += `<p><strong>${key}:</strong> ${value}</p>`;
-            }
-        }
+        contenido += `
+                <p><strong>Nombre de la mascota:</strong> ${item.nombreMascota}</p>
+                <p><strong>Raza:</strong> ${item.raza}</p>
+                <p><strong>Especie:</strong> ${item.especie}</p>
+                <p><strong>Genero:</strong> ${item.genero}</p>
+                <p><strong>Edad:</strong> ${item.edad}</p>
+                <p><strong>Enfermedades preexistentes:</strong> ${item.enfermedades}</p>
+                <p><strong>Motivo de la cita:</strong> ${item.problemaSalud}</p>
+                <p><strong>Hora de la cita:</strong> ${item.hora}</p>
+                <p><strong>Fecha de la cita:</strong> ${fecha}</p>
+                <p><strong>Estado:</strong> ${item.estado}</p>
+                <p><strong style="display: block; text-align: center;"><img src="${urlImagen}" alt="Imagen de la mascota" style="max-width: 300px; max-height: 300px; border: 1px solid #ccc; border-radius: 5px;"></p>
+
+                `;
+
+        // for (let [key, value] of Object.entries(item)) {
+        //     if (key !== 'id' && typeof value !== 'object') {
+                
+        //         contenido += `
+        //         <p><strong>${key}:</strong> ${value}</p>
+        //         `
+        //         ;
+        //     }
+        // }
 
         document.getElementById('modalBody').innerHTML = contenido;
         document.getElementById('detalleModal').style.display = 'flex';
@@ -746,32 +933,368 @@ class VetController {
         const nuevoEstado = document.getElementById('nuevoEstado').value;
         const notas = document.getElementById('notasEstado').value;
 
-        this.mostrarNotificacion(`Estado actualizado a ${nuevoEstado}`, 'success');
+        // Solo procesar si es una cita (por ahora)
+        if (tipo !== 'cita') {
+            this.mostrarNotificacion(`Estado actualizado a ${nuevoEstado}`, 'success');
+            this.cerrarEstadoModal();
+            await this.cargarTodo();
+            return;
+        }
 
-        this.cerrarEstadoModal();
-        await this.cargarTodo();
+        // Mostrar loading
+        const btnSubmit = document.querySelector('#estadoForm button[type="submit"]');
+        const originalText = btnSubmit.innerHTML;
+        btnSubmit.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Guardando...';
+        btnSubmit.disabled = true;
+
+        try {
+            // Llamar al modelo para actualizar en Firestore
+            const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
+
+            if (result.success) {
+                this.mostrarNotificacion(`Cita ${result.message || 'actualizada correctamente'}`, 'success');
+                this.cerrarEstadoModal();
+                await this.cargarTodo(); // Recargar todas las citas
+            } else {
+                this.mostrarNotificacion(`Error: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error al actualizar estado:', error);
+            this.mostrarNotificacion('Error al actualizar el estado', 'error');
+        } finally {
+            btnSubmit.innerHTML = originalText;
+            btnSubmit.disabled = false;
+        }
     }
 
     nuevaPublicacion() {
         document.getElementById('publicacionModal').style.display = 'flex';
     }
 
+    // async guardarPublicacion(e) {
+    //     e.preventDefault();
+        
+    //     const tipo = document.getElementById('pubTipo').value;
+    //     const titulo = document.getElementById('pubTitulo').value;
+    //     const categoria = document.getElementById('pubCategoria').value;
+    //     const descripcion = document.getElementById('pubDescripcion').value;
+    //     const contacto = document.getElementById('pubContacto').value;
+    //     const ubicacionTexto = document.getElementById('pubUbicacion').value;
+    //     const recompensa = document.getElementById('pubRecompensa').value;
+    //     const fechaEvento = document.getElementById('pubFechaEvento').value;
+        
+    //     // Procesar fotos
+    //     const fotosInput = document.getElementById('pubFotos');
+    //     const fotos = [];
+        
+    //     for (const file of fotosInput.files) {
+    //         if (file.size > 2 * 1024 * 1024) {
+    //             this.mostrarNotificacion('Una imagen supera los 2MB', 'error');
+    //             return;
+    //         }
+    //         const base64 = await this.convertirImagenABase64(file);
+    //         fotos.push(base64);
+    //     }
+        
+    //     const publicacion = {
+    //         titulo,
+    //         tipo,
+    //         categoria,
+    //         descripcion,
+    //         contacto,
+    //         ubicacionTexto,
+    //         recompensa: tipo === 'Mascota Perdida' ? recompensa : '',
+    //         fechaEvento: tipo === 'Mascota Perdida' ? fechaEvento : null,
+    //         fotos,
+    //         usuarioId: auth.currentUser.uid,
+    //         usuarioNombre: auth.currentUser.displayName || auth.currentUser.email.split('@')[0],
+    //         veterinarioId: this.veterinarioActual.id,
+    //         fechaPublicacion: serverTimestamp(),
+    //         fechaActualizacion: serverTimestamp(),
+    //         vistas: 0,
+    //         likes: 0,
+    //         comentarios: 0,
+    //         usuariosLike: []
+    //     };
+        
+    //     try {
+    //         const docRef = await addDoc(collection(db, 'publicaciones'), publicacion);
+    //         this.mostrarNotificacion('Publicación creada exitosamente', 'success');
+    //         this.cerrarPublicacionModal();
+    //         await this.cargarPublicaciones();
+    //     } catch (error) {
+    //         console.error('Error:', error);
+    //         this.mostrarNotificacion('Error al publicar', 'error');
+    //     }
+    // }
+
     async guardarPublicacion(e) {
         e.preventDefault();
-
-        this.mostrarNotificacion('Publicación creada exitosamente', 'success');
-
-        this.cerrarPublicacionModal();
-        await this.cargarPublicaciones();
+        
+        const publicacionId = document.getElementById('publicacionId')?.value;
+        const tipo = document.getElementById('pubTipo').value;
+        const titulo = document.getElementById('pubTitulo').value;
+        const categoria = document.getElementById('pubCategoria').value;
+        const descripcion = document.getElementById('pubDescripcion').value;
+        const contacto = document.getElementById('pubContacto').value;
+        const ubicacionTexto = document.getElementById('pubUbicacion').value;
+        const recompensa = document.getElementById('pubRecompensa').value;
+        const fechaEvento = document.getElementById('pubFechaEvento').value;
+        
+        // Validar campos requeridos
+        if (!tipo || !titulo || !descripcion) {
+            this.mostrarNotificacion('Completa los campos requeridos', 'warning');
+            return;
+        }
+        
+        // Procesar fotos nuevas
+        const fotosInput = document.getElementById('pubFotos');
+        const fotos = [];
+        
+        for (const file of fotosInput.files) {
+            if (file.size > 2 * 1024 * 1024) {
+                this.mostrarNotificacion('Una imagen supera los 2MB', 'error');
+                return;
+            }
+            const base64 = await this.convertirImagenABase64(file);
+            fotos.push(base64);
+        }
+        
+        // Si hay fotos existentes en el preview, conservarlas
+        const fotosExistentes = [];
+        const fotosPreview = document.getElementById('pubFotosPreview');
+        if (fotosPreview) {
+            const imagenes = fotosPreview.querySelectorAll('img');
+            imagenes.forEach(img => {
+                if (img.src && !img.src.includes('blob:')) {
+                    fotosExistentes.push(img.src);
+                }
+            });
+        }
+        
+        const todasFotos = [...fotosExistentes, ...fotos];
+        
+        // Preparar datos
+        const publicacionData = {
+            titulo,
+            tipo,
+            categoria,
+            descripcion,
+            contacto,
+            ubicacionTexto,
+            recompensa: tipo === 'Mascota Perdida' ? recompensa : '',
+            fechaEvento: tipo === 'Mascota Perdida' ? fechaEvento : null,
+            fotos: todasFotos,
+            fechaActualizacion: serverTimestamp()
+        };
+        
+        try {
+            if (publicacionId) {
+                // Actualizar publicación existente
+                const publicacionRef = doc(db, 'publicaciones', publicacionId);
+                await updateDoc(publicacionRef, publicacionData);
+                this.mostrarNotificacion('Publicación actualizada correctamente', 'success');
+            } else {
+                // Crear nueva publicación
+                publicacionData.usuarioId = auth.currentUser.uid;
+                publicacionData.usuarioNombre = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+                publicacionData.veterinarioId = this.veterinarioActual.id;
+                publicacionData.fechaPublicacion = serverTimestamp();
+                publicacionData.vistas = 0;
+                publicacionData.likes = 0;
+                publicacionData.comentarios = 0;
+                publicacionData.usuariosLike = [];
+                
+                await addDoc(collection(db, 'publicaciones'), publicacionData);
+                this.mostrarNotificacion('Publicación creada exitosamente', 'success');
+            }
+            
+            // Limpiar formulario
+            document.getElementById('publicacionId').value = '';
+            document.getElementById('pubFotos').value = '';
+            document.getElementById('pubFotosPreview').innerHTML = '';
+            
+            // Restaurar texto del botón
+            const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
+            if (btnGuardar) {
+                btnGuardar.innerHTML = '<i class="fas fa-save"></i> Publicar';
+            }
+            
+            this.cerrarPublicacionModal();
+            await this.cargarPublicaciones();
+            
+        } catch (error) {
+            console.error('Error al guardar publicación:', error);
+            this.mostrarNotificacion('Error al guardar la publicación', 'error');
+        }
     }
 
-    editarPublicacion(id) {
-        this.mostrarNotificacion('Función en desarrollo', 'info');
+    convertirImagenABase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+        });
     }
 
-    eliminarPublicacion(id) {
-        if (confirm('¿Estás seguro de eliminar esta publicación?')) {
-            this.mostrarNotificacion('Publicación eliminada', 'success');
+    setupPublicacionForm() {
+        const tipoSelect = document.getElementById('pubTipo');
+        const recompensaGroup = document.getElementById('pubRecompensaGroup');
+        const fechaEventoGroup = document.getElementById('pubFechaEventoGroup');
+        
+        tipoSelect.addEventListener('change', () => {
+            const tipo = tipoSelect.value;
+            recompensaGroup.style.display = tipo === 'Mascota Perdida' ? 'block' : 'none';
+            fechaEventoGroup.style.display = tipo === 'Mascota Perdida' ? 'block' : 'none';
+        });
+        
+        // Evento de fotos
+        const fotosInput = document.getElementById('pubFotos');
+        const fotosPreview = document.getElementById('pubFotosPreview');
+        
+        fotosInput.addEventListener('change', (e) => {
+            fotosPreview.innerHTML = '';
+            const files = Array.from(e.target.files);
+            
+            if (files.length > 5) {
+                this.mostrarNotificacion('Máximo 5 fotos', 'warning');
+                fotosInput.value = '';
+                return;
+            }
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const preview = document.createElement('div');
+                    preview.className = 'foto-preview';
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview">
+                        <button type="button" class="remove-foto" data-index="${index}"><i class="fas fa-times"></i></button>
+                    `;
+                    fotosPreview.appendChild(preview);
+                };
+                reader.readAsDataURL(file);
+            });
+        });
+    }
+
+async editarPublicacion(id) {
+    if (!id) {
+        this.mostrarNotificacion('ID de publicación no válido', 'error');
+        return;
+    }
+
+    // Buscar la publicación
+    const publicacion = this.publicaciones.find(p => p.id === id);
+    if (!publicacion) {
+        this.mostrarNotificacion('Publicación no encontrada', 'error');
+        return;
+    }
+
+    this.abrirModalEdicionPublicacion(publicacion);
+}
+
+    abrirModalEdicionPublicacion(publicacion) {
+        const modal = document.getElementById('publicacionModal');
+        if (!modal) return;
+
+        // Limpiar campos y cargar datos
+        document.getElementById('publicacionId').value = publicacion.id;
+        document.getElementById('pubTipo').value = publicacion.tipo;
+        document.getElementById('pubTitulo').value = publicacion.titulo;
+        document.getElementById('pubCategoria').value = publicacion.categoria || '';
+        document.getElementById('pubDescripcion').value = publicacion.descripcion;
+        document.getElementById('pubContacto').value = publicacion.contacto || '';
+        document.getElementById('pubUbicacion').value = publicacion.ubicacionTexto || '';
+        
+        // Campos condicionales
+        if (publicacion.recompensa) {
+            document.getElementById('pubRecompensa').value = publicacion.recompensa;
+        }
+        if (publicacion.fechaEvento) {
+            document.getElementById('pubFechaEvento').value = publicacion.fechaEvento;
+        }
+        
+        // Mostrar fotos existentes
+        const fotosPreview = document.getElementById('pubFotosPreview');
+        if (fotosPreview && publicacion.fotos) {
+            fotosPreview.innerHTML = '';
+            publicacion.fotos.forEach((foto, index) => {
+                const preview = document.createElement('div');
+                preview.className = 'foto-preview';
+                preview.innerHTML = `
+                    <img src="${foto}" alt="Foto">
+                    <button type="button" class="remove-foto" data-index="${index}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fotosPreview.appendChild(preview);
+            });
+        }
+        
+        // Mostrar campos condicionales según tipo
+        const recompensaGroup = document.getElementById('pubRecompensaGroup');
+        const fechaEventoGroup = document.getElementById('pubFechaEventoGroup');
+        if (publicacion.tipo === 'Mascota Perdida') {
+            if (recompensaGroup) recompensaGroup.style.display = 'block';
+            if (fechaEventoGroup) fechaEventoGroup.style.display = 'block';
+        } else {
+            if (recompensaGroup) recompensaGroup.style.display = 'none';
+            if (fechaEventoGroup) fechaEventoGroup.style.display = 'none';
+        }
+        
+        // Cambiar texto del botón
+        const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
+        if (btnGuardar) {
+            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Actualizar';
+        }
+        
+        // Abrir modal
+        modal.style.display = 'flex';
+    }
+
+    async eliminarPublicacion(id) {
+        if (!id) {
+            this.mostrarNotificacion('ID de publicación no válido', 'error');
+            return;
+        }
+
+        const result = await Swal.fire({
+            title: '¿Eliminar publicación?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#ef4444',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Eliminando...',
+                    text: 'Por favor espera',
+                    allowOutsideClick: false,
+                    didOpen: () => Swal.showLoading()
+                });
+
+                const publicacionRef = doc(db, 'publicaciones', id);
+                await deleteDoc(publicacionRef);
+                
+                Swal.close();
+                this.mostrarNotificacion('Publicación eliminada correctamente', 'success');
+                
+                // Recargar la lista
+                await this.cargarPublicaciones();
+                
+            } catch (error) {
+                console.error('Error al eliminar publicación:', error);
+                Swal.close();
+                this.mostrarNotificacion('Error al eliminar la publicación', 'error');
+            }
         }
     }
 
@@ -830,6 +1353,9 @@ class VetController {
             });
         });
 
+
+
+
         document.querySelectorAll('#adopciones-section .filter-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const filtro = e.currentTarget.dataset.filter;
@@ -855,7 +1381,7 @@ class VetController {
 
         document.getElementById('estadoForm').addEventListener('submit', (e) => this.guardarCambioEstado(e));
 
-        document.getElementById('publicacionForm').addEventListener('submit', (e) => this.guardarPublicacion(e));
+        // document.getElementById('publicacionForm').addEventListener('submit', (e) => this.guardarPublicacion(e));
 
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();
@@ -865,6 +1391,10 @@ class VetController {
         document.getElementById('searchInput')?.addEventListener('input', (e) => {
             //imp
         });
+
+        document.getElementById('publicacionForm')?.addEventListener('submit', (e) => this.guardarPublicacion(e));
+        this.setupPublicacionForm();
+
     }
 
     async logout() {
