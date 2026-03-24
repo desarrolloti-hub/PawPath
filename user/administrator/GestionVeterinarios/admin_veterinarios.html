@@ -343,23 +343,19 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-cedula {
-            background: #48bb78;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 500;
-        }
-
         .btn-cedula:hover {
             background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-suspender:hover {
+            background: #93b818;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+        .btn-eliminar:hover {
+            background: rgb(132, 17, 17);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
         }
@@ -449,7 +445,9 @@
                 flex-direction: column;
             }
 
-            .btn-ver, .btn-cedula {
+            .btn-ver,
+            .btn-suspender,
+            .btn-eliminar {
                 width: 100%;
                 justify-content: center;
             }
@@ -477,13 +475,66 @@
                 justify-content: center;
             }
         }
+
+        .btn-suspender {
+            background: #f2d12b;
+            color: rgb(0, 0, 0);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+
+        }
+
+        .btn-reactivar {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .btn-eliminar {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .vet-card-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 
 <body>
     <navbar-admin></navbar-admin>
     <script src="/components/navbar-admin-component.js"></script>
-    
+
     <div class="container-all-vet">
         <!-- Header con título y buscador -->
         <div class="page-header">
@@ -493,7 +544,8 @@
             </h1>
             <div class="search-container">
                 <i class="fas fa-search"></i>
-                <input type="text" id="buscarVeterinario" placeholder="Buscar veterinario por nombre, especialidad o clínica...">
+                <input type="text" id="buscarVeterinario"
+                    placeholder="Buscar veterinario por nombre, especialidad o clínica...">
             </div>
         </div>
 
