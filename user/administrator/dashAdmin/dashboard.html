@@ -48,12 +48,19 @@
             </a>
         </li>
         <li class="card">
-            <a href="">
+            <a href="#" onclick="logout()">
                 <span>⏻</span>
                 Cerrar sesion
             </a>
         </li>
     </ul>
+    <script>
+        function logout() {
+          localStorage.clear();
+          sessionStorage.clear();
+          window.location.href = "/user/visitor/login/login.html";
+        }
+    </script>
 </body>
 
 </html>
