@@ -1,0 +1,299 @@
+/* Estilos aislados para la vista de detalle de mascota */
+
+.pet-detail-page .pet-detail-main {
+    --color-primary: #667eea;
+    --color-primary-dark: #5a67d8;
+    --color-surface: #ffffff;
+    --color-bg-soft: #f3f6ff;
+    --color-text: #1f2937;
+    --color-muted: #64748b;
+    --color-border: #e2e8f0;
+    --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+    --radius-lg: 20px;
+    --radius-md: 12px;
+
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    min-height: calc(100vh - 120px);
+    padding: 28px 16px 48px;
+    background: linear-gradient(180deg, #edf2ff 0%, #dfe9ff 100%);
+    color: var(--color-text);
+}
+
+.pet-detail-page .pet-detail-main *,
+.pet-detail-page .pet-detail-main *::before,
+.pet-detail-page .pet-detail-main *::after {
+    box-sizing: border-box;
+}
+
+.pet-detail-page .pet-detail-main .detail-container {
+    max-width: 980px;
+    margin: 0 auto;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: 28px;
+    box-shadow: var(--shadow-md);
+}
+
+.pet-detail-page .pet-detail-main .detail-actions-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.pet-detail-page .pet-detail-main .btn-back,
+.pet-detail-page .pet-detail-main .btn-edit {
+    border: none;
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pet-detail-page .pet-detail-main .btn-back {
+    background: #e8edf9;
+    color: #1e293b;
+}
+
+.pet-detail-page .pet-detail-main .btn-edit {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.pet-detail-page .pet-detail-main .pet-hero {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 26px;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.pet-detail-page .pet-detail-main .pet-photo-wrap {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--color-bg-soft);
+    border: 1px solid var(--color-border);
+}
+
+.pet-detail-page .pet-detail-main .pet-photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pet-detail-page .pet-detail-main .pill {
+    display: inline-block;
+    background: #ebf4ff;
+    color: var(--color-primary);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.pet-detail-page .pet-detail-main #petNombre {
+    margin: 10px 0 4px;
+    font-size: 2.1rem;
+}
+
+.pet-detail-page .pet-detail-main .pet-subtitle {
+    margin: 0;
+    color: var(--color-muted);
+    font-weight: 600;
+}
+
+.pet-detail-page .pet-detail-main .pet-mini-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 14px;
+    color: #334155;
+}
+
+.pet-detail-page .pet-detail-main .pet-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.pet-detail-page .pet-detail-main .data-card {
+    background: #fafcff;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 18px;
+}
+
+.pet-detail-page .pet-detail-main .data-card h2 {
+    margin: 0 0 10px;
+    font-size: 1.05rem;
+}
+
+.pet-detail-page .pet-detail-main .data-card p {
+    margin: 8px 0;
+}
+
+.pet-detail-page .pet-detail-main .history-text {
+    white-space: pre-wrap;
+    color: #334155;
+}
+
+.pet-detail-page .pet-detail-main .modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 3000;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+}
+
+.pet-detail-page .pet-detail-main .modal-form {
+    width: 100%;
+    max-width: 680px;
+    max-height: 92vh;
+    overflow-y: auto;
+    background: #fff;
+    border-radius: 16px;
+    padding: 26px;
+}
+
+.pet-detail-page .pet-detail-main .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.pet-detail-page .pet-detail-main .close-modal {
+    font-size: 1.7rem;
+    cursor: pointer;
+}
+
+.pet-detail-page .pet-detail-main .auth-subtitle {
+    color: var(--color-muted);
+}
+
+.pet-detail-page .pet-detail-main .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.pet-detail-page .pet-detail-main .full-width {
+    grid-column: span 2;
+}
+
+.pet-detail-page .pet-detail-main .form-group {
+    margin-bottom: 14px;
+}
+
+.pet-detail-page .pet-detail-main .form-group label {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+    font-weight: 600;
+}
+
+.pet-detail-page .pet-detail-main .form-group input,
+.pet-detail-page .pet-detail-main .form-group select,
+.pet-detail-page .pet-detail-main .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 2px solid var(--color-border);
+    font: inherit;
+}
+
+.pet-detail-page .pet-detail-main .radio-group {
+    display: flex;
+    gap: 18px;
+    padding-top: 4px;
+}
+
+.pet-detail-page .pet-detail-main .pet-photo-uploader {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.pet-detail-page .pet-detail-main .photo-preview {
+    width: 94px;
+    height: 94px;
+    border-radius: 10px;
+    border: 1px solid var(--color-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.pet-detail-page .pet-detail-main .photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pet-detail-page .pet-detail-main .form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.pet-detail-page .pet-detail-main .btn-save,
+.pet-detail-page .pet-detail-main .btn-cancel {
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    flex: 1;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pet-detail-page .pet-detail-main .btn-save {
+    background: var(--color-primary);
+    color: #fff;
+}
+
+.pet-detail-page .pet-detail-main .btn-cancel {
+    background: #e2e8f0;
+    color: #1f2937;
+}
+
+@media (max-width: 820px) {
+    .pet-detail-page .pet-detail-main .pet-hero {
+        grid-template-columns: 1fr;
+    }
+
+    .pet-detail-page .pet-detail-main .pet-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 640px) {
+    .pet-detail-page .pet-detail-main .detail-container {
+        padding: 16px;
+    }
+
+    .pet-detail-page .pet-detail-main .detail-actions-top {
+        flex-direction: column;
+    }
+
+    .pet-detail-page .pet-detail-main .btn-back,
+    .pet-detail-page .pet-detail-main .btn-edit {
+        width: 100%;
+    }
+
+    .pet-detail-page .pet-detail-main .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pet-detail-page .pet-detail-main .full-width {
+        grid-column: span 1;
+    }
+}

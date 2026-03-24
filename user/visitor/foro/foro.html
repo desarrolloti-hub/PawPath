@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PawPath · Foro de Mascotas</title>
+    <title>PawPath · Foro Interactivo de Mascotas</title>
     <link rel="stylesheet" href="Foro.css">
     <link rel="icon" href="/assets/images/PawPahtLogo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,18 +13,31 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body>
+    <!-- Navbar dinámico -->
+    <navbar-visitor></navbar-visitor>
+
     <div class="forum-container">
         <!-- Header del foro -->
         <header class="forum-header">
             <div class="header-left">
                 <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="forum-logo">
-                <h1>PawPath · Foro</h1>
+                <h1>PawPath · Foro Interactivo</h1>
             </div>
             <div class="header-right">
-                <button id="btnFiltros" class="btn btn-outline btn-sm"><i class="fas fa-filter"></i> Filtros</button>
-                <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Publicación</a>
+                <button id="btnFiltros" class="btn btn-outline btn-sm">
+                    <i class="fas fa-filter"></i> Filtros
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="mostrarNotificacion()">
+                    <i class="fas fa-bell"></i> Notificaciones
+                </button>
+                <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nueva Publicación
+                </a>
             </div>
         </header>
 
@@ -82,51 +95,68 @@
             </div>
         </div>
 
-        <!-- Contenido principal: feed y sidebars -->
+        <!-- Contenido principal -->
         <main class="forum-main">
-            <!-- Sidebar izquierdo (información y filtros rápidos) -->
+            <!-- Sidebar izquierdo (DATOS DESDE BD) -->
             <aside class="forum-sidebar-left">
                 <div class="sidebar-card">
                     <h3><i class="fas fa-filter"></i> Filtros rápidos</h3>
                     <ul class="filter-list">
-                        <li><a href="#" class="active" data-filter="all">Todas las mascotas</a></li>
-                        <li><a href="#" data-filter="perros">Perros</a></li>
-                        <li><a href="#" data-filter="gatos">Gatos</a></li>
-                        <li><a href="#" data-filter="otros">Otras mascotas</a></li>
-                        <li><a href="#" data-filter="ultimas24h">Últimas 24h</a></li>
-                        <li><a href="#" data-filter="cerca">Cerca de mí</a></li>
+                        <li><a class="active" data-filter="all">Todas las mascotas</a></li>
+                        <li><a data-filter="Perros">🐕 Perros</a></li>
+                        <li><a data-filter="Gatos">🐈 Gatos</a></li>
+                        <li><a data-filter="Otros">🐾 Otras mascotas</a></li>
+                        <li><a data-filter="ultimas24h">⏰ Últimas 24h</a></li>
+                        <li><a data-filter="cerca">📍 Cerca de mí</a></li>
                     </ul>
                 </div>
+                
                 <div class="sidebar-card">
-                    <h3><i class="fas fa-chart-line"></i> Estadísticas</h3>
-                    <p>Mascotas reportadas hoy: <strong id="statsHoy">0</strong></p>
-                    <p>Mascotas encontradas: <strong id="statsEncontradas">0</strong></p>
-                    <p>Usuarios activos: <strong id="statsUsuarios">0</strong></p>
+                    <h3><i class="fas fa-chart-line"></i> Estadísticas en vivo</h3>
+                    <div id="estadisticasContainer">
+                        <div class="stat-item">
+                            <span class="stat-label">Mascotas reportadas hoy:</span>
+                            <span class="stat-value" id="statsHoy">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Mascotas encontradas:</span>
+                            <span class="stat-value" id="statsEncontradas">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Usuarios activos:</span>
+                            <span class="stat-value" id="statsUsuarios">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Publicaciones hoy:</span>
+                            <span class="stat-value" id="statsPublicaciones">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sidebar-card">
+                    <h3><i class="fas fa-fire"></i> Tendencias</h3>
+                    <div id="tendenciasContainer"></div>
                 </div>
             </aside>
 
             <!-- Feed central -->
             <section class="forum-feed">
-                <!-- Loading -->
                 <div id="loading" class="loading" style="display: none;">
                     <div class="spinner"></div>
                     <p>Cargando publicaciones...</p>
                 </div>
 
-                <!-- Grid de publicaciones (dinámico) -->
                 <div id="publicacionesGrid" class="publicaciones-grid"></div>
 
-                <!-- Mensaje sin resultados -->
                 <div id="sinResultados" class="sin-resultados" style="display: none;">
                     <i class="fas fa-search"></i>
                     <h3>No hay publicaciones</h3>
                     <p>Sé el primero en compartir algo con la comunidad</p>
-                    <a href="/user/visitor/FormularioForo/FormularioForo.html" class="btn btn-primary btn-sm">
+                    <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm">
                         <i class="fas fa-plus"></i> Crear publicación
                     </a>
                 </div>
 
-                <!-- Botón cargar más -->
                 <div id="cargarMasContainer" class="cargar-mas" style="display: none;">
                     <button id="btnCargarMas" class="btn btn-outline btn-sm">
                         <i class="fas fa-chevron-down"></i> Cargar más publicaciones
@@ -134,48 +164,39 @@
                 </div>
             </section>
 
-            <!-- Sidebar derecho (información de contacto y consejos) -->
+            <!-- Sidebar derecho (DATOS DESDE BD) -->
             <aside class="forum-sidebar-right">
                 <div class="sidebar-card">
                     <h3><i class="fas fa-phone-alt"></i> Contactos de emergencia</h3>
-                    <ul class="contact-list">
+                    <ul class="contact-list" id="contactosEmergencia">
                         <li><i class="fas fa-dog"></i> Protectora Animal: <strong>555-0001</strong></li>
                         <li><i class="fas fa-hospital"></i> Veterinaria 24h: <strong>555-0002</strong></li>
                         <li><i class="fas fa-police"></i> Policía: <strong>555-0003</strong></li>
                     </ul>
                 </div>
+
                 <div class="sidebar-card">
                     <h3><i class="fas fa-newspaper"></i> Consejos útiles</h3>
-                    <p>✔️ Si encuentras una mascota, revisa si tiene microchip.</p>
-                    <p>✔️ Comparte fotos claras y la ubicación exacta.</p>
-                    <p>✔️ No te acerques de forma brusca, puede estar asustado.</p>
+                    <div id="consejosContainer"></div>
                 </div>
+
                 <div class="sidebar-card">
                     <h3><i class="fas fa-ad"></i> PawPath Recomienda</h3>
-                    <div class="ad-placeholder">
-                        <i class="fas fa-paw"></i> Espacio publicitario
+                    <div class="ad-placeholder" style="text-align: center; padding: 20px; background: linear-gradient(135deg, #3b82f620, #8b5cf620); border-radius: 15px;">
+                        <i class="fas fa-paw" style="font-size: 40px; color: #3b82f6;"></i>
+                        <p style="margin-top: 10px;">¡Patrocinado!</p>
+                        <button class="btn btn-primary btn-sm" style="margin-top: 10px;">Ver más</button>
                     </div>
                 </div>
             </aside>
         </main>
 
-        <!-- Footer -->
         <footer class="forum-footer">
-            <p>© 2025 PawPath - Foro de Mascotas. Todos los derechos reservados.</p>
+            <p>© 2025 PawPath - Foro Interactivo de Mascotas. Todos los derechos reservados.</p>
         </footer>
     </div>
 
-    <!-- Modal de detalle de publicación -->
-    <div id="modalDetalle" class="modal">
-        <div class="modal-content modal-detalle">
-            <div class="modal-header">
-                <h2 id="detalleTitulo"></h2>
-                <span class="close" onclick="document.getElementById('modalDetalle').style.display='none'">&times;</span>
-            </div>
-            <div class="modal-body" id="detalleContenido"></div>
-        </div>
-    </div>
-
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
     <script type="module" src="Foro.js"></script>
 </body>
 </html>

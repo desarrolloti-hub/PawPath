@@ -40,27 +40,82 @@ class ControladorFormularioForo {
     
     obtenerUsuarioId() {
         try {
-            const sessionData = localStorage.getItem('userAuth');
-            if (sessionData) {
-                const parsedData = JSON.parse(sessionData);
-                return parsedData.userId || parsedData.uid || 'usuario_demo';
+            const sessionData = localStorage.getItem('userSession');
+            if (!sessionData) {
+                console.warn('No hay sesión activa (userSession)');
+                return 'usuario_demo_' + Date.now();
             }
+
+            let parsedData;
+            try {
+                parsedData = JSON.parse(sessionData);
+            } catch (e) {
+                console.warn('userSession no es un objeto JSON válido, se tratará como string');
+                parsedData = sessionData;
+            }
+
+            if (typeof parsedData === 'string') {
+                return parsedData;
+            }
+
+            const posiblesId = [
+                parsedData.uid,
+                parsedData.userId,
+                parsedData.id,
+                parsedData.localId,
+                parsedData.sub,        
+                parsedData.user_id,
+                parsedData.userid
+            ].find(val => val !== undefined && val !== null);
+
+            if (posiblesId) return posiblesId;
+
+            if (parsedData.email) {
+                console.warn('No se encontró un ID, usando email como identificador');
+                return parsedData.email;
+            }
+
             return 'usuario_demo_' + Date.now();
         } catch (error) {
+            console.error('Error en obtenerUsuarioId:', error);
             return 'usuario_demo_' + Date.now();
         }
     }
     
     obtenerUsuarioNombre() {
         try {
-            const sessionData = localStorage.getItem('userAuth');
-            if (sessionData) {
-                const parsedData = JSON.parse(sessionData);
-                return parsedData.userName || parsedData.displayName || parsedData.email || 'Usuario';
+            const sessionData = localStorage.getItem('userSession');
+            if (!sessionData) return 'Usuario Demo';
+
+            let parsedData;
+            try {
+                parsedData = JSON.parse(sessionData);
+            } catch (e) {
+                return 'Usuario';
             }
-            return 'Usuario Demo';
+
+            if (typeof parsedData === 'string') return 'Usuario';
+
+            const posiblesNombre = [
+                parsedData.nombre_completo,
+                parsedData.displayName,
+                parsedData.name,
+                parsedData.userName,
+                parsedData.nombre,
+                parsedData.fullName,
+                parsedData.email ? parsedData.email.split('@')[0] : null
+            ].find(val => val !== undefined && val !== null && val !== '');
+
+            if (posiblesNombre) return posiblesNombre;
+
+            if (parsedData.email) {
+                return parsedData.email.split('@')[0];
+            }
+
+            return 'Usuario';
         } catch (error) {
-            return 'Usuario Demo';
+            console.error('Error en obtenerUsuarioNombre:', error);
+            return 'Usuario';
         }
     }
     
@@ -241,7 +296,7 @@ class ControladorFormularioForo {
     }
     
     async guardarPublicacion() {
-        if (!this.usuarioId) {
+        if (!this.usuarioId || this.usuarioId.startsWith('usuario_demo_')) {
             this.mostrarAlerta('Error', 'Debes iniciar sesión para publicar', 'error');
             return;
         }

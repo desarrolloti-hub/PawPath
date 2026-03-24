@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Mapa de Mascotas Perdidas</title>
+    <link rel="stylesheet" href="MapaForo.css">
+    <link rel="icon" href="/assets/images/PawPahtLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+</head>
+<body>
+    <!-- Navbar dinámico -->
+    <navbar-visitor></navbar-visitor>
+
+    <div class="map-container">
+        <!-- Header del mapa -->
+        <header class="map-header">
+            <div class="header-left">
+                <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="map-logo">
+                <h1>PawPath · Mapa de Mascotas Perdidas</h1>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-outline btn-sm" onclick="window.location.href='/user/visitor/Foro/Foro.html'">
+                    <i class="fas fa-list"></i> Ver como lista
+                </button>
+                <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Reportar mascota
+                </a>
+            </div>
+        </header>
+
+        <!-- Filtros rápidos -->
+        <div class="map-filtros">
+            <div class="filtros-group">
+                <select id="filtroTipoMapa" class="filtro-select">
+                    <option value="">Todos los reportes</option>
+                    <option value="Mascota Perdida">🔍 Mascotas Perdidas</option>
+                    <option value="En Adopción">🏠 En Adopción</option>
+                    <option value="Avistamiento">👀 Avistamientos</option>
+                </select>
+                
+                <select id="filtroTiempo" class="filtro-select">
+                    <option value="0">Cualquier fecha</option>
+                    <option value="1">Últimas 24 horas</option>
+                    <option value="7">Últimos 7 días</option>
+                    <option value="30">Últimos 30 días</option>
+                </select>
+                
+                <button id="btnActualizarMapa" class="btn btn-primary btn-sm">
+                    <i class="fas fa-sync-alt"></i> Actualizar mapa
+                </button>
+                
+                <button id="btnMiUbicacion" class="btn btn-outline btn-sm">
+                    <i class="fas fa-location-dot"></i> Mi ubicación
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenedor del mapa -->
+        <div id="map" class="leaflet-map"></div>
+
+        <!-- Panel de estadísticas -->
+        <div class="map-stats">
+            <div class="stat-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <div>
+                    <span id="totalMarcadores">0</span>
+                    <small>Mascotas reportadas</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-search" style="color: #ef4444;"></i>
+                <div>
+                    <span id="totalPerdidas">0</span>
+                    <small>Mascotas perdidas</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-home" style="color: #10b981;"></i>
+                <div>
+                    <span id="totalAdopcion">0</span>
+                    <small>En adopción</small>
+                </div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-eye" style="color: #8b5cf6;"></i>
+                <div>
+                    <span id="totalAvistamientos">0</span>
+                    <small>Avistamientos</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script type="module" src="MapaForo.js"></script>
+</body>
+</html>

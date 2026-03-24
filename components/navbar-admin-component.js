@@ -115,6 +115,9 @@ class NavbarAdmin extends HTMLElement {
             .mobile-toggle {
                 display: block;
             }
+            .menu{
+                margin-top: 55px;
+            }
         }
         </style>
 
@@ -127,9 +130,10 @@ class NavbarAdmin extends HTMLElement {
                         <span>PawPath</span>
                     </li>
                     <hr>
-                    <li><a href="">👥 Usuarios</a></li>
-                    <li><a href="#">🐾 Mascotas</a></li>
-                    <li><a href="#">🩺 Veterinarios</a></li>
+                    <li><a href="/user/administrator/dashAdmin/dashboard.html">🏠 Inicio</a></li>
+                    <li><a href="/user/administrator/GestionUsuarios/admin_usuarios.html">👥 Usuarios</a></li>
+                    <li><a href="/user/administrator/GestionMascotas/admin_mascotas.html">🐾 Mascotas</a></li>
+                    <li><a href="/user/administrator/GestionVeterinarios/admin_veterinarios.html">🩺 Veterinarios</a></li>
                     <li><a href="#">📊 Reportes</a></li>
                     <li><a href="#">💳 Suscripciones</a></li>
                 </ul>
@@ -149,13 +153,8 @@ class NavbarAdmin extends HTMLElement {
     setupEventListeners() {
         const menuToggle = this.querySelector('#menuToggle');
         const sidebar = this.querySelector('#sidebar');
-        const logo = this.querySelector('.logo');
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('active');
-        });
-        //al hacer click en el logo se cierra la sidebar
-        logo.addEventListener('click', ()=>{
-            sidebar.classList.remove('active');
         });
 
         const links = this.querySelectorAll('.menu a');

@@ -1,0 +1,446 @@
+/* ========== ESTILOS PARA TABLA Y BUSCADOR ========== */
+
+/* BUSCADOR - Ahora a la derecha */
+.container-all {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-left: 200px;
+    margin-top: 10px;
+}
+
+.tabla-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 25px;
+    width: 80%;
+    max-width: 1200px;
+    text-align: center;
+}
+
+.search-container {
+    position: relative;
+    width: 350px;
+}
+
+.search-container i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1rem;
+    transition: color 0.3s;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 12px 20px 12px 45px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.search-container input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+}
+
+.search-container input:focus+i {
+    color: #667eea;
+}
+
+.search-container input::placeholder {
+    color: #a0aec0;
+    font-size: 0.9rem;
+}
+
+/* CONTENEDOR DE LA TABLA - usando tu clase tabla-responsive */
+.tabla-responsive {
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    width: 100%;
+    max-width: 1200px;
+    overflow-x: auto;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
+    border: 1px solid #edf2f7;
+}
+
+/* TABLA - usando tu clase user-admin-table */
+.user-admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+}
+
+/* HEADER DE LA TABLA */
+.user-admin-table thead {
+    background: white;
+    color: black;
+    border-color: gray;
+}
+
+.user-admin-table th {
+    padding: 16px 15px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* CELDAS */
+.user-admin-table td {
+    text-align: center;
+    padding: 16px 15px;
+    border-bottom: 1px solid #edf2f7;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+/* HOVER EN FILAS */
+.user-admin-table tbody tr {
+    transition: all 0.2s ease;
+}
+
+.user-admin-table tbody tr:hover {
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* CENTRAR COLUMNA DE ACCIONES */
+.user-admin-table th:last-child,
+.user-admin-table td:last-child {
+    text-align: center;
+}
+
+/* ACCIONES */
+.acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Botones de acción - usando tus clases pero adaptadas */
+.btn-editar,
+.btn-eliminar,
+.btn-ver {
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-editar {
+    background: #28a745;
+    color: white;
+}
+
+.btn-editar:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.btn-eliminar {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-eliminar:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.btn-ver {
+    background: #17a2b8;
+    color: white;
+}
+
+.btn-ver:hover {
+    background: #138496;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+}
+
+/* LOADING */
+.user-admin-table td[colspan="4"] {
+    text-align: center;
+    padding: 40px !important;
+    color: #718096;
+    font-size: 1rem;
+}
+
+.user-admin-table td[colspan="4"] i {
+    margin-right: 10px;
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+/* Estilo para filas de usuarios suspendidos */
+.usuario-suspendido {
+    background-color: rgba(220, 53, 69, 0.05);
+    /* Rojo transparente */
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.usuario-suspendido:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    /* Un poco más intenso al hover */
+}
+
+/* Estilo para botón de reactivar (verde) */
+.btn-reactivar {
+    background: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.btn-reactivar:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+/* Estilo para botón de suspender (amarillo) */
+.btn-suspender {
+    background: #ffc107;
+    color: #212529;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.btn-suspender:hover {
+    background: #e0a800;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+/* Ajuste para acciones */
+.acciones {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    align-items: center;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+    .container-all {
+        margin-left: 150px;
+        width: calc(100% - 150px);
+    }
+
+    .user-admin-table th,
+    .user-admin-table td {
+        padding: 14px 12px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container-all {
+        margin-left: 0;
+        margin-top: 70px;
+        width: 100%;
+        padding: 0 15px;
+    }
+
+    .main > :not(.navbar) {
+        padding: 15px;
+    }
+
+    .tabla-header {
+        justify-content: center;
+        width: 100%;
+    }
+
+    .search-container {
+        width: 60%;  /* Cambiado de 60% a 100% */
+        max-width: 100%;
+        margin-left: 180px;  /* Eliminado el margin-left de 150px */
+    }
+
+    .search-container input {
+        padding: 12px 15px 12px 45px;  /* Aumentado el padding para mejor tactilidad */
+        font-size: 1rem;  /* Aumentado para mejor legibilidad */
+        width: 100%;
+    }
+
+    .user-admin-table {
+        font-size: 0.9rem;
+        width: 100%;
+    }
+
+    .user-admin-table th {
+        padding: 12px 8px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+
+    .user-admin-table td {
+        padding: 12px 8px;
+        font-size: 0.85rem;
+        word-break: break-word;  /* Para que el texto no se desborde */
+    }
+
+    .acciones {
+        gap: 5px;
+        flex-direction: column;
+    }
+
+    .btn-editar,
+    .btn-eliminar,
+    .btn-ver,
+    .btn-suspender,
+    .btn-reactivar {
+        padding: 8px 12px;  /* Aumentado para mejor tactilidad */
+        font-size: 0.9rem;
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Hacer la tabla scrolleable horizontalmente */
+    .tabla-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+    }
+
+    .user-admin-table {
+        min-width: 600px;  /* Forzar scroll horizontal si es necesario */
+    }
+}
+
+@media (max-width: 480px) {
+    .container-all {
+        margin-top: 60px;
+        padding: 0 10px;
+    }
+
+    .main > :not(.navbar) {
+        padding: 10px;
+    }
+
+    .navbar {
+        padding: 8px 15px;
+    }
+
+    .navbar h3 {
+        font-size: 1rem;
+    }
+
+    .navbar-brand img {
+        height: 35px;
+    }
+
+    .navbar-brand span {
+        font-size: 0.9rem;
+    }
+
+    .user-admin-table th {
+        padding: 8px 5px;
+        font-size: 0.7rem;
+    }
+
+    .user-admin-table td {
+        padding: 8px 5px;
+        font-size: 0.8rem;
+    }
+
+    .search-container {
+        width: 100%;
+    }
+
+    .search-container input {
+        font-size: 0.9rem;
+        padding: 10px 12px 10px 40px;
+    }
+
+    .search-container i {
+        left: 12px;
+        font-size: 1rem;
+    }
+
+    .acciones {
+        gap: 4px;
+    }
+
+    .btn-editar,
+    .btn-eliminar,
+    .btn-ver,
+    .btn-suspender,
+    .btn-reactivar {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+
+    /* Ocultar columnas menos importantes en móviles muy pequeños */
+    .user-admin-table th:nth-child(4),
+    .user-admin-table td:nth-child(4) {
+        display: none;  /* Oculta fecha en móviles */
+    }
+
+    .user-admin-table th:nth-child(5),
+    .user-admin-table td:nth-child(5) {
+        display: none;  /* Oculta rol en móviles */
+    }
+
+    /* Ajustar colspan cuando se ocultan columnas */
+    .user-admin-table td[colspan] {
+        text-align: center;
+    }
+}
+
+
+/* Scroll horizontal suave para la tabla */
+.tabla-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tabla-responsive::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+
+.tabla-responsive::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+.tabla-responsive::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}

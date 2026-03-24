@@ -1,99 +1,381 @@
-import Usuarios from '/classes/admin_usuarios.js';
-class UsuariosController {
-    constructor() {
-        this.tablaUsuarios = document.querySelector("#tablaUsuarios tbody");
+import Admin_usuarios from "/classes/admin_usuarios.js";
 
-        this.inicalizar();
+console.log("📦 Módulo controlador cargado");
+console.log("📦 Admin_usuarios importado:", Admin_usuarios);
+
+class Admin_usuariosController {
+    constructor() {
+        console.log("🏗️ Constructor del controlador");
+        this.inicializar();
     }
-    inicalizar() {
-        this.cargarUsuarios();
+
+    inicializar() {
+        console.log("⚙️ Inicializando controlador...");
+        console.log("📊 Estado del DOM:", document.readyState);
+
+        if (document.readyState === 'loading') {
+            console.log("⏳ DOM cargando, esperando evento...");
+            document.addEventListener('DOMContentLoaded', () => {
+                console.log("✅ Evento DOMContentLoaded recibido");
+                this.cargarUsuarios();
+                this.configurarBuscador();
+            });
+        } else {
+            console.log("✅ DOM ya cargado, ejecutando inmediatamente");
+            this.cargarUsuarios();
+            this.configurarBuscador();
+        }
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     async cargarUsuarios() {
+        console.log("🔄 Método cargarUsuarios() ejecutándose");
         try {
-            const resultado = await Usuarios.obtenerUsuarios();
-            if (resultado.succes) {
+            console.log("🔄 Llamando a Admin_usuarios.obtenerUsuarios()...");
+            const resultado = await Admin_usuarios.obtenerUsuarios();
+            console.log("📦 Resultado recibido:", resultado);
+
+            if (resultado.success) {
+                console.log('Usuarios cargados:', resultado.usuarios.length);
                 this.renderizarTabla(resultado.usuarios);
             } else {
                 this.mostrarAlerta('Error', resultado.error, 'error');
             }
         } catch (error) {
-            console.error("Error cargando usuarios", error);
+            console.error("Error cargando usuarios:", error);
             this.mostrarAlerta('Error', 'No se pudieron cargar los usuarios', 'error');
         }
     }
-    renderizarTabla(usuarios) {
-        this.tablaUsuarios.innerHTML = '';
-        if (usuarios.length == 0) {
-            this.tablaUsuarios.innerHTML = '<tr><td colspan="4" class="text-center">No hay usuarios registrados</td></tr>';
 
+    renderizarTabla(usuarios) {
+        console.log("🎨 Renderizando tabla...");
+
+        const tbody = document.getElementById("tabla-usuarios");
+        console.log("📌 Elemento tbody:", tbody);
+
+        if (!tbody) {
+            console.error("❌ No se encontró elemento con ID 'tabla-usuarios'");
             return;
         }
-        usuarios.forEach(usuariosData => {
-            const usuario = new Usuarios(
-                usuariosData.nombre,
-                usuariosData.apellidos,
-                usuariosData.email,
-                usuariosData.fotoMascota,
-                usuariosData.id
-            );
-            const row = this.tablaUsuarios.insertRow();
+
+        tbody.innerHTML = '';
+
+        if (!usuarios || usuarios.length === 0) {
+            console.log("📌 No hay usuarios para mostrar");
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center">No hay usuarios registrados</td></tr>';
+            return;
+        }
+
+        console.log(`📌 Renderizando ${usuarios.length} usuarios`);
+
+        usuarios.forEach(usuario => {
+            console.log("📌 Usuario:", usuario);
+
+            const row = tbody.insertRow();
+            
+            // Clase para usuarios suspendidos (fondo transparente)
+            if (usuario.suspendido) {
+                row.classList.add('usuario-suspendido');
+            }
+
+            // Determinar texto e icono del botón según estado
+            const botonTexto = usuario.suspendido ? 'Reactivar' : 'Suspender';
+            const botonIcono = usuario.suspendido ? 'fa-check-circle' : 'fa-ban';
+            const botonClase = usuario.suspendido ? 'btn-reactivar' : 'btn-suspender';
+            const botonTitulo = usuario.suspendido ? 'Reactivar usuario' : 'Suspender usuario';
+
             row.innerHTML = `
-            <td>${usuario.nombre}</td>
-            <td>${usuario.apellidos}</td>
-            <td>${usuario.email}</td>
-            <td>
-                <img src="${usuario.fotoMascota || 'https://via.placeholder.com/50'}" 
-                    alt="Foto" class="foto-miniatura">
-            </td>
-            <td> 
-                <button class="btn-eliminar" onclick="admin_usuariosController.eliminarUsuario('${usuario.id}')">
+                <td>${this.escapeHtml(usuario.nombre || '')}</td>
+                <td>${this.escapeHtml(usuario.apellidos || '')}</td>
+                <td>${this.escapeHtml(usuario.email || '')}</td>
+                <td>${this.escapeHtml(usuario.fecha_registro || 'N/A')}</td>
+                <td>${this.escapeHtml(usuario.rol || '')}</td>
+                <td class="acciones">
+                    <button class="btn-eliminar" onclick="admin_usuariosController.eliminarUsuario('${usuario.id}')" title="Eliminar usuario">
                         <i class="fas fa-trash"></i>
-                </button>
-                <button class="btn-suspender" onclick="admin_usuariosController.suspenderUsuario('${usuario.id}')">
-                        <i class="fas fa-person"></i>
-                </button>
-            </td>`;
+                    </button>
+                    <button class="${botonClase}" 
+                            onclick="admin_usuariosController.suspenderUsuario('${usuario.id}')" 
+                            title="${botonTitulo}">
+                        <i class="fas ${botonIcono}"></i> ${botonTexto}
+                    </button>
+                </td>
+            `;
+        });
+
+        console.log("✅ Renderizado completado");
+    }
+
+    configurarBuscador() {
+        const inputBuscar = document.getElementById('buscarNombre');
+        if (!inputBuscar) return;
+        
+        let timeoutId;
+        inputBuscar.addEventListener('input', (e) => {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                this.buscarUsuario(e.target.value);
+            }, 300);
         });
     }
-    async eliminarUsuario(id) {
-        const respuesta = await Swal.fire({
-            title: '¿Eliminar usuario?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: '<i class="fas fa-trash"></i> Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        });
-        if (confirmacion.isConfirmed) {
-            const usuario = new Usuarios();
-            usuario.id = id;
 
-            Swal.fire({
-                title: 'Eliminando...',
-                text: 'Por favor espere',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            const resultado = await usuario.eliminarUsuario();
-            Swal.close();
-
-            if (resultado.success) {
-                this.mostrarAlerta('Éxito', resultado.message, 'success');
-                this.cargarMascotas();
-            } else {
-                this.mostrarAlerta('Error', resultado.error, 'error');
+    async buscarUsuario(termino) {
+        try {
+            if (!termino || termino.trim() === '') {
+                this.cargarUsuarios();
+                return;
             }
+            const resultado = await Admin_usuarios.buscarUsuarios(termino);
+            if (!resultado.success) {
+                this.mostrarNotificacion("Error al buscar", "error");
+                return;
+            }
+
+            if (resultado.usuarios.length === 0) {
+                const tbody = document.getElementById("tabla-usuarios");
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se encontraron usuarios</td></tr>';
+                }
+                return;
+            }
+            this.renderizarTabla(resultado.usuarios);
+        } catch (error) {
+            console.error('❌ Error en búsqueda:', error);
+            this.mostrarNotificacion('Error al buscar usuarios', 'error');
         }
     }
-    mostrarAlerta(titulo, mensaje, tipo = 'info') {
+
+    // ========== MÉTODO SUSPENDER USUARIO CORREGIDO ==========
+    async suspenderUsuario(id) {
+        try {
+            console.log('🔒 Preparando suspensión/activación de usuario:', id);
+
+            // Obtener información del usuario
+            const admin_usuarios = new Admin_usuarios();
+            admin_usuarios.id = id;
+
+            const resultado = await admin_usuarios.listarUsuarios(id);
+            
+            if (!resultado.success) {
+                this.mostrarNotificacion('No se pudo obtener información del usuario', 'error');
+                return;
+            }
+
+            const usuario = resultado.usuario;
+            const nombreUsuario = `${usuario.nombre} ${usuario.apellidos}`.trim() || 'este usuario';
+            const suspendido = usuario.suspendido === true; // Estado actual
+
+            console.log('📊 Estado actual del usuario:', suspendido ? 'SUSPENDIDO' : 'ACTIVO');
+
+            const esSuspender = !suspendido; // Si no está suspendido, vamos a suspender
+            const titulo = esSuspender ? '¿Suspender usuario?' : '¿Reactivar usuario?';
+            const mensaje = esSuspender
+                ? `¿Estás seguro de que deseas suspender a <strong>${nombreUsuario}</strong>?`
+                : `¿Estás seguro de que deseas reactivar a <strong>${nombreUsuario}</strong>?`;
+            const subtitulo = esSuspender
+                ? 'El usuario no podrá acceder al sistema hasta que sea reactivado.'
+                : 'El usuario podrá acceder nuevamente al sistema.';
+            const icono = esSuspender ? 'warning' : 'info';
+            const botonColor = esSuspender ? '#ffc107' : '#28a745';
+            const botonTexto = esSuspender ? '<i class="fas fa-ban"></i> Sí, suspender' : '<i class="fas fa-check-circle"></i> Sí, reactivar';
+
+            // Confirmar con SweetAlert
+            const confirmar = await Swal.fire({
+                title: titulo,
+                html: `
+                    <p>${mensaje}</p>
+                    <p class="text-${esSuspender ? 'warning' : 'success'}"><small>${subtitulo}</small></p>
+                `,
+                icon: icono,
+                showCancelButton: true,
+                confirmButtonColor: botonColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: botonTexto,
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            });
+
+            if (!confirmar.isConfirmed) return;
+
+            this.mostrarLoading(true);
+
+            // Ejecutar la acción
+            const admin_usuarios2 = new Admin_usuarios();
+            admin_usuarios2.id = id;
+
+            let resultadoOperacion;
+            
+            if (esSuspender) {
+                console.log('🔒 Ejecutando suspensión...');
+                resultadoOperacion = await admin_usuarios2.suspenderUsuario('suspendido');
+            } else {
+                console.log('🔄 Ejecutando reactivación...');
+                resultadoOperacion = await admin_usuarios2.reactivarUsuario();
+            }
+
+            console.log('📥 Resultado:', resultadoOperacion);
+
+            this.mostrarLoading(false);
+
+            if (resultadoOperacion.success) {
+                await Swal.fire({
+                    title: '¡Éxito!',
+                    text: resultadoOperacion.message,
+                    icon: 'success',
+                    confirmButtonColor: '#667eea',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+
+                // Recargar la tabla
+                this.cargarUsuarios();
+            } else {
+                this.mostrarNotificacion(resultadoOperacion.error || 'Error al procesar', 'error');
+            }
+
+        } catch (error) {
+            console.error('❌ Error:', error);
+            this.mostrarLoading(false);
+            this.mostrarNotificacion('Error al procesar la solicitud', 'error');
+        }
+    }
+
+    async eliminarUsuario(id) {
+        try {
+            console.log('🗑️ Preparando eliminación de usuario:', id);
+
+            const admin_usuarios = new Admin_usuarios();
+            admin_usuarios.id = id;
+
+            const resultado = await admin_usuarios.listarUsuarios(id);
+            if (resultado.success) {
+                const usuario = resultado.usuario;
+                const nombreSpan = document.getElementById('nombreUsuarioEliminar');
+                const infoDiv = document.getElementById('infoUsuarioEliminar');
+                
+                if (nombreSpan && infoDiv) {
+                    nombreSpan.textContent = `${usuario.nombre} ${usuario.apellidos}`.trim();
+                    infoDiv.style.display = 'block';
+                }
+            }
+
+            const btnConfirmar = document.getElementById('btnConfirmarEliminar');
+            if (!btnConfirmar) {
+                console.error('❌ Botón de confirmación no encontrado');
+                return;
+            }
+
+            btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
+            const nuevoBtnConfirmar = document.getElementById('btnConfirmarEliminar');
+
+            nuevoBtnConfirmar.addEventListener('click', async () => {
+                const modalEl = document.getElementById('modalConfirmarEliminar');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if (modal) modal.hide();
+
+                this.mostrarLoading(true);
+
+                try {
+                    const admin_usuarios = new Admin_usuarios();
+                    admin_usuarios.id = id;
+
+                    const resultadoEliminacion = await admin_usuarios.eliminarUsuario();
+                    console.log('📦 Resultado:', resultadoEliminacion);
+
+                    this.mostrarLoading(false);
+
+                    if (resultadoEliminacion.success) {
+                        this.mostrarNotificacion('Usuario eliminado correctamente', 'success');
+                        setTimeout(() => {
+                            this.cargarUsuarios();
+                        }, 500);
+                    } else {
+                        this.mostrarNotificacion(resultadoEliminacion.error || 'Error al eliminar', 'error');
+                    }
+                } catch (error) {
+                    console.error('❌ Error:', error);
+                    this.mostrarLoading(false);
+                    this.mostrarNotificacion('Error al eliminar usuario', 'error');
+                }
+            });
+
+            const modal = new bootstrap.Modal(document.getElementById('modalConfirmarEliminar'));
+            modal.show();
+
+        } catch (error) {
+            console.error('❌ Error preparando eliminación:', error);
+            this.mostrarNotificacion('Error al preparar eliminación', 'error');
+        }
+    }
+
+    mostrarLoading(mostrar) {
+        let loadingEl = document.getElementById('loadingOverlay');
+        if (!loadingEl && mostrar) {
+            loadingEl = document.createElement('div');
+            loadingEl.id = 'loadingOverlay';
+            loadingEl.innerHTML = `
+                <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+                            background: rgba(0,0,0,0.5); z-index: 9999; 
+                            display: flex; justify-content: center; align-items: center;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(loadingEl);
+        } else if (loadingEl && !mostrar) {
+            loadingEl.remove();
+        }
+    }
+
+    mostrarNotificacion(mensaje, tipo) {
+        const texto = mensaje || (tipo === 'success' ? 'Operación exitosa' : 'Error en la operación');
+        
+        let container = document.getElementById('notificacionContainer');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'notificacionContainer';
+            container.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                z-index: 99999;
+            `;
+            document.body.appendChild(container);
+        }
+
+        const notificacion = document.createElement('div');
+        notificacion.className = `alert alert-${tipo === 'success' ? 'success' : 'danger'} alert-dismissible fade show`;
+        notificacion.role = 'alert';
+        notificacion.innerHTML = `
+            <i class="fas ${tipo === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            ${texto}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+
+        container.appendChild(notificacion);
+
+        setTimeout(() => {
+            notificacion.remove();
+        }, 3000);
+    }
+
+    mostrarAlerta(titulo, mensaje, tipo) {
+        if (typeof Swal === 'undefined') {
+            alert(`${titulo}: ${mensaje}`);
+            return;
+        }
+
         const config = {
-            icon: tipo,
             title: titulo,
-            html: mensaje,
+            text: mensaje,
+            icon: tipo,
             confirmButtonColor: '#667eea'
         };
 
@@ -105,3 +387,7 @@ class UsuariosController {
         Swal.fire(config);
     }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    window.admin_usuariosController = new Admin_usuariosController();
+});

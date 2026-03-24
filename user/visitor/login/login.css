@@ -1,4 +1,3 @@
-/* login.css */
 :root {
     --color-primary: #4F7CAC;
     --color-secondary: #C0E0DE;
@@ -46,6 +45,16 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
+    padding-top: 80px; /* Espacio para el navbar fijo */
+}
+
+/* Ajuste para el navbar sticky */
+.paw-navbar-desktop {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 2000 !important; /* Mayor que el contenedor de login */
 }
 
 .auth-container {
@@ -57,6 +66,9 @@ body {
     overflow: hidden;
     box-shadow: var(--shadow-xl);
     min-height: 600px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .auth-card {
@@ -64,6 +76,59 @@ body {
     padding: 48px 40px;
     display: flex;
     flex-direction: column;
+}
+
+/* LOGO - Estilos mejorados */
+.auth-logo {
+    text-align: center;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.auth-logo::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+    margin: 20px auto 0;
+    border-radius: var(--radius-full);
+    opacity: 0.5;
+}
+
+.auth-logo a {
+    display: inline-block;
+    text-decoration: none;
+    position: relative;
+}
+
+.logo-img {
+    max-width: 160px;
+    height: auto;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 4px 6px rgba(79, 124, 172, 0.15));
+}
+
+.logo-img:hover {
+    transform: scale(1.08) rotate(2deg);
+    filter: drop-shadow(0 8px 12px rgba(79, 124, 172, 0.25));
+}
+
+/* Versión responsive para móviles */
+@media (max-width: 480px) {
+    .auth-logo {
+        margin-bottom: 20px;
+    }
+    
+    .logo-img {
+        max-width: 130px;
+    }
+    
+    .auth-logo::after {
+        width: 50px;
+        height: 2px;
+        margin-top: 15px;
+    }
 }
 
 .auth-illustration {
@@ -135,13 +200,6 @@ body {
 .auth-header {
     text-align: center;
     margin-bottom: 32px;
-}
-
-.auth-logo {
-    width: 80px;
-    height: 80px;
-    object-fit: contain;
-    margin-bottom: 24px;
 }
 
 .auth-header h1 {
@@ -273,8 +331,8 @@ body {
 /* Texto de enlace "¿Olvidaste tu contraseña?" */
 .text-right {
     text-align: right;
-    margin-top: -10px;
-    margin-bottom: 10px;
+    margin-top: 8px;
+    margin-bottom: 0;
 }
 
 .text-right a {
@@ -445,7 +503,11 @@ body {
 }
 
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 992px) {
+    body {
+        padding-top: 20px; /* Menos espacio cuando el navbar está oculto */
+    }
+    
     .auth-container {
         flex-direction: column;
         max-width: 450px;
@@ -472,6 +534,7 @@ body {
 @media (max-width: 480px) {
     body {
         padding: 16px;
+        padding-top: 70px;
     }
     
     .auth-card {

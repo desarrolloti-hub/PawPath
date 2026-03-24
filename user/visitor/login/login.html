@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,15 +8,21 @@
     <!-- Fuentes y estilos básicos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="login.css">
 </head>
+
 <body>
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-header">
-                <div class="auth-logo">🐾</div>
+                <div class="auth-logo">
+                    <a href="/index.html">
+                        <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="logo-img">
+                    </a>
+                </div>
                 <h1 id="form-title">Iniciar Sesión</h1>
                 <p class="auth-subtitle" id="form-subtitle">Accede a tu cuenta para continuar</p>
             </div>
@@ -32,15 +39,17 @@
                     <div class="form-group">
                         <label><i class="fas fa-lock"></i> Contraseña</label>
                         <input type="password" id="login-password" placeholder="Tu contraseña" required>
+                        <div class="text-right">
+                            <a href="#" id="forgot-password">¿Olvidaste tu contraseña?</a>
+                        </div>
                     </div>
-                    <div class="form-group text-right">
-                        <a href="#" id="forgot-password">¿Olvidaste tu contraseña?</a>
-                    </div>
+                    
                     <button type="submit" id="login-btn" class="btn btn-primary">
                         <span class="btn-text">Iniciar Sesión</span>
                         <span class="btn-loader" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
                     </button>
                 </form>
+
                 <div class="auth-footer">
                     <p>¿No tienes una cuenta? <a href="#" id="show-register-link">Regístrate gratis</a></p>
                 </div>
@@ -50,30 +59,58 @@
             <div id="register-container" style="display: none;">
                 <form id="register-form" class="auth-form">
                     <div class="row">
-                        <div class="col"><label>Primer nombre*</label><input type="text" id="primer_nombre" placeholder="Ej: Juan" required></div>
-                        <div class="col"><label>Segundo nombre</label><input type="text" id="segundo_nombre" placeholder="Opcional"></div>
+                        <div class="col">
+                            <label>Primer nombre*</label>
+                            <input type="text" id="primer_nombre" placeholder="Ej: Juan" required>
+                        </div>
+                        <div class="col">
+                            <label>Segundo nombre</label>
+                            <input type="text" id="segundo_nombre" placeholder="Opcional">
+                        </div>
                     </div>
+                    
                     <div class="row">
-                        <div class="col"><label>Apellido paterno*</label><input type="text" id="apellido_paterno" placeholder="Ej: Pérez" required></div>
-                        <div class="col"><label>Apellido materno*</label><input type="text" id="apellido_materno" placeholder="Ej: García" required></div>
+                        <div class="col">
+                            <label>Apellido paterno*</label>
+                            <input type="text" id="apellido_paterno" placeholder="Ej: Pérez" required>
+                        </div>
+                        <div class="col">
+                            <label>Apellido materno*</label>
+                            <input type="text" id="apellido_materno" placeholder="Ej: García" required>
+                        </div>
                     </div>
-                    <div class="form-group"><label>Correo electrónico*</label><input type="email" id="register-email" placeholder="tucorreo@ejemplo.com" required></div>
-                    <div class="form-group"><label>Contraseña*</label><input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required minlength="6"></div>
-                    <div class="form-group"><label>Confirmar contraseña*</label><input type="password" id="confirm-password" placeholder="Repite tu contraseña" required></div>
+                    
+                    <div class="form-group">
+                        <label>Correo electrónico*</label>
+                        <input type="email" id="register-email" placeholder="tucorreo@ejemplo.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Contraseña*</label>
+                        <input type="password" id="register-password" placeholder="Mínimo 6 caracteres" required minlength="6">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Confirmar contraseña*</label>
+                        <input type="password" id="confirm-password" placeholder="Repite tu contraseña" required>
+                    </div>
+                    
                     <div class="checkbox-group">
-                        <label><input type="checkbox" id="terms" required> <span>Acepto los Términos y Política de privacidad</span></label>
+                        <label>
+                            <input type="checkbox" id="terms" required> 
+                            <span>Acepto los Términos y Política de privacidad</span>
+                        </label>
                     </div>
+                    
                     <button type="submit" id="register-btn" class="btn btn-primary">
                         <span class="btn-text">Crear cuenta</span>
                         <span class="btn-loader" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
                     </button>
                 </form>
+                
                 <div class="auth-footer">
                     <p>¿Ya tienes una cuenta? <a href="#" id="show-login-link">Inicia sesión</a></p>
                 </div>
-            </div>
-
-            <div class="auth-options">
             </div>
         </div>
 
@@ -89,12 +126,10 @@
         </div>
     </div>
 
-    <!-- Incluir Firebase y el JS - orden correcto -->
+    <!-- Scripts -->
     <script type="module" src="/config/firebase-config.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
     <script type="module" src="login.js"></script>
     <script src="/classes/User.js"></script>
-    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
-
-    
 </body>
 </html>

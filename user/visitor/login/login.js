@@ -9,7 +9,12 @@ import {
     signInWithPopup,
     sendPasswordResetEmail,
     sendEmailVerification,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut,
+    setPersistence,
+    browserLocalPersistence,
+    browserSessionPersistence,
+    inMemoryPersistence
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 import { 
@@ -136,10 +141,20 @@ class AuthManager {
         console.log('🚀 Inicializando AuthManager...');
         this.initializeDOMElements();
         this.attachEventListeners();
-        this.checkStoredSession();
         this.setupAuthStateListener();
+        //this.setPersistenceToNone(); // Deshabilitar persistencia
         console.log('✅ AuthManager initialized');
     }
+
+    // async setPersistenceToNone() {
+    //     try {
+    //         // Configurar para NO recordar sesión
+    //         await setPersistence(auth, browserLocalPersistence);
+    //         console.log('✅ Persistencia deshabilitada (inMemory)');
+    //     } catch (error) {
+    //         console.error('❌ Error al deshabilitar persistencia:', error);
+    //     }
+    // }
 
     initializeDOMElements() {
         // Containers
@@ -209,38 +224,24 @@ class AuthManager {
         // Password confirmation validation
         this.confirmPassword?.addEventListener('input', () => this.validatePasswordMatch());
 
-        // Remember me functionality
+        // Remember me functionality - SOLO para email
         if (this.rememberMe) {
-            // Load saved email if exists
             const savedEmail = localStorage.getItem('rememberedEmail');
             if (savedEmail && this.loginEmail) {
                 this.loginEmail.value = savedEmail;
-                this.rememberMe.checked = true;
             }
         }
     }
 
     setupAuthStateListener() {
-        // Listen for auth state changes
         onAuthStateChanged(auth, async (user) => {
             console.log('🔔 onAuthStateChanged disparado');
             if (user) {
-                console.log('✅ Usuario autenticado en Firebase Auth:', user.uid);
-                console.log('📧 Email en Auth:', user.email);
+                console.log('✅ Usuario autenticado en Firebase Auth');
                 
-                // Obtener el rol del usuario desde Firestore
-                const userRole = await this.getUserRole(user.uid);
-                console.log('🎯 Rol obtenido de Firestore:', userRole);
+                const userData = await this.getUserData(user.uid);
+                this.saveUserDataToCache(user, userData);
                 
-                // Guardar sesión con el rol incluido
-                this.saveSessionToStorage(user, userRole);
-                
-                // Verificar si debemos redirigir (solo si estamos en login)
-                const currentPath = window.location.pathname;
-                if (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html')) {
-                    console.log('🔄 Redirigiendo desde onAuthStateChanged');
-                    this.redirectBasedOnRole(userRole);
-                }
             } else {
                 console.log('❌ Usuario no autenticado en Firebase Auth');
                 this.clearSessionFromStorage();
@@ -248,194 +249,82 @@ class AuthManager {
         });
     }
 
-    async getUserRole(uid) {
-        console.log('🔍 Buscando rol en Firestore para UID:', uid);
+    async getUserData(uid) {
+        console.log('🔍 Buscando datos en Firestore para UID:', uid);
         
         try {
-            // PRIMERO: Verificar todas las colecciones disponibles
-            console.log('📁 Intentando con colección: usarios');
             const userRef = doc(db, 'usarios', uid);
             const userSnap = await getDoc(userRef);
             
             if (userSnap.exists()) {
-                const userData = userSnap.data();
-                console.log('✅ Documento ENCONTRADO en colección "usarios"');
-                console.log('📦 Datos completos:', userData);
-                console.log('👤 Campo "rol":', userData.rol);
-                console.log('📧 Campo "email":', userData.email);
-                
-                // Mostrar TODOS los campos del documento
-                console.log('📋 Todos los campos disponibles:');
-                Object.keys(userData).forEach(key => {
-                    console.log(`   - ${key}: ${userData[key]}`);
-                });
-                
-                const rol = userData.rol || 'usuario';
-                console.log('🎯 Rol a utilizar:', rol);
-                return rol;
+                return userSnap.data();
             } else {
-                console.log('❌ No se encontró documento en "usarios"');
-                
-                // Intentar con otras posibles colecciones
-                console.log('🔍 Intentando con colección: usuarios');
-                const userRef2 = doc(db, 'usuarios', uid);
-                const userSnap2 = await getDoc(userRef2);
-                
-                if (userSnap2.exists()) {
-                    console.log('✅ Documento ENCONTRADO en colección "usuarios"');
-                    const userData = userSnap2.data();
-                    console.log('📦 Datos:', userData);
-                    return userData.rol || 'usuario';
-                }
-                
-                console.log('🔍 Intentando con colección: usuario');
-                const userRef3 = doc(db, 'usuario', uid);
-                const userSnap3 = await getDoc(userRef3);
-                
-                if (userSnap3.exists()) {
-                    console.log('✅ Documento ENCONTRADO en colección "usuario"');
-                    const userData = userSnap3.data();
-                    console.log('📦 Datos:', userData);
-                    return userData.rol || 'usuario';
-                }
-                
-                console.log('❌ No se encontró el documento en NINGUNA colección');
+                return null;
             }
-            
-            console.log('⚠️ Usando rol por defecto: usuario');
-            return 'usuario';
-            
         } catch (error) {
-            console.error('❌ Error CRÍTICO al obtener rol:', error);
-            console.error('Código de error:', error.code);
-            console.error('Mensaje:', error.message);
-            return 'usuario';
+            console.error('❌ Error al obtener datos del usuario:', error);
+            return null;
+        }
+    }
+
+    saveUserDataToCache(user, userData = null) {
+        try {
+            console.log('💾 Guardando datos en caché (localStorage)...');
+            
+            if (user) {
+                const sessionData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    emailVerified: user.emailVerified,
+                    timestamp: Date.now(),
+                    lastLogin: new Date().toISOString()
+                };
+                
+                localStorage.setItem('userSession', JSON.stringify(sessionData));
+                localStorage.setItem('currentUserId', user.uid);
+                localStorage.setItem('userEmail', user.email);
+                
+                if (userData) {
+                    Object.keys(userData).forEach(key => {
+                        if (typeof userData[key] !== 'object' || userData[key] === null) {
+                            localStorage.setItem(`user_${key}`, userData[key]);
+                        } else {
+                            localStorage.setItem(`user_${key}`, JSON.stringify(userData[key]));
+                        }
+                    });
+                    
+                    localStorage.setItem('currentUserRole', userData.rol || 'usuario');
+                    
+                    if (userData.nombre_completo) {
+                        localStorage.setItem('userDisplayName', userData.nombre_completo);
+                    }
+                    
+                    localStorage.setItem('userFullData', JSON.stringify(userData));
+                }
+                
+                console.log('✅ Datos guardados en caché correctamente');
+            }
+        } catch (error) {
+            console.error('Error al guardar en caché:', error);
         }
     }
 
     redirectBasedOnRole(role) {
-        console.log('🔄 ===== INICIANDO REDIRECCIÓN =====');
-        console.log('🔄 Rol recibido:', role);
-        console.log('📍 URL actual:', window.location.href);
-        console.log('📍 Pathname:', window.location.pathname);
+        console.log('🔄 Redirigiendo según rol:', role);
         
-        // 🔴 AJUSTA ESTAS RUTAS SEGÚN TU PROYECTO
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
-            'veterinario': '/user/veterinario/dashVeterinario/dashVeterinario.html',
-            'usuario': 'index.html'
+            'veterinario': '/user/veterinario/dashVeterinario/veterinario.html',
+            'usuario': '/index.html'
         };
 
-        console.log('📋 Rutas configuradas:', roleRoutes);
+        const route = roleRoutes[role] || roleRoutes['usuario'];
         
-        // Verificar si el rol existe en las rutas
-        if (!roleRoutes[role]) {
-            console.error(`❌ ERROR: El rol "${role}" no tiene una ruta definida`);
-            console.log('📌 Roles disponibles:', Object.keys(roleRoutes));
-            
-            // Fallback a usuario
-            console.log('⚠️ Usando ruta de usuario como fallback');
-            const fallbackRoute = roleRoutes['usuario'];
-            console.log('📍 Ruta de fallback:', fallbackRoute);
-            
-            localStorage.setItem('currentUserRole', 'usuario');
-            
-            setTimeout(() => {
-                console.log('🚀 Redirigiendo a (fallback):', fallbackRoute);
-                window.location.href = fallbackRoute;
-            }, 2000);
-        } else {
-            const route = roleRoutes[role];
-            console.log('✅ Ruta seleccionada:', route);
-            
-            localStorage.setItem('currentUserRole', role);
-            
-            setTimeout(() => {
-                console.log('🚀 Redirigiendo a:', route);
-                window.location.href = route;
-            }, 2000);
-        }
-        
-        console.log('🔄 ===== FIN REDIRECCIÓN =====');
-    }
-
-    checkStoredSession() {
-        try {
-            console.log('🔍 Verificando sesión almacenada...');
-            const sessionData = localStorage.getItem('userSession');
-            
-            if (sessionData) {
-                console.log('📦 Sesión encontrada en localStorage');
-                const session = JSON.parse(sessionData);
-                console.log('📦 Datos de sesión:', session);
-                
-                const sessionAge = Date.now() - session.timestamp;
-                const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
-                
-                if (sessionAge < SESSION_DURATION) {
-                    console.log('✅ Sesión válida');
-                    
-                    const currentPath = window.location.pathname;
-                    console.log('📍 Ruta actual:', currentPath);
-                    
-                    if (currentPath.includes('login.html') || currentPath === '/' || currentPath.includes('index.html')) {
-                        console.log('🔄 Redirigiendo por sesión almacenada');
-                        this.redirectBasedOnRole(session.userRole);
-                    }
-                } else {
-                    console.log('❌ Sesión expirada');
-                    this.clearSessionFromStorage();
-                }
-            } else {
-                console.log('ℹ️ No hay sesión almacenada');
-            }
-        } catch (error) {
-            console.error('Error al verificar sesión:', error);
-            this.clearSessionFromStorage();
-        }
-    }
-
-    saveSessionToStorage(user, role = 'usuario') {
-        try {
-            console.log('💾 Guardando sesión en localStorage...');
-            console.log('👤 Usuario:', user.uid);
-            console.log('🎯 Rol a guardar:', role);
-            
-            const sessionData = {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                emailVerified: user.emailVerified,
-                userRole: role,
-                timestamp: Date.now(),
-                lastLogin: new Date().toISOString()
-            };
-            
-            localStorage.setItem('userSession', JSON.stringify(sessionData));
-            localStorage.setItem('currentUserId', user.uid);
-            localStorage.setItem('userEmail', user.email);
-            localStorage.setItem('currentUserRole', role);
-            
-            console.log('✅ Sesión guardada correctamente');
-            console.log('📦 Datos guardados:', sessionData);
-            
-            window.dispatchEvent(new CustomEvent('userSessionStored', { 
-                detail: sessionData 
-            }));
-            
-        } catch (error) {
-            console.error('Error al guardar sesión:', error);
-        }
-    }
-
-    clearSessionFromStorage() {
-        console.log('🧹 Limpiando localStorage...');
-        localStorage.removeItem('userSession');
-        localStorage.removeItem('currentUserId');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('currentUserRole');
-        localStorage.removeItem('rememberedEmail');
-        console.log('✅ localStorage limpiado');
+        setTimeout(() => {
+            console.log('🚀 Redirigiendo a:', route);
+            window.location.href = route;
+        }, 1500);
     }
 
     saveRememberedEmail(email) {
@@ -447,31 +336,25 @@ class AuthManager {
         }
     }
 
-    getStoredSession() {
-        try {
-            const sessionData = localStorage.getItem('userSession');
-            return sessionData ? JSON.parse(sessionData) : null;
-        } catch (error) {
-            console.error('Error al obtener sesión:', error);
-            return null;
+    clearSessionFromStorage() {
+        console.log('🧹 Limpiando caché de usuario...');
+        
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key.startsWith('user_') || 
+                key === 'userSession' || 
+                key === 'currentUserId' || 
+                key === 'userEmail' || 
+                key === 'currentUserRole' || 
+                key === 'userFullData' || 
+                key === 'userDisplayName') {
+                keysToRemove.push(key);
+            }
         }
-    }
-
-    isSessionValid() {
-        const session = this.getStoredSession();
-        if (!session) return false;
         
-        const sessionAge = Date.now() - session.timestamp;
-        const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
-        
-        return sessionAge < SESSION_DURATION;
-    }
-
-    isAuthenticated() {
-        const firebaseUser = auth.currentUser;
-        const storedSession = this.getStoredSession();
-        
-        return !!(firebaseUser && storedSession && this.isSessionValid());
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        console.log('✅ Caché de usuario limpiada');
     }
 
     showAlert(message, type = 'success') {
@@ -485,11 +368,14 @@ class AuthManager {
         if (this.alertContainer) {
             this.alertContainer.innerHTML = '';
             this.alertContainer.appendChild(alertDiv);
+            
             setTimeout(() => {
                 if (alertDiv.parentNode) {
                     alertDiv.remove();
                 }
             }, 5000);
+        } else {
+            alert(message);
         }
     }
 
@@ -501,13 +387,8 @@ class AuthManager {
         
         button.disabled = isLoading;
         
-        if (btnText) {
-            btnText.style.display = isLoading ? 'none' : 'inline-block';
-        }
-        
-        if (btnLoader) {
-            btnLoader.style.display = isLoading ? 'inline-block' : 'none';
-        }
+        if (btnText) btnText.style.display = isLoading ? 'none' : 'inline-block';
+        if (btnLoader) btnLoader.style.display = isLoading ? 'inline-block' : 'none';
     }
 
     isValidEmail(email) {
@@ -587,27 +468,36 @@ class AuthManager {
         try {
             console.log('🔐 Intentando login con email:', email);
             
+            // Configurar persistencia a NONE antes de login
+            await setPersistence(auth, browserLocalPersistence);
+            
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             
             console.log('✅ Login exitoso en Firebase Auth');
-            console.log('👤 UID:', user.uid);
-            console.log('👤 Email:', user.email);
             
-            // Obtener el rol del usuario
-            const userRole = await this.getUserRole(user.uid);
+            if (user.email_verificado === false) {
+                console.log('⚠️ Email no verificado');
+                this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
+                await signOut(auth);
+                this.setLoading(this.loginBtn, false);
+                return;
+            }
+            
+            const userData = await this.getUserData(user.uid);
+            const userRole = userData?.rol || 'usuario';
+            
             console.log('🎯 Rol obtenido después de login:', userRole);
             
             this.saveRememberedEmail(email);
+            this.saveUserDataToCache(user, userData);
             this.showAlert('¡Bienvenido!', 'success');
             
-            // Redirigir según el rol
             this.redirectBasedOnRole(userRole);
             
         } catch (error) {
             console.error('❌ Login error:', error);
             this.handleAuthError(error);
-        } finally {
             this.setLoading(this.loginBtn, false);
         }
     }
@@ -652,6 +542,9 @@ class AuthManager {
         try {
             console.log('📝 Intentando registrar usuario:', email);
             
+            // Configurar persistencia a NONE
+            await setPersistence(auth, browserLocalPersistence);
+            
             // ==== CÓDIGO ORIGINAL: Crear usuario en Firebase Auth ====
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
@@ -669,55 +562,37 @@ class AuthManager {
                 // 👇 CAMBIO: Cambiamos de "usuario" a "visitante" (según tu captura)
                 rol: 'visitante',  // ANTES era: 'usuario'
                 fecha_registro: serverTimestamp(),
-                email_verificado: user.emailVerified
+                email_verificado: user.emailVerified,
+                uid: user.uid
             };
             
-            console.log('📦 Datos originales:', userData);
+            console.log('📦 Datos a guardar en Firestore:', userData);
             
-            // ===== 🆕 NUEVO: Proteger datos con SHA-256 =====
-            console.log('🔐 Aplicando protección SHA-256...');
-            const protectedData = await DataProtectionSHA256.protectUserDataOnRegister(userData);
-            
-            // ===== 🆕 NUEVO: Combinar datos originales con seguridad =====
-            const finalUserData = {
-                ...userData,
-                security: protectedData.security,
-                search_tokens: protectedData.search_tokens
-            };
-            
-            console.log('📦 Datos finales con protección:');
-            console.log('   - Email (original):', finalUserData.email);
-            console.log('   - Email (hash):', finalUserData.security.email_hash);
-            console.log('   - User ID único:', finalUserData.security.user_identifier);
-            // ===== FIN de la modificación =====
+            await setDoc(doc(db, 'usarios', user.uid), userData);
+            console.log('✅ Documento creado en Firestore');
 
-            // ==== CÓDIGO ORIGINAL: Guardar en Firestore ====
-            // 👇 CAMBIO: Usamos finalUserData en lugar de userData
-            await setDoc(doc(db, 'usarios', user.uid), finalUserData);
-            console.log('✅ Documento creado en Firestore con datos protegidos');
-
+            console.log('📧 Enviando correo de verificación...');
             await sendEmailVerification(user);
-            console.log('✅ Email de verificación enviado');
-
-            this.showAlert('¡Cuenta creada! Revisa tu correo', 'success');
+            console.log('✅ Email de verificación enviado correctamente a:', email);
+            
+            this.showAlert('¡Cuenta creada! Hemos enviado un correo de verificación a ' + email, 'success');
+            
             this.registerForm?.reset();
             
             setTimeout(() => {
                 this.showLoginForm();
-                if (this.loginEmail) this.loginEmail.value = email;
+                if (this.loginEmail) {
+                    this.loginEmail.value = email;
+                }
             }, 3000);
 
         } catch (error) {
             console.error('❌ Registration error:', error);
             
             if (error.code === 'auth/email-already-in-use') {
-                this.showAlert('Este correo ya está registrado', 'error');
-            } else if (error.code === 'auth/configuration-not-found') {
-                this.showAlert('Error de configuración en Firebase', 'error');
-            } else if (error.code === 'auth/network-request-failed') {
-                this.showAlert('Error de conexión', 'error');
+                this.showAlert('Este correo ya está registrado. ¿Olvidaste tu contraseña?', 'error');
             } else {
-                this.handleAuthError(error, 'register');
+                this.showAlert('Error al crear la cuenta: ' + error.message, 'error');
             }
         } finally {
             this.setLoading(this.registerBtn, false);
@@ -771,6 +646,9 @@ class AuthManager {
         this.setLoading(this.googleAuthBtn, true);
 
         try {
+            // Configurar persistencia a NONE
+            await setPersistence(auth, browserLocalPersistence);
+            
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
             const user = result.user;
@@ -789,15 +667,20 @@ class AuthManager {
                     email: user.email,
                     rol: 'usuario',
                     fecha_registro: serverTimestamp(),
-                    email_verificado: user.emailVerified
+                    email_verificado: user.emailVerified,
+                    uid: user.uid
                 });
                 console.log('✅ Usuario de Google creado en Firestore');
             }
 
-            const userRole = await this.getUserRole(user.uid);
+            const userData = await this.getUserData(user.uid);
+            const userRole = userData?.rol || 'usuario';
+            
             console.log('🎯 Rol de usuario Google:', userRole);
             
+            this.saveUserDataToCache(user, userData);
             this.showAlert('¡Bienvenido!', 'success');
+            
             this.redirectBasedOnRole(userRole);
 
         } catch (error) {
@@ -825,10 +708,15 @@ class AuthManager {
 
         try {
             await sendPasswordResetEmail(auth, email);
-            this.showAlert('Correo de recuperación enviado', 'success');
+            this.showAlert('Correo de recuperación enviado a ' + email, 'success');
         } catch (error) {
             console.error('Password reset error:', error);
-            this.showAlert('Error al enviar el correo', 'error');
+            
+            if (error.code === 'auth/user-not-found') {
+                this.showAlert('No existe una cuenta con este correo', 'error');
+            } else {
+                this.showAlert('Error al enviar el correo de recuperación', 'error');
+            }
         }
     }
 
@@ -875,7 +763,6 @@ class AuthManager {
             'auth/weak-password': 'La contraseña es muy débil',
             'auth/invalid-email': 'Correo electrónico inválido',
             'auth/user-disabled': 'Esta cuenta ha sido deshabilitada',
-            'auth/configuration-not-found': 'Error: Email/Password no está habilitado en Firebase',
             'auth/network-request-failed': 'Error de conexión. Verifica tu internet'
         };
 
@@ -889,19 +776,26 @@ class AuthManager {
 
     async logout() {
         try {
-            await auth.signOut();
+            console.log('🚪 Cerrando sesión desde AuthManager...');
+            
+            // Forzar signOut
+            await signOut(auth);
+            
+            // Limpiar localStorage
             this.clearSessionFromStorage();
+            
+            // Limpiar sessionStorage
+            sessionStorage.clear();
+            
             console.log('✅ Sesión cerrada correctamente');
-            window.location.href = '/login.html';
+            
+            // Redirigir con timestamp para evitar caché
+            window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
             return true;
         } catch (error) {
             console.error('Error al cerrar sesión:', error);
             return false;
         }
-    }
-
-    getCurrentUserRole() {
-        return localStorage.getItem('currentUserRole') || 'usuario';
     }
 }
 

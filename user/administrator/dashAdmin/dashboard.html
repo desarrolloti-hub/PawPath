@@ -1,12 +1,59 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <title>Panel Administrador</title>
+    <style>
+       
+    </style>
 </head>
+
 <body>
-    <navbar-admin></navbar-admin>
-    <script src="/components/navbar-admin-component.js"></script>
+    <div class="bienvenida">
+        <h1>👋 Bienvenido Administrador</h1>
+    </div>
+
+    <ul class="cards-container">
+        <li class="card">
+            <a href="/user/administrator/GestionUsuarios/admin_usuarios.html">
+                <span>👥</span>
+                Usuarios
+            </a>
+        </li>
+        <li class="card">
+            <a href="../GestionMascotas/admin_mascotas.html">
+                <span>🐾</span>
+                Mascotas
+            </a>
+        </li>
+        <li class="card">
+            <a href="/user/visitor/mascotas/mascotas.js">
+                <span>🩺</span>
+                Veterinarios
+            </a>
+        </li>
+        <li class="card">
+            <a href="#">
+                <span>📊</span>
+                Reportes
+            </a>
+        </li>
+        <li class="card">
+            <a href="#">
+                <span>💳</span>
+                Suscripciones
+            </a>
+        </li>
+        <li class="card">
+            <a href="">
+                <span>⏻</span>
+                Cerrar sesion
+            </a>
+        </li>
+    </ul>
 </body>
+
 </html>

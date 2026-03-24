@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath - Agendar Cita Veterinaria</title>
+    <link rel="stylesheet" href="citas.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Header con navegación -->
+    <navbar-visitor></navbar-visitor>
+
+
+    <main class="main-container">
+        <div class="container">
+            <!-- Título de la página -->
+            <div class="page-header">
+                <h2>Agendar Cita Veterinaria</h2>
+                <p>Completa el formulario para programar una consulta con nuestro equipo veterinario</p>
+            </div>
+
+            <div class="content-wrapper">
+                <!-- Formulario de cita -->
+                <div class="form-container">
+                    <div class="form-card">
+                        <div class="card-header">
+                            <h3>Información de la Mascota</h3>
+                        </div>
+
+                        <form id="citaForm" class="cita-form">
+                            <!-- Nombre de la mascota -->
+                            <div class="form-group">
+                                <label for="nombreMascota">Nombre de la mascota *</label>
+                                <input type="text" id="nombreMascota" name="nombreMascota" required
+                                    placeholder="Ej: Luna, Max, Simba">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="veterinario">Seleccionar Veterinario *</label>
+                                <select id="veterinario" name="veterinarioId" required>
+                                    <option value="">Cargando veterinarios...</option>
+                                </select>
+                            </div>
+
+                            <!-- Especie y raza en grid -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="especie">Especie *</label>
+                                    <select id="especie" name="especie" required>
+                                        <option value="">Selecciona una especie</option>
+                                        <option value="perro">Perro</option>
+                                        <option value="gato">Gato</option>
+                                        <option value="ave">Ave</option>
+                                        <option value="conejo">Conejo</option>
+                                        <option value="hamster">Hámster</option>
+                                        <option value="otro">Otro</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="raza">Raza *</label>
+                                    <input type="text" id="raza" name="raza" required
+                                        placeholder="Ej: Labrador, Siames, etc.">
+                                </div>
+                            </div>
+
+                            <!-- Género y edad en grid -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="genero">Género *</label>
+                                    <select id="genero" name="genero" required>
+                                        <option value="">Selecciona género</option>
+                                        <option value="macho">Macho</option>
+                                        <option value="hembra">Hembra</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="edad">Edad *</label>
+                                    <input type="text" id="edad" name="edad" required placeholder="Ej: 2 años, 6 meses">
+                                </div>
+                            </div>
+
+                            <!-- Enfermedades (opcional) -->
+                            <div class="form-group">
+                                <label for="enfermedades">Enfermedades preexistentes (opcional)</label>
+                                <textarea id="enfermedades" name="enfermedades" rows="2"
+                                    placeholder="Ej: Alergias, diabetes, etc."></textarea>
+                            </div>
+
+                            <!-- Problema a revisar -->
+                            <div class="form-group">
+                                <label for="problemaSalud">Problema de salud a revisar *</label>
+                                <textarea id="problemaSalud" name="problemaSalud" rows="3" required
+                                    placeholder="Describe detalladamente el motivo de la consulta..."></textarea>
+                            </div>
+
+                            <div class="card-header">
+                                <h3>Fecha y Hora de la Cita</h3>
+                            </div>
+
+                            <!-- Fecha y hora en grid -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="fecha">Fecha *</label>
+                                    <input type="date" id="fecha" name="fecha" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="hora">Hora *</label>
+                                    <select id="hora" name="hora" required>
+                                        <option value="">Selecciona hora</option>
+                                        <option value="09:00">09:00 AM</option>
+                                        <option value="10:00">10:00 AM</option>
+                                        <option value="11:00">11:00 AM</option>
+                                        <option value="12:00">12:00 PM</option>
+                                        <option value="13:00">01:00 PM</option>
+                                        <option value="14:00">02:00 PM</option>
+                                        <option value="15:00">03:00 PM</option>
+                                        <option value="16:00">04:00 PM</option>
+                                        <option value="17:00">05:00 PM</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Imagen de la mascota -->
+                            <div class="form-group">
+                                <label for="imagenMascota">Foto de la mascota *</label>
+                                <div class="file-upload">
+                                    <input type="file" id="imagenMascota" name="imagenMascota" accept="image/*"
+                                        required>
+                                    <div class="file-upload-label" id="fileUploadLabel">
+                                        <span>Haz clic para subir una foto</span>
+                                        <small>Formatos: JPG, PNG, GIF (Máx. 5MB)</small>
+                                    </div>
+                                    <div id="imagePreview" class="image-preview"></div>
+                                </div>
+                            </div>
+
+                            <!-- Términos y condiciones -->
+                            <div class="form-group terms">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="terminos" required>
+                                    <span>Acepto los términos y condiciones de la cita veterinaria</span>
+                                </label>
+                            </div>
+
+                            <!-- Botones -->
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="btnSubmit">
+                                    <span class="btn-text">Agendar Cita</span>
+                                    <span class="btn-loading" style="display: none;">Agendando...</span>
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="btnCancelar">Cancelar</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Panel lateral con información -->
+                <div class="sidebar">
+                    <!-- Contactos de emergencia -->
+                    <div class="info-card emergency">
+                        <h3>Contactos de emergencia</h3>
+                        <ul>
+                            <li><strong>Protectora Animal:</strong> 555-0001</li>
+                            <li><strong>Veterinaria 24h:</strong> 555-0002</li>
+                            <li><strong>Policía:</strong> 555-0003</li>
+                        </ul>
+                    </div>
+
+                    <!-- Consejos útiles -->
+                    <div class="info-card tips">
+                        <h3>Consejos útiles</h3>
+                        <ul>
+                            <li>✓ Llega 10 minutos antes de tu cita</li>
+                            <li>✓ Trae el historial médico si es primera consulta</li>
+                            <li>✓ Mantén a tu mascota con correa o en transportadora</li>
+                            <li>✓ Prepara una lista de preguntas para el veterinario</li>
+                        </ul>
+                    </div>
+
+                    <!-- Próximas citas -->
+                    <div class="info-card upcoming">
+                        <h3>Tus próximas citas</h3>
+                        <div id="proximasCitas">
+                            <p class="loading-citas">Cargando citas...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal de confirmación -->
+    <div id="modalConfirmacion" class="modal">
+        <div class="modal-content">
+            <h3>¡Cita agendada con éxito!</h3>
+            <p>Hemos enviado los detalles de la cita a tu correo electrónico.</p>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="window.location.href='/citas'">Ver mis citas</button>
+                <button class="btn btn-secondary" onclick="cerrarModal()">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script principal con type="module" -->
+    <script type="module" src="citasController.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+</body>
+
+</html>

@@ -1,6 +1,8 @@
 // /user/visitor/mascotas/mascotas.js
 import Mascota from '/classes/mascotas.js';
 
+// const UID_USUARIO_ESTATICO = 'MmAkbYF2gdeXGJaX41bEI8ZeCEw1'; // Solo para pruebas. Reemplazar con sesión real en producción.
+
 class MascotasController {
     constructor() {
         // Referencias a elementos del DOM (IDs actualizados del nuevo HTML)
@@ -29,10 +31,49 @@ class MascotasController {
 
         // will hold image as DataURL for saving
         this.fotoDataUrl = '';
+        this.uidUsuarioActual = null;
 
         this.modoEdicion = false;
         this.initEvents();
-        this.cargarMascotas();
+        this.inicializarSesion();
+    }
+
+    inicializarSesion() {
+        // this.uidUsuarioActual = UID_USUARIO_ESTATICO;
+        // Para usar el usuario dinámico, COMENTA la línea anterior y DESCOMENTA esta:
+        this.uidUsuarioActual = localStorage.getItem('currentUserId') || null;
+
+        if (this.uidUsuarioActual) {
+            this.cargarMascotas();
+        } else {
+            this.redirigirALogin();
+            return;
+        }
+
+        // if (this.uidUsuarioActual === UID_USUARIO_ESTATICO) {
+        //     return;
+        // }
+
+        window.addEventListener('userSessionStored', (event) => {
+            this.uidUsuarioActual = event?.detail?.uid || localStorage.getItem('currentUserId') || null;
+            this.cargarMascotas();
+        });
+
+        window.addEventListener('storage', (event) => {
+            if (event.key === 'currentUserId') {
+                this.uidUsuarioActual = event.newValue || null;
+                if (this.uidUsuarioActual) {
+                    this.cargarMascotas();
+                } else {
+                    this.redirigirALogin();
+                }
+            }
+        });
+    }
+
+    redirigirALogin() {
+        // Mantiene el comportamiento consistente con la sesión guardada en login.js
+        window.location.href = '/user/visitor/login/login.html';
     }
 
     initEvents() {
@@ -89,7 +130,12 @@ class MascotasController {
 
     async cargarMascotas() {
         try {
-            const { success, mascotas } = await Mascota.obtenerTodas();
+            if (!this.uidUsuarioActual) {
+                this.renderizarCards([]);
+                return;
+            }
+
+            const { success, mascotas } = await Mascota.obtenerPorUsuario(this.uidUsuarioActual);
             if (success) {
                 this.renderizarCards(mascotas);
             } else {
@@ -116,16 +162,17 @@ class MascotasController {
         mascotas.forEach(m => {
             const card = document.createElement('div');
             card.className = 'pet-card';
+            card.onclick = () => this.irADetalle(m.id);
             card.innerHTML = `
                 <button class="btn-delete-card" onclick="event.stopPropagation(); mascotasController.eliminarMascota('${m.id}')">
                     <i class="fas fa-times"></i>
                 </button>
                 
-                <div class="pet-img-container" onclick="mascotasController.abrirModal('${m.id}')">
+                <div class="pet-img-container">
                     <img src="${m.foto || 'https://via.placeholder.com/300x200?text=Sin+Foto'}" alt="${m.nombre}">
                 </div>
 
-                <div class="pet-info" onclick="mascotasController.abrirModal('${m.id}')">
+                <div class="pet-info">
                     <span class="badge">${m.especie}</span>
                     <h3>${m.nombre}</h3>
                     <p>${m.raza || 'Raza no especificada'}</p>
@@ -137,6 +184,11 @@ class MascotasController {
             `;
             contenedor.appendChild(card);
         });
+    }
+
+    irADetalle(idMascota) {
+        if (!idMascota) return;
+        window.location.href = `/user/visitor/Mascotas/mascota-detalle.html?id=${encodeURIComponent(idMascota)}`;
     }
 
     async cargarDatosMascota(id) {
@@ -174,6 +226,11 @@ class MascotasController {
     }
 
     async guardarMascota() {
+        if (!this.uidUsuarioActual) {
+            this.mostrarAlerta('Sesión requerida', 'Debes iniciar sesión para registrar una mascota.', 'warning');
+            return;
+        }
+
         const esterilizadoValue = Array.from(this.esterilizadoRadios).find(r => r.checked)?.value;
 
         // Crear instancia de mascota con los datos del formulario
@@ -188,6 +245,7 @@ class MascotasController {
             this.microchipMascota.value,
             esterilizadoValue,
             this.historialMedico.value,
+            this.uidUsuarioActual,
             this.fotoDataUrl || null,
             this.mascotaId.value || null // id
         );
@@ -273,3 +331,4 @@ class MascotasController {
 document.addEventListener('DOMContentLoaded', () => {
     window.mascotasController = new MascotasController();
 });
+export default MascotasController
