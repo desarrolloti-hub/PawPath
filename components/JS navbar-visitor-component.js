@@ -1,4 +1,4 @@
-(function() {
+(function () {
     'use strict';
 
     // =============================================
@@ -245,13 +245,45 @@
                 color: white !important;
             }
 
+            .login-btn {
+                width: 100%; 
+                padding: 12px; 
+                border-radius: 50px; 
+                border: none;
+                background: rgba(86, 220, 53, 0.2); 
+                color: #77ff6b !important;
+                font-weight: bold;
+                cursor: pointer; 
+                font-size: 1rem; 
+                transition: all 0.3s ease;
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                gap: 8px;
+                border: 1px solid rgba(255, 107, 107, 0.3);
+            }
+            
+            .login-btn i {
+                color: #77ff6b !important;
+            }
+            
+            .login-btn:hover {
+                background: rgba(220, 53, 69, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+                color: #ff6b6b !important;
+            }
+            
+            .login-btn:hover i {
+                color: #ff6b6b !important;
+            }
             .logout-btn {
                 width: 100%; 
                 padding: 12px; 
                 border-radius: 50px; 
                 border: none;
-                background: rgba(220, 53, 69, 0.2); 
-                color: #ff6b6b !important; 
+                background: rgba(220, 53, 53, 0.2); 
+                color: #ff6b6b !important;
                 font-weight: bold;
                 cursor: pointer; 
                 font-size: 1rem; 
@@ -279,7 +311,7 @@
             }
 
             .desktop-logout-btn {
-                background: rgba(255,255,255,0.1); 
+                background: rgba(255,255,255,0.1);  
                 border: none; 
                 color: white !important;
                 padding: 5px 10px; 
@@ -323,6 +355,14 @@
             @media (min-width: 993px) {
                 .paw-sidebar, .paw-toggle-btn, .paw-overlay { display: none !important; }
             }
+            /* ⬇️ SOLUCIÓN: El hover solo funcionará en computadoras con mouse ⬇️ */
+            @media (hover: hover) {
+                .paw-toggle-btn:hover { 
+                    background: #ff4757; /* Cambia a rojo solo con puntero real */
+                    transform: scale(1.05);
+                    color: white !important; 
+                }
+            }
         `;
         document.head.appendChild(style);
     }
@@ -333,7 +373,7 @@
     async function logout() {
         try {
             console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
-            
+
             // 1. Deshabilitar persistencia de Firebase
             if (typeof firebase !== 'undefined' && firebase.auth) {
                 try {
@@ -342,42 +382,42 @@
                 } catch (e) {
                     console.log('No se pudo cambiar persistencia:', e);
                 }
-                
+
                 // 2. Cerrar sesión
                 await firebase.auth().signOut();
                 console.log('✅ Firebase signOut OK');
             }
-            
+
             // 3. Usar AuthManager si existe
             if (window.authManager && typeof window.authManager.logout === 'function') {
                 await window.authManager.logout();
             }
-            
+
             // 4. LIMPIAR TODO ABSOLUTAMENTE
             console.log('🧹 LIMPIANDO ALMACENAMIENTO');
-            
+
             // LocalStorage - eliminar todo
             localStorage.clear();
-            
+
             // SessionStorage - eliminar todo
             sessionStorage.clear();
-            
+
             // Cookies - eliminar todas
-            document.cookie.split(";").forEach(function(c) { 
-                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); 
+            document.cookie.split(";").forEach(function (c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
             });
-            
+
             // 5. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
             sessionStorage.setItem('logout_event', Date.now().toString());
-            
+
             console.log('✅ TODO LIMPIADO - REDIRIGIENDO');
-            
+
             // 6. Redirigir con parámetro para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
-            
+
         } catch (error) {
             console.error('❌ Error al cerrar sesión:', error);
-            
+
             // Forzar limpieza
             localStorage.clear();
             sessionStorage.clear();
@@ -389,7 +429,7 @@
     // DETECTAR CIERRE DE SESIÓN EN OTRAS PESTAÑAS
     // =============================================
     function setupCrossTabLogout() {
-        window.addEventListener('storage', function(e) {
+        window.addEventListener('storage', function (e) {
             if (e.key === 'logout_event') {
                 console.log('🔔 Detectado logout en otra pestaña');
                 localStorage.clear();
@@ -404,7 +444,7 @@
     // =============================================
     function createNavbar() {
         if (document.querySelector('.paw-navbar-desktop')) return;
-        
+
         const navbar = document.createElement('nav');
         navbar.className = 'paw-navbar-desktop';
         navbar.innerHTML = `
@@ -441,17 +481,12 @@
                     <a href="/" class="sidebar-link"><i class="fas fa-home"></i> Inicio</a>
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
-                    <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
-                    <a href="/user/visitor/Mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
+                    <!--<a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>-->
+                    <a href="/user/visitor/mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
                 </div>
             </div>
-
-            <div style="padding: 20px;">
-                <button class="logout-btn" id="sidebarLogoutBtn">
-                    <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
-                </button>
-            </div>
+            <div id="userActionMovil"></div>
         `;
 
         const toggleBtn = document.createElement('button');
@@ -473,9 +508,9 @@
         const toggleBtn = document.getElementById('pawToggleBtn');
         const sidebar = document.getElementById('pawSidebar');
         const overlay = document.getElementById('pawOverlay');
-        
+
         if (!toggleBtn || !sidebar || !overlay) return;
-        
+
         const toggleMenu = () => {
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
@@ -492,16 +527,19 @@
                 toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
             });
         });
-
-        // BOTONES DE LOGOUT
-        const sidebarLogoutBtn = document.getElementById('sidebarLogoutBtn');
-        if (sidebarLogoutBtn) {
-            sidebarLogoutBtn.addEventListener('click', (e) => {
+        sidebar.addEventListener('click', (e) => {
+            const logoutBtn = e.target.closest('#sidebarLogoutBtn');
+            if (logoutBtn) {
                 e.preventDefault();
                 e.stopPropagation();
+
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+
                 logout();
-            });
-        }
+            }
+        })
 
         cargarDatosUsuario();
     }
@@ -515,7 +553,7 @@
         let pNombre = null;
         let aPaterno = null;
         let rol = null;
-        
+
         try {
             const fullData = localStorage.getItem('userFullData');
             if (fullData) {
@@ -524,16 +562,17 @@
                 aPaterno = userData.apellido_paterno;
                 rol = userData.rol;
             }
-            
+
             if (!pNombre) pNombre = localStorage.getItem('user_primer_nombre');
             if (!aPaterno) aPaterno = localStorage.getItem('user_apellido_paterno');
             if (!rol) rol = localStorage.getItem('user_rol');
-            
+
         } catch (error) {
             console.error('Error leyendo datos:', error);
         }
 
         const userAction = document.getElementById('userActionDesktop');
+        const userMovilAction = document.getElementById('userActionMovil');
         const sideUserName = document.getElementById('sideUserName');
         const sideUserRole = document.getElementById('sideUserRole');
 
@@ -543,7 +582,7 @@
             const fullName = aPaterno ? `${pNombre} ${aPaterno}` : pNombre;
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
 
-            if (userAction) {
+            if (userAction && userMovilAction) {
                 userAction.innerHTML = `
                     <div class="user-card-desktop">
                         <div class="avatar-mini">${initial}</div>
@@ -556,7 +595,13 @@
                         </button>
                     </div>
                 `;
-                
+                userMovilAction.innerHTML = ` 
+                    <div style="padding: 20px;">
+                        <button class="logout-btn" id="sidebarLogoutBtn">
+                            <i class="fas fa-sign-in-alt"></i> Cerrar sesion
+                        </button>
+                    </div>`;
+
                 const desktopLogoutBtn = document.getElementById('desktopLogoutBtn');
                 if (desktopLogoutBtn) {
                     desktopLogoutBtn.addEventListener('click', (e) => {
@@ -569,17 +614,24 @@
 
             if (sideUserName) sideUserName.textContent = fullName;
             if (sideUserRole) sideUserRole.textContent = userRole;
-            
+
         } else {
             // No hay usuario - mostrar botón de login
-            if (userAction) {
+            if (userAction && userMovilAction) {
                 userAction.innerHTML = `
-                    <div style="display:flex; gap:10px;">
-                        <a href="/user/visitor/login/login.html" style="background:; color:#090979; padding:8px 20px; border-radius:20px; text-decoration:none; font-weight:bold;">Iniciar sesión</a>
-                    </div>
+                 <div style="display:flex; gap:10px;">
+                    <i class="fa-solid fa-user"></i>                    
+                </div>
                 `;
+                userMovilAction.innerHTML = ` <div style="padding: 20px;">
+                <a href="/user/visitor/login/login.html" style="text-decoration: none;">
+                    <button class="login-btn">
+                        <i class="fas fa-sign-in-alt"></i> Iniciar sesion
+                    </button>
+                </a>
+            </div>`;
             }
-            
+
             if (sideUserName) sideUserName.textContent = 'Invitado';
             if (sideUserRole) sideUserRole.textContent = 'VISITANTE';
         }
@@ -592,7 +644,7 @@
         if (typeof firebase !== 'undefined' && firebase.auth) {
             firebase.auth().onAuthStateChanged((user) => {
                 console.log('🔔 Estado Firebase:', user ? 'logueado' : 'no logueado');
-                
+
                 // Si Firebase dice que no hay usuario pero hay datos en localStorage, limpiar
                 if (!user) {
                     const hasData = localStorage.getItem('userFullData');
@@ -616,10 +668,10 @@
         setupNavbar();
         setupCrossTabLogout();
         verificarSesionFirebase();
-        
+
         // Verificar cada segundo
         setInterval(cargarDatosUsuario, 1000);
-        
+
         // Al volver a la pestaña
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
