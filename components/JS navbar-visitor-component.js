@@ -169,7 +169,7 @@
                 left: 15px; 
                 width: 45px; 
                 height: 45px;
-                background: #008cff; 
+                background: #008cff; /* 🔵 Azul por defecto (Menú cerrado / Hamburguesa) */
                 color: white !important; 
                 border: none; 
                 border-radius: 50%;
@@ -180,17 +180,20 @@
                 justify-content: center;
                 box-shadow: 0 4px 12px rgba(0, 140, 255, 0.4); 
                 font-size: 1.2rem; 
-                transition: 0.3s;
-            }
-            
+                transition: background-color 0.3s, transform 0.2s;
+            }            
             .paw-toggle-btn i {
                 color: white !important;
             }
-            
-            .paw-toggle-btn:hover { 
-                background: #ff4757; 
-                transform: scale(1.05);
-                color: white !important; 
+            /* 🔴 ESTADO ABIERTO: Cuando la X esté visible, esta clase pintará el botón de rojo */
+            .paw-toggle-btn.menu-abierto {
+                background: #ff4757; /* Rojo */
+                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4); /* Sombra roja a juego */
+            }
+
+            /* Opcional: Pequeño efecto visual al presionar con el dedo o clic */
+.           paw-toggle-btn:active {
+                transform: scale(0.95);
             }
 
             .sidebar-section { 
@@ -355,14 +358,6 @@
             @media (min-width: 993px) {
                 .paw-sidebar, .paw-toggle-btn, .paw-overlay { display: none !important; }
             }
-            /* ⬇️ SOLUCIÓN: El hover solo funcionará en computadoras con mouse ⬇️ */
-            @media (hover: hover) {
-                .paw-toggle-btn:hover { 
-                    background: #ff4757; /* Cambia a rojo solo con puntero real */
-                    transform: scale(1.05);
-                    color: white !important; 
-                }
-            }
         `;
         document.head.appendChild(style);
     }
@@ -515,7 +510,10 @@
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+            toggleBtn.classList.toggle('menu-abierto',active);
+            
         };
+
 
         toggleBtn.onclick = toggleMenu;
         overlay.onclick = toggleMenu;
@@ -525,6 +523,8 @@
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
                 toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
+
+                toggleBtn.classList.remove('menu-abierto');
             });
         });
         sidebar.addEventListener('click', (e) => {
