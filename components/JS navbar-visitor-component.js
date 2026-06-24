@@ -151,12 +151,10 @@
                 position: fixed; 
                 top: 0; 
                 left: 0; 
-                width: 100%; 
+                width: 50%; 
                 height: 100%;
-                background: rgba(0,0,0,0.5); 
                 z-index: 1050; 
                 display: none; 
-                backdrop-filter: blur(4px);
                 transition: 0.3s;
             }
             .paw-overlay.active { 
@@ -165,37 +163,24 @@
 
             .paw-toggle-btn {
                 position: fixed; 
-                top: 15px; 
-                left: 15px; 
+                top: 10px; 
+                left: 5px; 
                 width: 45px; 
                 height: 45px;
-                background: #008cff; /* 🔵 Azul por defecto (Menú cerrado / Hamburguesa) */
-                color: white !important; 
+                color: black !important; 
                 border: none; 
-                border-radius: 50%;
+                background: none;
                 cursor: pointer; 
                 z-index: 1160; 
                 display: none; 
                 align-items: center; 
                 justify-content: center;
-                box-shadow: 0 4px 12px rgba(0, 140, 255, 0.4); 
                 font-size: 1.2rem; 
                 transition: background-color 0.3s, transform 0.2s;
             }            
             .paw-toggle-btn i {
-                color: white !important;
+                color: black !important;
             }
-            /* 🔴 ESTADO ABIERTO: Cuando la X esté visible, esta clase pintará el botón de rojo */
-            .paw-toggle-btn.menu-abierto {
-                background: #ff4757; /* Rojo */
-                box-shadow: 0 4px 12px rgba(255, 71, 87, 0.4); /* Sombra roja a juego */
-            }
-
-            /* Opcional: Pequeño efecto visual al presionar con el dedo o clic */
-.           paw-toggle-btn:active {
-                transform: scale(0.95);
-            }
-
             .sidebar-section { 
                 margin: 10px 15px; 
                 border-radius: 8px; 
@@ -352,7 +337,7 @@
             @media (max-width: 992px) {
                 .paw-navbar-desktop { display: none; }
                 .paw-toggle-btn { display: flex; }
-                .paw-sidebar { width: 100%; }
+                .paw-sidebar { width: 65%; }
             }
 
             @media (min-width: 993px) {
