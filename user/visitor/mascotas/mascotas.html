@@ -20,26 +20,32 @@
 </head>
 
 <body class="pet-page" style="margin: 0;">
+
     <navbar-visitor></navbar-visitor>
+
     <main class="pet-main">
         <div class="container">
+
             <div class="header">
                 <div class="auth-logo">🐾</div>
                 <h1>Mis Mascotas</h1>
                 <p>Administra el perfil y bienestar de tus compañeros</p>
-                <button id="btnAgregarMascota" class="btn-agregar">
-                    <i class="fas fa-plus"></i> Nueva Mascota
-                </button>
-                <a href="/user/visitor/citas/citas.html">
-                    <button class="btn-agregar">
-                    <i class="fas fa-plus"></i> Agendar Cita Veterinaria
+
+                <div class="header-actions">
+                    <button id="btnAgregarMascota" class="btn-agregar">
+                        <i class="fas fa-plus"></i> Nueva Mascota
                     </button>
-                </a>
-                <a href="/user/visitor/citas/misCitas.html">
-                    <button class="btn-agregar">
-                    <i class="fas fa-plus"></i> Gestionar mis Citas
-                    </button>
-                </a>
+                    <a href="/user/visitor/citas/citas.html">
+                        <button class="btn-agregar">
+                            <i class="fas fa-calendar-plus"></i> Agendar Cita Veterinaria
+                        </button>
+                    </a>
+                    <a href="/user/visitor/citas/misCitas.html">
+                        <button class="btn-agregar">
+                            <i class="fas fa-calendar-check"></i> Gestionar mis Citas
+                        </button>
+                    </a>
+                </div>
             </div>
 
             <div class="content">
@@ -51,7 +57,6 @@
                 </div>
             </div>
         </div>
-
 
         <div id="modalMascota" class="modal-backdrop">
             <div class="modal-form">
@@ -83,7 +88,6 @@
                                 <option value="Reptil">🦎 Reptil</option>
                                 <option value="Conejo">🐰 Conejo</option>
                                 <option value="Otro">Otro</option>
-
                             </select>
                         </div>
 
@@ -164,7 +168,9 @@
             </div>
         </div>
     </main>
+
     <main-footer></main-footer>
+
     <script type="module" src="/user/visitor/mascotas/mascotas.js"></script>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
     <script type="module" src="/components/JS ads-banner-component.js"></script>

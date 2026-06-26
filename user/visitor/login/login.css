@@ -14,19 +14,19 @@
     --color-warning: #F59E0B;
     --color-error: #EF4444;
     --color-error-light: #FEE2E2;
-    
+
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
     --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
-    
+
     --radius-sm: 8px;
     --radius-md: 12px;
     --radius-lg: 20px;
     --radius-full: 9999px;
-    
+
     --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-    
+
     --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -45,7 +45,8 @@ body {
     align-items: center;
     justify-content: center;
     padding: 20px;
-    padding-top: 80px; /* Espacio para el navbar fijo */
+    padding-top: 80px;
+    /* Espacio para el navbar fijo */
 }
 
 /* Ajuste para el navbar sticky */
@@ -54,7 +55,8 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 2000 !important; /* Mayor que el contenedor de login */
+    z-index: 2000 !important;
+    /* Mayor que el contenedor de login */
 }
 
 .auth-container {
@@ -119,11 +121,11 @@ body {
     .auth-logo {
         margin-bottom: 20px;
     }
-    
+
     .logo-img {
         max-width: 130px;
     }
-    
+
     .auth-logo::after {
         width: 50px;
         height: 2px;
@@ -165,8 +167,15 @@ body {
 }
 
 @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 .auth-illustration h2 {
@@ -502,25 +511,51 @@ body {
     font-size: 1.2rem;
 }
 
+/* Únicamente estilos para el checklist de la contraseña. 
+           Tus estilos originales del formulario no han sido modificados. */
+.pwd-checklist {
+    list-style-type: none;
+    padding: 0;
+    margin: 10px 0;
+    font-size: 13px;
+    font-family: sans-serif;
+}
+
+.pwd-checklist li {
+    color: #d9534f;
+    /* Color rojo (inválido) */
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease-in-out;
+}
+
+.pwd-checklist li.valid {
+    color: #28a745;
+    /* Color verde (válido) */
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     body {
-        padding-top: 20px; /* Menos espacio cuando el navbar está oculto */
+        padding-top: 20px;
+        /* Menos espacio cuando el navbar está oculto */
     }
-    
+
     .auth-container {
         flex-direction: column;
         max-width: 450px;
     }
-    
+
     .auth-illustration {
         display: none;
     }
-    
+
     .auth-card {
         padding: 32px 24px;
     }
-    
+
     .auth-header h1 {
         font-size: 1.75rem;
     }
@@ -536,7 +571,7 @@ body {
         padding: 16px;
         padding-top: 70px;
     }
-    
+
     .auth-card {
         padding: 24px 20px;
     }

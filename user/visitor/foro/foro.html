@@ -8,7 +8,7 @@
     <link rel="icon" href="/assets/images/PawPahtLogo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2=family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -18,10 +18,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <!-- Navbar dinámico -->
     <navbar-visitor></navbar-visitor>
 
-    <!-- Top Header estilo Facebook -->
     <header class="fb-header">
         <div class="fb-header-left">
             <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="fb-logo">
@@ -42,7 +40,6 @@
 
     <div class="fb-layout-container">
         
-        <!-- PANEL DE FILTROS (Desplegable superior con diseño premium) -->
         <div id="panelFiltros" class="filtros-panel" style="display: none;">
             <div class="filtros-grid">
                 <div class="filtro-group">
@@ -107,7 +104,6 @@
         </div>
 
         <div class="fb-main-grid">
-            <!-- SIDEBAR IZQUIERDO -->
             <aside class="fb-sidebar left">
                 <div class="sidebar-sticky-content">
                     <div class="fb-menu-section">
@@ -156,10 +152,49 @@
                 </div>
             </aside>
 
-            <!-- FEED CENTRAL (Estilo Facebook) -->
             <main class="fb-feed-center">
                 
-                <!-- Caja para Crear Publicación -->
+                <div class="fb-menu-section emergency-section mobile-only">
+                    <div class="emergency-header">
+                        <i class="fas fa-phone-alt animate-pulse"></i>
+                        <h3>Contactos de emergencia</h3>
+                    </div>
+                    <div class="emergency-grid">
+                        <a href="tel:555-0001" class="emergency-card">
+                            <div class="emergency-icon-wrapper p-animal"><i class="fas fa-dog"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Protectora Animal</span>
+                                <strong class="emergency-phone">555-0001</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:555-0002" class="emergency-card">
+                            <div class="emergency-icon-wrapper v-24h"><i class="fas fa-hospital"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Veterinaria 24h</span>
+                                <strong class="emergency-phone">555-0002</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:555-0003" class="emergency-card">
+                            <div class="emergency-icon-wrapper police"><i class="fas fa-shield-alt"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Policía</span>
+                                <strong class="emergency-phone">555-0003</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:911" class="emergency-card urgent">
+                            <div class="emergency-icon-wrapper urgencies"><i class="fas fa-ambulance"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Urgencias</span>
+                                <strong class="emergency-phone">911</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                    </div>
+                </div>
+                
                 <div class="fb-create-post-card">
                     <div class="create-post-top">
                         <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
@@ -177,7 +212,6 @@
                     </div>
                 </div>
 
-                <!-- Skeleton loader -->
                 <div id="skeletonLoader" class="skeleton-grid" style="display: none;">
                     <div class="skeleton-card"></div>
                     <div class="skeleton-card"></div>
@@ -188,7 +222,6 @@
                     <p>Cargando publicaciones...</p>
                 </div>
 
-                <!-- Grid de publicaciones (Formato feed vertical) -->
                 <div id="publicacionesGrid" class="fb-feed-grid"></div>
 
                 <div id="sinResultados" class="sin-resultados" style="display: none;">
@@ -207,11 +240,9 @@
                 </div>
             </main>
 
-            <!-- SIDEBAR DERECHO -->
             <aside class="fb-sidebar right">
                 <div class="sidebar-sticky-content">
                     
-                    <!-- Sección de Emergencias Premium -->
                     <div class="fb-menu-section emergency-section">
                         <div class="emergency-header">
                             <i class="fas fa-phone-alt animate-pulse"></i>
@@ -289,8 +320,9 @@
             </aside>
         </div>
     </div>
-
+    <main-footer></main-footer>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script src="/components/JS FooterVisitor.js"></script>
     <script type="module" src="Foro.js"></script>
     <script>
         document.getElementById('btnFiltrosShortcut')?.addEventListener('click', () => {
