@@ -29,7 +29,6 @@
 
             <div id="alert-container"></div>
 
-            <!-- LOGIN -->
             <div id="login-container">
                 <form id="login-form" class="auth-form">
                     <div class="form-group">
@@ -64,7 +63,6 @@
                 </div>
             </div>
 
-            <!-- REGISTER (oculto) -->
             <div id="register-container" style="display: none;">
                 <form id="register-form" class="auth-form">
                     <div class="row">
@@ -92,8 +90,15 @@
 
                     <div class="form-group">
                         <label>Contraseña*</label>
-                        <input type="password" id="register-password" placeholder="Mínimo 8 caracteres" required
-                            minlength="8">
+                        <div style="position: relative;">
+                            <input type="password" id="register-password" placeholder="Mínimo 10 caracteres" required
+                                minlength="10" style="width: 100%;">
+
+                            <button type="button" id="btnToggleReg"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; color: #666;">
+                                <i class="fa-solid fa-eye-slash" style="color:#4F7CAC" id="toggleIconReg"></i>
+                            </button>
+                        </div>
 
                         <ul class="pwd-checklist" id="pwd-checklist">
                             <li id="req-length"><span>✖</span> Mínimo 8 caracteres</li>
@@ -101,15 +106,23 @@
                             <li id="req-lower"><span>✖</span> Al menos una minúscula</li>
                             <li id="req-number"><span>✖</span> Al menos un número</li>
                             <li id="req-special"><span>✖</span> Al menos un carácter especial</li>
-                            <li id="req-consecutive" class="valid"><span>✔</span> Sin números consecutivos (ej. 12, 34)
+                            <li id="req-consecutive" class="valid"><span>✔</span> Sin números consecutivos (ej. 1, 2, 3,
+                                4)
                             </li>
                         </ul>
                     </div>
 
                     <div class="form-group">
                         <label>Confirmar contraseña*</label>
-                        <input type="password" id="confirm-password" placeholder="Repite tu contraseña" required
-                            minlength="8">
+                        <div style="position: relative;">
+                            <input type="password" id="confirm-password" placeholder="Repite tu contraseña" required
+                                minlength="10" style="width: 100%;">
+
+                            <button type="button" id="btnToggleConf"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; cursor: pointer; color: #666;">
+                                <i class="fa-solid fa-eye-slash" style="color:#4F7CAC" id="toggleIconConf"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="checkbox-group">
@@ -143,24 +156,37 @@
         </div>
     </div>
 
-    <!-- Scripts -->
     <script>
-        const inputPassword = document.getElementById('login-password');
-        const btnToggle = document.getElementById('btnToggle');
-        const toggleIcon = document.getElementById('toggleIcon'); 
+        // Función reutilizable para alternar visibilidad según el ID que se le pase
+        function setupPasswordToggle(inputId, buttonId, iconId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(buttonId);
+            const icon = document.getElementById(iconId);
 
-        // Función para alternar la contraseña y el icono
-        btnToggle.addEventListener('click', function () {
-            if (inputPassword.type === 'password') {
-                inputPassword.type = 'text';
-                toggleIcon.classList.remove('fa-eye-slash');
-                toggleIcon.classList.add('fa-eye');
-            } else {
-                inputPassword.type = 'password';
-                toggleIcon.classList.remove('fa-eye');
-                toggleIcon.classList.add('fa-eye-slash');
+            // Verificamos que los elementos existan en el DOM para evitar errores
+            if (input && btn && icon) {
+                btn.addEventListener('click', function () {
+                    if (input.type === 'password') {
+                        input.type = 'text';
+                        icon.classList.remove('fa-eye-slash');
+                        icon.classList.add('fa-eye');
+                    } else {
+                        input.type = 'password';
+                        icon.classList.remove('fa-eye');
+                        icon.classList.add('fa-eye-slash');
+                    }
+                });
             }
-        });
+        }
+
+        // Llamamos a la función para el Login
+        setupPasswordToggle('login-password', 'btnToggle', 'toggleIcon');
+
+        // Llamamos a la función para el Registro
+        setupPasswordToggle('register-password', 'btnToggleReg', 'toggleIconReg');
+
+        // Llamamos a la función para Confirmar Contraseña
+        setupPasswordToggle('confirm-password', 'btnToggleConf', 'toggleIconConf');
     </script>
     <script type="module" src="/config/firebase-config.js"></script>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
