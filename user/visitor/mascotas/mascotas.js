@@ -263,6 +263,27 @@ class MascotasController {
             console.error('Error al guardar mascota:', error);
             this.mostrarAlerta('Error', 'No se pudo guardar la información', 'error');
         }
+
+        try {
+            const resultado = await mascota.guardar();
+            if (resultado.success) {
+                this.mostrarAlerta('Éxito', resultado.message, 'success');
+                this.cerrarModal();
+                this.cargarMascotas();
+                
+                // DISPARAR EVENTO PARA NOTIFICAR AL FORMULARIO DE CITAS
+                const event = new CustomEvent('mascotaCreada', {
+                    detail: { mascota: mascota.toObject() }
+                });
+                window.dispatchEvent(event);
+            } else {
+                this.mostrarAlerta('Error', resultado.error || 'No se pudo guardar', 'error');
+            }
+        } catch (error) {
+            console.error('Error al guardar mascota:', error);
+            this.mostrarAlerta('Error', 'No se pudo guardar la información', 'error');
+        }
+
     }
 
     async eliminarMascota(id) {

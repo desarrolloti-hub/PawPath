@@ -1,8 +1,9 @@
-// /config/firebase-config.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+// config/firebase-config.js
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+import { getFirestore } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+import { getAuth } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js';
 
+// Configuración de Firebase - REEMPLAZA CON TUS DATOS REALES
 // Configuración única para el proyecto PawPath
 const firebaseConfig = {
     apiKey: "AIzaSyABACTyV6lId6OAiRorJF_DMXHuCTycMoY",
@@ -14,12 +15,9 @@ const firebaseConfig = {
     measurementId: "G-2WG7WEV833"
 };
 
-// Inicialización de la instancia principal
+// Inicializar Firebase
 const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-// Exportaciones nombradas (Sintaxis moderna y compatible)
-export const db = getFirestore(app);
-export const auth = getAuth(app);
-
-// Exportación por defecto o de la instancia de la app si fuera necesario
-export default app;
+export { db, auth };

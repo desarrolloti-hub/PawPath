@@ -9,6 +9,31 @@ class Veterinario {
         this.citasCollection = 'citas';
     }
 
+    async obtenerVeterinarioPorId(veterinarioId) {
+        try {
+            const docRef = doc(this.db, this.veterinariosCollection, veterinarioId);
+            const docSnap = await getDoc(docRef);
+            
+            if (!docSnap.exists()) {
+                return { success: false, error: 'Veterinario no encontrado' };
+            }
+            
+            const data = docSnap.data();
+            return {
+                success: true,
+                data: {
+                    id: docSnap.id,
+                    nombre: data.nombreCompleto || 'Veterinario',
+                    horarioSemanal: data.horarioSemanal || [],
+                    duracionCita: data.duracionCita || 30,
+                    ...data
+                }
+            };
+        } catch (error) {
+            console.error('Error al obtener veterinario por ID:', error);
+            return { success: false, error: error.message };
+        }
+    }
 
     async obtenerVeterinarios(filtros = {}) {
         try {

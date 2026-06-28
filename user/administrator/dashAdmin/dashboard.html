@@ -47,6 +47,24 @@
                 Suscripciones
             </a>
         </li>
-        
+        <li class="card">
+            <!-- CAMBIO AQUÍ -->
+            <a href="#" onclick="logout()">
+                <span>⏻</span>
+                Cerrar sesión
+            </a>
+        </li>
+    </ul>
+    <script>
+        function logout() {
+            // Elimina datos de sesión (ajústalo según tu proyecto)
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // Redirige al login
+            window.location.href = "/user/visitor/login/login.html"; // cambia la ruta si es necesario
+        }
+    </script>
+</body>
 
 </html>

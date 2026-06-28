@@ -63,6 +63,7 @@ class ControladorDetalles {
         this.escucharAuth();
         await this.cargarPublicacion();
         await this.cargarComentarios();
+
     }
     
     escucharAuth() {
@@ -87,6 +88,8 @@ class ControladorDetalles {
     
     async cargarPublicacion() {
         try {
+            console.log('🔍 Cargando publicación con ID:', this.publicacionId);
+
             const publicacionRef = doc(db, 'publicaciones', this.publicacionId);
             const publicacionSnap = await getDoc(publicacionRef);
             
@@ -96,7 +99,8 @@ class ControladorDetalles {
             }
             
             this.publicacion = { id: publicacionSnap.id, ...publicacionSnap.data() };
-            
+            console.log('✅ Publicación cargada:', this.publicacion);
+
             // Incrementar vistas silenciosamente
             await updateDoc(publicacionRef, { vistas: increment(1) });
             this.publicacion.vistas = (this.publicacion.vistas || 0) + 1;
@@ -110,6 +114,8 @@ class ControladorDetalles {
     }
     
     mostrarPublicacion(pub) {
+        console.log('🎨 Mostrando publicación:', pub);
+
         document.title = `${pub.titulo} - PawPath`;
         this.detalleTitulo.textContent = pub.titulo;
         this.detalleTipo.innerHTML = `<i class="fas fa-paw"></i> ${pub.tipo}`;
@@ -159,7 +165,323 @@ class ControladorDetalles {
                 <p style="font-weight: bold; color: #f59e0b; font-size: 1.2rem;">${pub.recompensa}</p>
             `;
         }
+
+        const btnContainer = document.getElementById('btnSolicitudContainer');
+        let container = btnContainer;
+        if (!container) {
+        // Buscar dónde insertar el botón
+        const detalleSeccion = document.querySelector('.detalle-seccion');
+        if (detalleSeccion) {
+                const newContainer = document.createElement('div');
+                newContainer.id = 'btnSolicitudContainer';
+                newContainer.style.marginTop = '20px';
+                detalleSeccion.insertAdjacentElement('afterend', newContainer);
+                container = newContainer;
+            }
+        }
+        
+        if (container) {
+            if (pub.tipo === 'En Adopción') {
+                container.innerHTML = `
+                    <button id="btnSolicitarAdopcion" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
+                        <i class="fas fa-paw"></i> Solicitar Adopción
+                    </button>
+                    <br>
+                    <br>
+                `;
+                
+                const btnSolicitar = document.getElementById('btnSolicitarAdopcion');
+                if (btnSolicitar) {
+                    btnSolicitar.onclick = () => this.abrirModalSolicitudAdopcion(pub);
+                }
+            } 
+            else if (pub.tipo === 'Mascota Encontrada') {
+                container.innerHTML = `
+                    <button id="btnReclamarMascota" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
+                        
+                        <i class="fas fa-clipboard-list"></i> Reclamar esta mascota
+                    </button>
+                    <br>
+                    <br>
+                `;
+                
+                const btnReclamar = document.getElementById('btnReclamarMascota');
+                if (btnReclamar) {
+                    btnReclamar.onclick = () => this.abrirModalReclamo(pub);
+                }
+            } 
+            else {
+                container.innerHTML = '';
+            }
+        }
     }
+
+
+    async abrirModalSolicitudAdopcion(pub) {
+        if (!this.usuarioActual) {
+            Swal.fire('Inicia sesión', 'Debes iniciar sesión para solicitar una adopción', 'warning');
+            return;
+        }
+        
+        const modal = document.getElementById('modalSolicitudAdopcion');
+        if (modal) modal.style.display = 'flex';
+        
+        // Mostrar indicador de carga en los campos
+        document.getElementById('solicitanteNombre').value = 'Cargando...';
+        document.getElementById('solicitanteEmail').value = this.usuarioActual.email || '';
+        
+        try {
+            // Obtener datos completos del usuario desde Firestore
+            const userRef = doc(db, 'usarios', this.usuarioActual.uid);
+            const userSnap = await getDoc(userRef);
+            
+            let nombreCompleto = '';
+            let telefono = '';
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                // Construir nombre completo desde los campos de la colección usuarios
+                const primerNombre = userData.primer_nombre || '';
+                const segundoNombre = userData.segundo_nombre ? userData.segundo_nombre + ' ' : '';
+                const apellidoPaterno = userData.apellido_paterno || '';
+                const apellidoMaterno = userData.apellido_materno ? userData.apellido_materno : '';
+                
+                nombreCompleto = `${primerNombre} ${segundoNombre}${apellidoPaterno} ${apellidoMaterno}`.trim();
+                telefono = userData.telefono || '';
+            }
+            
+            // Si no se encontró en Firestore, usar displayName o email
+            if (!nombreCompleto) {
+                nombreCompleto = this.usuarioActual.displayName || this.usuarioActual.email.split('@')[0];
+            }
+            
+            // Llenar campos
+            document.getElementById('solicitanteNombre').value = nombreCompleto;
+            document.getElementById('solicitanteEmail').value = this.usuarioActual.email || '';
+            document.getElementById('solicitanteTelefono').value = telefono;
+            
+            // Limpiar otros campos
+            document.getElementById('solicitanteDireccion').value = '';
+            document.getElementById('mensajeAdopcion').value = '';
+            document.getElementById('experienciaMascotas').value = '';
+            
+            // Resetear radio button
+            const radioNo = document.querySelector('input[name="tieneOtrasMascotas"][value="false"]');
+            if (radioNo) radioNo.checked = true;
+            
+            // Limpiar input de archivos
+            document.getElementById('pruebasAdopcion').value = '';
+            
+        } catch (error) {
+            console.error('Error cargando datos del usuario:', error);
+            // Fallback: usar email como nombre
+            document.getElementById('solicitanteNombre').value = this.usuarioActual.email.split('@')[0];
+        }
+        
+        // Configurar evento del formulario
+        const form = document.getElementById('formSolicitudAdopcion');
+        if (form) {
+            form.onsubmit = (e) => this.enviarSolicitudAdopcion(e, pub);
+        }
+    }
+
+    // Cerrar modal
+    cerrarModalSolicitud() {
+        const modal = document.getElementById('modalSolicitudAdopcion');
+        if (modal) modal.style.display = 'none';
+        document.getElementById('formSolicitudAdopcion').reset();
+    }
+
+    // Enviar solicitud
+    async enviarSolicitudAdopcion(e, pub) {
+        e.preventDefault();
+        
+        // Procesar pruebas (fotos)
+        const pruebasInput = document.getElementById('pruebasAdopcion');
+        const pruebas = [];
+        
+        for (const file of pruebasInput.files) {
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire('Error', 'Las imágenes no deben superar los 2MB', 'warning');
+                return;
+            }
+            const base64 = await this.convertirImagenABase64(file);
+            pruebas.push(base64);
+        }
+        
+        const tieneOtrasMascotas = document.querySelector('input[name="tieneOtrasMascotas"]:checked')?.value === 'true';
+        
+        const solicitud = {
+            publicacionId: pub.id,
+            veterinarioId: pub.veterinarioId,
+            usuarioId: this.usuarioActual.uid,
+            usuarioNombre: document.getElementById('solicitanteNombre').value,
+            usuarioEmail: document.getElementById('solicitanteEmail').value,
+            telefono: document.getElementById('solicitanteTelefono').value,
+            direccion: document.getElementById('solicitanteDireccion').value,
+            mensaje: document.getElementById('mensajeAdopcion').value,
+            experiencia: document.getElementById('experienciaMascotas').value || '',
+            tieneOtrasMascotas: tieneOtrasMascotas,
+            pruebas: pruebas,
+            estado: 'pendiente',
+            fechaSolicitud: new Date().toISOString()
+        };
+        
+        try {
+            Swal.fire({
+                title: 'Enviando solicitud...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+            
+            await addDoc(collection(db, 'solicitudesAdopcion'), solicitud);
+            
+            Swal.fire({
+                icon: 'success',
+                title: '¡Solicitud enviada!',
+                text: 'El veterinario revisará tu solicitud y se pondrá en contacto contigo.',
+                confirmButtonColor: '#ff6b6b'
+            });
+            
+            this.cerrarModalSolicitud();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudo enviar la solicitud', 'error');
+        }
+    }
+
+    // Convertir imagen a Base64
+    convertirImagenABase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+        });
+    }
+    //mandar reclamo de mascota
+    async abrirModalReclamo(pub) {
+        if (!this.usuarioActual) {
+            Swal.fire('Inicia sesión', 'Debes iniciar sesión para reclamar una mascota', 'warning');
+            return;
+        }
+        
+        this.publicacionActual = pub;
+        
+        const modal = document.getElementById('modalReclamoMascota');
+        if (modal) modal.style.display = 'flex';
+        
+        // Cargar datos del usuario desde Firestore
+        try {
+            const userRef = doc(db, 'usarios', this.usuarioActual.uid);
+            const userSnap = await getDoc(userRef);
+            
+            let nombreCompleto = '';
+            let telefono = '';
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                const primerNombre = userData.primer_nombre || '';
+                const segundoNombre = userData.segundo_nombre ? userData.segundo_nombre + ' ' : '';
+                const apellidoPaterno = userData.apellido_paterno || '';
+                const apellidoMaterno = userData.apellido_materno ? userData.apellido_materno : '';
+                
+                nombreCompleto = `${primerNombre} ${segundoNombre}${apellidoPaterno} ${apellidoMaterno}`.trim();
+                telefono = userData.telefono || '';
+            }
+            
+            if (!nombreCompleto) {
+                nombreCompleto = this.usuarioActual.displayName || this.usuarioActual.email.split('@')[0];
+            }
+            
+            document.getElementById('reclamanteNombre').value = nombreCompleto;
+            document.getElementById('reclamanteEmail').value = this.usuarioActual.email || '';
+            document.getElementById('reclamanteTelefono').value = telefono;
+            
+        } catch (error) {
+            console.error('Error cargando datos:', error);
+            document.getElementById('reclamanteNombre').value = this.usuarioActual.email.split('@')[0];
+            document.getElementById('reclamanteEmail').value = this.usuarioActual.email || '';
+        }
+        
+        document.getElementById('descripcionReclamo').value = '';
+        document.getElementById('pruebasReclamo').value = '';
+        
+        const form = document.getElementById('formReclamoMascota');
+        form.onsubmit = (e) => this.enviarReclamo(e, pub);
+    }
+
+    cerrarModalReclamo() {
+        const modal = document.getElementById('modalReclamoMascota');
+        if (modal) modal.style.display = 'none';
+        document.getElementById('formReclamoMascota').reset();
+    }
+
+    async enviarReclamo(e, pub) {
+        e.preventDefault();
+        
+        // Procesar pruebas
+        const pruebasInput = document.getElementById('pruebasReclamo');
+        const pruebas = [];
+        
+        if (pruebasInput.files.length === 0) {
+            Swal.fire('Error', 'Debes subir al menos una prueba', 'warning');
+            return;
+        }
+        
+        for (const file of pruebasInput.files) {
+            if (file.size > 2 * 1024 * 1024) {
+                Swal.fire('Error', 'Las imágenes no deben superar los 2MB', 'warning');
+                return;
+            }
+            const base64 = await this.convertirImagenABase64(file);
+            pruebas.push(base64);
+        }
+        
+        const reclamo = {
+            publicacionId: pub.id,
+            veterinarioId: pub.veterinarioId,
+            usuarioId: this.usuarioActual.uid,
+            usuarioNombre: document.getElementById('reclamanteNombre').value,
+            usuarioEmail: document.getElementById('reclamanteEmail').value,
+            telefono: document.getElementById('reclamanteTelefono').value,
+            descripcion: document.getElementById('descripcionReclamo').value,
+            pruebas: pruebas,
+            estado: 'pendiente',
+            fechaReclamo: new Date().toISOString()
+        };
+        
+        if (!reclamo.usuarioNombre || !reclamo.usuarioEmail || !reclamo.telefono || !reclamo.descripcion) {
+            Swal.fire('Campos incompletos', 'Por favor completa todos los campos requeridos', 'warning');
+            return;
+        }
+        
+        try {
+            Swal.fire({
+                title: 'Enviando reclamo...',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading()
+            });
+            
+            await addDoc(collection(db, 'reclamosMascotas'), reclamo);
+            
+            Swal.fire({
+                icon: 'success',
+                title: '¡Reclamo enviado!',
+                text: 'El veterinario revisará tu reclamo y se pondrá en contacto contigo.',
+                confirmButtonColor: '#3b82f6'
+            });
+            
+            this.cerrarModalReclamo();
+            
+        } catch (error) {
+            console.error('Error:', error);
+            Swal.fire('Error', 'No se pudo enviar el reclamo', 'error');
+        }
+    }
+
+
 
     // FUNCIÓN PARA ABRIR LA IMAGEN EN GRANDE CON SWEETALERT
     abrirImagenModal(url) {

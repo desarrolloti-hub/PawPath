@@ -3,33 +3,48 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nueva Publicación - Foro de Mascotas</title>
-    <link rel="stylesheet" href="">
-    
+    <title>Nueva Publicación - PawPath</title>
+    <link rel="stylesheet" href="./FormularioForo.css">
+    <link rel="icon" href="/assets/images/PawPahtLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
-
 <body>
     <!-- Navbar dinámico -->
     <navbar-visitor></navbar-visitor>
-    <div class="container-full">
-        <div class="header">
-            <h1><i class="fas fa-paw"></i> Foro de Mascotas</h1>
-            <p>Comparte, ayuda y aprende sobre el cuidado de mascotas</p>
-        </div>
 
+    <div class="forum-container">
+        <!-- Header -->
+        <header class="forum-header">
+            <div class="header-left">
+                <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="forum-logo">
+                <h1>PawPath · Nueva Publicación</h1>
+            </div>
+            <div class="header-right">
+                <a href="/user/visitor/foro/foro.html" class="btn btn-outline btn-sm">
+                    <i class="fas fa-arrow-left"></i> Volver al foro
+                </a>
+            </div>
+        </header>
+
+        <!-- Formulario -->
         <div class="form-container">
             <div class="form-header">
-                <h2><i class="fas fa-plus-circle"></i> Nueva Publicación</h2>
-                <a href="/user/visitor/foro/foro.html" class="btn-cancelar">
+                <h2>
+                    <i class="fas fa-plus-circle"></i> 
+                    Crear nueva publicación
+                </h2>
+                <a href="/user/visitor/foro/foro.html" class="btn btn-secondary btn-sm">
                     <i class="fas fa-times"></i> Cancelar
                 </a>
             </div>
             
-            <form id="formPublicacion" class="form-publicacion-full">
+            <form id="formPublicacion">
                 <input type="hidden" id="publicacionId">
                 
                 <div class="form-grid">
@@ -58,7 +73,7 @@
                             <label for="descripcion">
                                 <i class="fas fa-align-left"></i> Descripción/Contenido *
                             </label>
-                            <textarea id="descripcion" rows="6" placeholder="Describe tu publicación..." required></textarea>
+                            <textarea id="descripcion" rows="6" placeholder="Describe tu publicación con detalles importantes..." required></textarea>
                         </div>
 
                         <div class="form-group">
@@ -80,14 +95,14 @@
                             <label for="contacto">
                                 <i class="fas fa-phone"></i> Contacto *
                             </label>
-                            <input type="text" id="contacto" placeholder="Teléfono o email" required>
+                            <input type="text" id="contacto" placeholder="Teléfono o email para que te contacten" required>
                         </div>
 
                         <div id="recompensaGroup" class="form-group conditional-field" style="display: none;">
                             <label for="recompensa">
                                 <i class="fas fa-trophy"></i> Recompensa
                             </label>
-                            <input type="text" id="recompensa" placeholder="Ej: $1000 pesos">
+                            <input type="text" id="recompensa" placeholder="Ej: $1000 pesos o una recompensa especial">
                         </div>
 
                         <div id="fechaEventoGroup" class="form-group conditional-field" style="display: none;">
@@ -109,11 +124,16 @@
                                     <input type="file" id="fotos" accept="image/*" multiple>
                                     <span class="fotos-count" id="fotosCount">0/5</span>
                                 </div>
+                                <p style="font-size: 12px; color: #64748b; margin-top: 10px;">
+                                    <i class="fas fa-info-circle"></i> Formatos: JPG, PNG, GIF. Máx 2MB por foto
+                                </p>
                             </div>
                         </div>
 
                         <div id="seccionMapa" class="mapa-section" style="display: none;">
-                            <h3><i class="fas fa-map-marked-alt"></i> Ubicación en el mapa *</h3>
+                            <h3>
+                                <i class="fas fa-map-marked-alt"></i> Ubicación en el mapa *
+                            </h3>
                             
                             <div id="mapa" class="mapa-container"></div>
                             
@@ -121,7 +141,9 @@
                                 <button type="button" id="btnMiUbicacion" class="btn-mapa">
                                     <i class="fas fa-location-dot"></i> Usar mi ubicación
                                 </button>
-                                <span class="mapa-hint">Haz clic en el mapa para colocar el marcador</span>
+                                <span class="mapa-hint">
+                                    <i class="fas fa-mouse-pointer"></i> Haz clic en el mapa para colocar el marcador
+                                </span>
                             </div>
                             
                             <div class="coordenadas-info" id="coordenadasInfo">
@@ -132,11 +154,11 @@
                             <input type="hidden" id="coordenadasLat">
                             <input type="hidden" id="coordenadasLng">
                             
-                            <div class="form-group" style="margin-top: 20px;">
+                            <div class="form-group" style="margin-top: 16px;">
                                 <label for="ubicacionTexto">
                                     <i class="fas fa-map-marker-alt"></i> Dirección / Referencia *
                                 </label>
-                                <input type="text" id="ubicacionTexto" placeholder="Ej: Parque Central, Colonia Centro">
+                                <input type="text" id="ubicacionTexto" placeholder="Ej: Parque Central, Colonia Centro, cerca del supermercado">
                             </div>
                         </div>
                     </div>
@@ -152,12 +174,17 @@
                 </div>
             </form>
         </div>
+
+        <footer class="forum-footer">
+            <p>© 2025 PawPath - Foro Interactivo de Mascotas. Todos los derechos reservados.</p>
+            <p style="font-size: 12px; margin-top: 8px;">
+                <i class="fas fa-heart" style="color: #ef4444;"></i> 
+                Comparte, ayuda y aprende sobre el cuidado de mascotas
+            </p>
+        </footer>
     </div>
-    
+
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
     <script type="module" src="FormularioForo.js"></script>
-    <script type="module" src="/config/personalisacion.js"></script>
-        <script type="module" src="/components/JS navbar-visitor-component.js"></script>
-
 </body>
 </html>

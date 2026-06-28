@@ -1,5 +1,8 @@
 // /user/visitor/FormularioForo/FormularioForo.js
 import FormularioForo from '/classes/FormularioForo.js';
+import { auth } from '/config/firebase-config.js';
+import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+import { db } from '/config/firebase-config.js';
 
 class ControladorFormularioForo {
     constructor() {
@@ -32,96 +35,118 @@ class ControladorFormularioForo {
         this.mapa = null;
         this.marcador = null;
         
-        this.usuarioId = this.obtenerUsuarioId();
-        this.usuarioNombre = this.obtenerUsuarioNombre();
+        this.usuarioId = null;
+        this.usuarioNombre = null;
+        this.usuarioData = null;
         
         this.inicializar();
     }
     
-    obtenerUsuarioId() {
-        try {
-            const sessionData = localStorage.getItem('userSession');
-            if (!sessionData) {
-                console.warn('No hay sesión activa (userSession)');
-                return 'usuario_demo_' + Date.now();
-            }
-
-            let parsedData;
-            try {
-                parsedData = JSON.parse(sessionData);
-            } catch (e) {
-                console.warn('userSession no es un objeto JSON válido, se tratará como string');
-                parsedData = sessionData;
-            }
-
-            if (typeof parsedData === 'string') {
-                return parsedData;
-            }
-
-            const posiblesId = [
-                parsedData.uid,
-                parsedData.userId,
-                parsedData.id,
-                parsedData.localId,
-                parsedData.sub,        
-                parsedData.user_id,
-                parsedData.userid
-            ].find(val => val !== undefined && val !== null);
-
-            if (posiblesId) return posiblesId;
-
-            if (parsedData.email) {
-                console.warn('No se encontró un ID, usando email como identificador');
-                return parsedData.email;
-            }
-
-            return 'usuario_demo_' + Date.now();
-        } catch (error) {
-            console.error('Error en obtenerUsuarioId:', error);
-            return 'usuario_demo_' + Date.now();
-        }
+    async obtenerDatosUsuario() {
+        return new Promise((resolve) => {
+            const unsubscribe = auth.onAuthStateChanged(async (user) => {
+                if (user) {
+                    this.usuarioId = user.uid;
+                    console.log('✅ Usuario autenticado UID:', this.usuarioId);
+                    
+                    try {
+                        const usersRef = collection(db, 'users');
+                        const q = query(usersRef, where('uid', '==', user.uid));
+                        const querySnapshot = await getDocs(q);
+                        
+                        if (!querySnapshot.empty) {
+                            this.usuarioData = querySnapshot.docs[0].data();
+                            console.log('📝 Datos del usuario desde Firestore:', this.usuarioData);
+                            
+                            const nombre = this.usuarioData.user_primer_nombre || 
+                                          this.usuarioData.primer_nombre || 
+                                          this.usuarioData.nombre || 
+                                          '';
+                            const apellido = this.usuarioData.user_appellido_paterno || 
+                                            this.usuarioData.apellido_paterno || 
+                                            this.usuarioData.apellido || 
+                                            '';
+                            
+                            if (nombre && apellido) {
+                                this.usuarioNombre = `${nombre} ${apellido}`;
+                            } else if (nombre) {
+                                this.usuarioNombre = nombre;
+                            } else if (user.displayName) {
+                                this.usuarioNombre = user.displayName;
+                            } else {
+                                this.usuarioNombre = user.email?.split('@')[0] || 'Usuario';
+                            }
+                        } else {
+                            console.log('⚠️ Usuario no encontrado en Firestore, usando datos de Auth');
+                            if (user.displayName) {
+                                this.usuarioNombre = user.displayName;
+                            } else {
+                                this.usuarioNombre = user.email?.split('@')[0] || 'Usuario';
+                            }
+                        }
+                        
+                        console.log('👤 Nombre del usuario que se guardará:', this.usuarioNombre);
+                        
+                    } catch (error) {
+                        console.error('❌ Error obteniendo datos del usuario:', error);
+                        this.usuarioNombre = user.displayName || user.email?.split('@')[0] || 'Usuario';
+                    }
+                    
+                    resolve(true);
+                } else {
+                    console.warn('⚠️ No hay usuario autenticado');
+                    this.usuarioId = null;
+                    this.usuarioNombre = null;
+                    resolve(false);
+                }
+                
+                unsubscribe();
+            });
+        });
     }
     
-    obtenerUsuarioNombre() {
-        try {
-            const sessionData = localStorage.getItem('userSession');
-            if (!sessionData) return 'Usuario Demo';
-
-            let parsedData;
-            try {
-                parsedData = JSON.parse(sessionData);
-            } catch (e) {
-                return 'Usuario';
-            }
-
-            if (typeof parsedData === 'string') return 'Usuario';
-
-            const posiblesNombre = [
-                parsedData.nombre_completo,
-                parsedData.displayName,
-                parsedData.name,
-                parsedData.userName,
-                parsedData.nombre,
-                parsedData.fullName,
-                parsedData.email ? parsedData.email.split('@')[0] : null
-            ].find(val => val !== undefined && val !== null && val !== '');
-
-            if (posiblesNombre) return posiblesNombre;
-
-            if (parsedData.email) {
-                return parsedData.email.split('@')[0];
-            }
-
-            return 'Usuario';
-        } catch (error) {
-            console.error('Error en obtenerUsuarioNombre:', error);
-            return 'Usuario';
+    async inicializar() {
+        const usuarioAutenticado = await this.obtenerDatosUsuario();
+        
+        if (!usuarioAutenticado) {
+            this.mostrarMensajeNoAutenticado();
+            this.btnGuardar.disabled = true;
+            this.btnGuardar.style.opacity = '0.5';
+            this.btnGuardar.style.cursor = 'not-allowed';
         }
-    }
-    
-    inicializar() {
+        
         this.configurarEventos();
         this.cargarDatosSiEdicion();
+    }
+    
+    mostrarMensajeNoAutenticado() {
+        const formContainer = document.querySelector('.form-container');
+        const mensajeNoAuth = document.createElement('div');
+        mensajeNoAuth.style.cssText = `
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 20px;
+            margin: 20px 32px;
+            border-radius: 12px;
+            text-align: center;
+        `;
+        mensajeNoAuth.innerHTML = `
+            <i class="fas fa-exclamation-triangle" style="font-size: 24px; color: #f59e0b; margin-bottom: 10px; display: block;"></i>
+            <strong style="color: #92400e;">¡Inicia sesión para publicar!</strong>
+            <p style="color: #b45309; margin-top: 8px;">Debes iniciar sesión para crear publicaciones en PawPath</p>
+            <button id="btnIrLogin" class="btn btn-primary btn-sm" style="margin-top: 12px; background: #f59e0b;">
+                <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+            </button>
+        `;
+        
+        const formHeader = document.querySelector('.form-header');
+        if (formHeader && formContainer) {
+            formContainer.insertBefore(mensajeNoAuth, formHeader.nextSibling);
+            
+            document.getElementById('btnIrLogin')?.addEventListener('click', () => {
+                window.location.href = '/login.html';
+            });
+        }
     }
     
     configurarEventos() {
@@ -203,14 +228,14 @@ class ControladorFormularioForo {
         
         this.coordenadasLat.value = lat;
         this.coordenadasLng.value = lng;
-        this.coordenadasTexto.textContent = `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+        this.coordenadasTexto.textContent = `📍 Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
         
         this.obtenerDireccionDesdeCoordenadas(lat, lng);
     }
     
     async obtenerDireccionDesdeCoordenadas(lat, lng) {
         try {
-            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&addressdetails=1`);
             const data = await response.json();
             
             if (data.display_name) {
@@ -227,8 +252,16 @@ class ControladorFormularioForo {
             return;
         }
         
+        Swal.fire({
+            title: 'Obteniendo ubicación',
+            text: 'Por favor espera...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+        
         navigator.geolocation.getCurrentPosition(
             (position) => {
+                Swal.close();
                 const { latitude, longitude } = position.coords;
                 
                 if (!this.mapa) {
@@ -239,10 +272,11 @@ class ControladorFormularioForo {
                 this.mapa.setView([latitude, longitude], 16);
             },
             (error) => {
+                Swal.close();
                 let mensaje = 'Error obteniendo ubicación';
                 switch(error.code) {
                     case error.PERMISSION_DENIED:
-                        mensaje = 'Permiso de ubicación denegado';
+                        mensaje = 'Permiso de ubicación denegado. Actívalo para usar esta función';
                         break;
                     case error.POSITION_UNAVAILABLE:
                         mensaje = 'Información de ubicación no disponible';
@@ -266,7 +300,7 @@ class ControladorFormularioForo {
                 this.titulo.value = publicacion.titulo;
                 this.tipo.value = publicacion.tipo;
                 this.descripcion.value = publicacion.descripcion;
-                this.categoria.value = publicacion.categoria;
+                this.categoria.value = publicacion.categoria || '';
                 this.ubicacionTexto.value = publicacion.ubicacionTexto || '';
                 this.contacto.value = publicacion.contacto;
                 this.recompensa.value = publicacion.recompensa || '';
@@ -277,7 +311,7 @@ class ControladorFormularioForo {
                     this.coordenadasLng.value = publicacion.coordenadas.lng;
                 }
                 
-                this.fotosSeleccionadas = [...publicacion.fotos];
+                this.fotosSeleccionadas = [...(publicacion.fotos || [])];
                 this.mostrarPreviewsFotos();
                 this.actualizarCamposPorTipo();
                 
@@ -288,23 +322,49 @@ class ControladorFormularioForo {
                     }
                 }, 200);
                 
-                this.btnGuardar.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+                this.btnGuardar.innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar publicación';
             }
         } catch (error) {
             console.error('Error cargando publicación:', error);
+            this.mostrarAlerta('Error', 'No se pudo cargar la publicación', 'error');
         }
     }
     
     async guardarPublicacion() {
-        if (!this.usuarioId || this.usuarioId.startsWith('usuario_demo_')) {
-            this.mostrarAlerta('Error', 'Debes iniciar sesión para publicar', 'error');
+        if (!this.usuarioId) {
+            const result = await Swal.fire({
+                title: "🐾 ¡Inicia sesión!",
+                html: `
+                    <div style="text-align: center;">
+                        <i class="fas fa-lock" style="font-size: 48px; color: #3b82f6; margin-bottom: 15px;"></i>
+                        <p style="margin-bottom: 10px;">Debes iniciar sesión para <strong>publicar en PawPath</strong></p>
+                        <p style="color: #64748b;">¡Regístrate y comparte con la comunidad!</p>
+                    </div>
+                `,
+                icon: "warning",
+                confirmButtonText: "Iniciar sesión",
+                cancelButtonText: "Cancelar",
+                showCancelButton: true,
+                confirmButtonColor: "#3b82f6",
+                cancelButtonColor: "#64748b",
+                allowOutsideClick: false
+            });
+            
+            if (result.isConfirmed) {
+                window.location.href = "/login.html";
+            }
             return;
         }
         
         const tipoSeleccionado = this.tipo.value;
+        if (!tipoSeleccionado) {
+            this.mostrarAlerta('Campos requeridos', 'Selecciona un tipo de publicación', 'warning');
+            return;
+        }
+        
         if ((tipoSeleccionado === 'Mascota Perdida' || tipoSeleccionado === 'En Adopción') && 
             (!this.coordenadasLat.value || !this.coordenadasLng.value)) {
-            this.mostrarAlerta('Error', 'Debes seleccionar una ubicación en el mapa', 'warning');
+            this.mostrarAlerta('Ubicación requerida', 'Debes seleccionar una ubicación en el mapa', 'warning');
             return;
         }
         
@@ -315,7 +375,7 @@ class ControladorFormularioForo {
         
         const publicacion = new FormularioForo(
             this.titulo.value,
-            this.tipo.value,
+            tipoSeleccionado,
             this.descripcion.value,
             this.categoria.value,
             this.ubicacionTexto.value,
@@ -337,7 +397,7 @@ class ControladorFormularioForo {
         
         Swal.fire({
             title: 'Publicando...',
-            text: 'Por favor espere',
+            text: 'Por favor espera',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -346,10 +406,16 @@ class ControladorFormularioForo {
         Swal.close();
         
         if (resultado.success) {
-            this.mostrarAlerta('Éxito', resultado.message, 'success');
-            setTimeout(() => {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Publicado!',
+                text: resultado.message,
+                confirmButtonColor: '#3b82f6',
+                timer: 2000,
+                showConfirmButton: true
+            }).then(() => {
                 window.location.href = '/user/visitor/foro/foro.html';
-            }, 1500);
+            });
         } else {
             this.mostrarAlerta('Error', resultado.error, 'error');
         }
@@ -394,9 +460,12 @@ class ControladorFormularioForo {
             container.className = 'foto-preview-item';
             container.innerHTML = `
                 <img src="${foto}">
-                <button class="btn-eliminar-foto" data-index="${index}"><i class="fas fa-times"></i></button>
+                <button class="btn-eliminar-foto" data-index="${index}">
+                    <i class="fas fa-times"></i>
+                </button>
             `;
-            container.querySelector('.btn-eliminar-foto').addEventListener('click', () => {
+            container.querySelector('.btn-eliminar-foto').addEventListener('click', (e) => {
+                e.stopPropagation();
                 this.fotosSeleccionadas.splice(index, 1);
                 this.mostrarPreviewsFotos();
             });
@@ -408,8 +477,8 @@ class ControladorFormularioForo {
         Swal.fire({
             icon: tipo,
             title: titulo,
-            text: mensaje,
-            confirmButtonColor: '#ff6b6b'
+            html: mensaje,
+            confirmButtonColor: '#3b82f6'
         });
     }
 }

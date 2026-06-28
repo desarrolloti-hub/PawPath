@@ -1,4 +1,7 @@
 import Admin_usuarios from "/classes/admin_usuarios.js";
+// 👇 IMPORTAR AuthManager
+import { auth } from '/config/firebase-config.js';
+import { signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
 console.log("📦 Módulo controlador cargado");
 console.log("📦 Admin_usuarios importado:", Admin_usuarios);
@@ -14,7 +17,6 @@ class Admin_usuariosController {
         console.log("📊 Estado del DOM:", document.readyState);
 
         if (document.readyState === 'loading') {
-            console.log("⏳ DOM cargando, esperando evento...");
             document.addEventListener('DOMContentLoaded', () => {
                 console.log("✅ Evento DOMContentLoaded recibido");
                 this.cargarUsuarios();
@@ -37,12 +39,12 @@ class Admin_usuariosController {
     async cargarUsuarios() {
         console.log("🔄 Método cargarUsuarios() ejecutándose");
         try {
-            console.log("🔄 Llamando a Admin_usuarios.obtenerUsuarios()...");
+            console.log("🔄 Llamando a Admin_usuarios.obtenerUsuarios()...")
             const resultado = await Admin_usuarios.obtenerUsuarios();
             console.log("📦 Resultado recibido:", resultado);
 
             if (resultado.success) {
-                console.log('Usuarios cargados:', resultado.usuarios.length);
+                console.log('Usuarios cargados:', resultado.usuarios);
                 this.renderizarTabla(resultado.usuarios);
             } else {
                 this.mostrarAlerta('Error', resultado.error, 'error');
@@ -79,15 +81,14 @@ class Admin_usuariosController {
 
             const row = tbody.insertRow();
             
-            // Clase para usuarios suspendidos (fondo transparente)
+            // ✅ AGREGADO: Clase para usuarios suspendidos (fondo transparente)
             if (usuario.suspendido) {
                 row.classList.add('usuario-suspendido');
             }
 
-            // Determinar texto e icono del botón según estado
+            // Determinar texto del botón según estado
             const botonTexto = usuario.suspendido ? 'Reactivar' : 'Suspender';
             const botonIcono = usuario.suspendido ? 'fa-check-circle' : 'fa-ban';
-            const botonClase = usuario.suspendido ? 'btn-reactivar' : 'btn-suspender';
             const botonTitulo = usuario.suspendido ? 'Reactivar usuario' : 'Suspender usuario';
 
             row.innerHTML = `
@@ -100,7 +101,7 @@ class Admin_usuariosController {
                     <button class="btn-eliminar" onclick="admin_usuariosController.eliminarUsuario('${usuario.id}')" title="Eliminar usuario">
                         <i class="fas fa-trash"></i>
                     </button>
-                    <button class="${botonClase}" 
+                    <button class="btn-${usuario.suspendido ? 'reactivar' : 'suspender'}" 
                             onclick="admin_usuariosController.suspenderUsuario('${usuario.id}')" 
                             title="${botonTitulo}">
                         <i class="fas ${botonIcono}"></i> ${botonTexto}
@@ -114,8 +115,10 @@ class Admin_usuariosController {
 
     configurarBuscador() {
         const inputBuscar = document.getElementById('buscarNombre');
-        if (!inputBuscar) return;
-        
+        if (!inputBuscar) {
+            console.warn('⚠️ No se encontró el input de búsqueda');
+            return;
+        }
         let timeoutId;
         inputBuscar.addEventListener('input', (e) => {
             clearTimeout(timeoutId);
@@ -123,11 +126,18 @@ class Admin_usuariosController {
                 this.buscarUsuario(e.target.value);
             }, 300);
         });
+        inputBuscar.addEventListener('keypress', (e) => {
+            if (e.key == 'Enter') {
+                clearTimeout(timeoutId);
+                this.buscarUsuario(e.target.value);
+            }
+        });
     }
 
     async buscarUsuario(termino) {
+        console.log('🔍 Buscando usuarios con término:', termino);
         try {
-            if (!termino || termino.trim() === '') {
+            if (!termino || termino.trim() == '') {
                 this.cargarUsuarios();
                 return;
             }
@@ -136,8 +146,9 @@ class Admin_usuariosController {
                 this.mostrarNotificacion("Error al buscar", "error");
                 return;
             }
+            console.log(`📊 ${resultado.usuarios.length} usuarios encontrados`);
 
-            if (resultado.usuarios.length === 0) {
+            if (resultado.usuarios.length == 0) {
                 const tbody = document.getElementById("tabla-usuarios");
                 if (tbody) {
                     tbody.innerHTML = '<tr><td colspan="6" class="text-center">No se encontraron usuarios</td></tr>';
@@ -151,7 +162,7 @@ class Admin_usuariosController {
         }
     }
 
-    // ========== MÉTODO SUSPENDER USUARIO CORREGIDO ==========
+    // ============ MÉTODO SUSPENDER USUARIO MEJORADO ============
     async suspenderUsuario(id) {
         try {
             console.log('🔒 Preparando suspensión/activación de usuario:', id);
@@ -169,11 +180,11 @@ class Admin_usuariosController {
 
             const usuario = resultado.usuario;
             const nombreUsuario = `${usuario.nombre} ${usuario.apellidos}`.trim() || 'este usuario';
-            const suspendido = usuario.suspendido === true; // Estado actual
+            const suspendido = usuario.suspendido === true;
 
             console.log('📊 Estado actual del usuario:', suspendido ? 'SUSPENDIDO' : 'ACTIVO');
 
-            const esSuspender = !suspendido; // Si no está suspendido, vamos a suspender
+            const esSuspender = !suspendido;
             const titulo = esSuspender ? '¿Suspender usuario?' : '¿Reactivar usuario?';
             const mensaje = esSuspender
                 ? `¿Estás seguro de que deseas suspender a <strong>${nombreUsuario}</strong>?`
@@ -185,7 +196,6 @@ class Admin_usuariosController {
             const botonColor = esSuspender ? '#ffc107' : '#28a745';
             const botonTexto = esSuspender ? '<i class="fas fa-ban"></i> Sí, suspender' : '<i class="fas fa-check-circle"></i> Sí, reactivar';
 
-            // Confirmar con SweetAlert
             const confirmar = await Swal.fire({
                 title: titulo,
                 html: `
@@ -205,7 +215,7 @@ class Admin_usuariosController {
 
             this.mostrarLoading(true);
 
-            // Ejecutar la acción
+            // 1️⃣ PRIMERO: Actualizar en Firestore
             const admin_usuarios2 = new Admin_usuarios();
             admin_usuarios2.id = id;
 
@@ -219,7 +229,36 @@ class Admin_usuariosController {
                 resultadoOperacion = await admin_usuarios2.reactivarUsuario();
             }
 
-            console.log('📥 Resultado:', resultadoOperacion);
+            // 2️⃣ SEGUNDO: Si se suspendió y ES EL MISMO ADMIN, forzar logout
+            if (esSuspender && resultadoOperacion.success) {
+                try {
+                    // Verificar si el usuario suspendido es el mismo que está logueado
+                    const currentUser = auth.currentUser;
+                    
+                    if (currentUser && currentUser.uid === id) {
+                        console.log('⚠️ El admin se está suspendiendo a sí mismo. Cerrando sesión...');
+                        
+                        // Mostrar mensaje especial
+                        Swal.fire({
+                            title: 'Te has suspendido',
+                            text: 'Has suspendido tu propia cuenta. Cerrando sesión...',
+                            icon: 'info',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        
+                        // Forzar logout
+                        await signOut(auth);
+                        
+                        // Redirigir al login después de 2 segundos
+                        setTimeout(() => {
+                            window.location.href = '/user/visitor/login/login.html';
+                        }, 2000);
+                    }
+                } catch (logoutError) {
+                    console.error('Error al cerrar sesión del admin:', logoutError);
+                }
+            }
 
             this.mostrarLoading(false);
 
@@ -250,34 +289,25 @@ class Admin_usuariosController {
         try {
             console.log('🗑️ Preparando eliminación de usuario:', id);
 
+            // Obtener información del usuario
             const admin_usuarios = new Admin_usuarios();
             admin_usuarios.id = id;
 
             const resultado = await admin_usuarios.listarUsuarios(id);
             if (resultado.success) {
                 const usuario = resultado.usuario;
-                const nombreSpan = document.getElementById('nombreUsuarioEliminar');
-                const infoDiv = document.getElementById('infoUsuarioEliminar');
-                
-                if (nombreSpan && infoDiv) {
-                    nombreSpan.textContent = `${usuario.nombre} ${usuario.apellidos}`.trim();
-                    infoDiv.style.display = 'block';
-                }
+                document.getElementById('nombreUsuarioEliminar').textContent =
+                    `${usuario.nombre} ${usuario.apellidos}`;
+                document.getElementById('infoUsuarioEliminar').style.display = 'block';
             }
 
             const btnConfirmar = document.getElementById('btnConfirmarEliminar');
-            if (!btnConfirmar) {
-                console.error('❌ Botón de confirmación no encontrado');
-                return;
-            }
-
             btnConfirmar.replaceWith(btnConfirmar.cloneNode(true));
             const nuevoBtnConfirmar = document.getElementById('btnConfirmarEliminar');
 
             nuevoBtnConfirmar.addEventListener('click', async () => {
-                const modalEl = document.getElementById('modalConfirmarEliminar');
-                const modal = bootstrap.Modal.getInstance(modalEl);
-                if (modal) modal.hide();
+                const modal = bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEliminar'));
+                modal.hide();
 
                 this.mostrarLoading(true);
 
@@ -286,15 +316,21 @@ class Admin_usuariosController {
                     admin_usuarios.id = id;
 
                     const resultadoEliminacion = await admin_usuarios.eliminarUsuario();
-                    console.log('📦 Resultado:', resultadoEliminacion);
 
                     this.mostrarLoading(false);
 
                     if (resultadoEliminacion.success) {
-                        this.mostrarNotificacion('Usuario eliminado correctamente', 'success');
-                        setTimeout(() => {
-                            this.cargarUsuarios();
-                        }, 500);
+                        // Si el usuario eliminado es el admin actual, cerrar sesión
+                        const currentUser = auth.currentUser;
+                        if (currentUser && currentUser.uid === id) {
+                            await signOut(auth);
+                            setTimeout(() => {
+                                window.location.href = '/user/visitor/login/login.html';
+                            }, 2000);
+                        } else {
+                            this.mostrarNotificacion('Usuario eliminado correctamente', 'success');
+                            setTimeout(() => this.cargarUsuarios(), 500);
+                        }
                     } else {
                         this.mostrarNotificacion(resultadoEliminacion.error || 'Error al eliminar', 'error');
                     }

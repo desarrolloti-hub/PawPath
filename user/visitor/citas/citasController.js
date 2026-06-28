@@ -2,6 +2,7 @@ import { auth } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import Citas from '/classes/Citas.js';
 import Veterinario from '/classes/Veterinario.js';
+import Mascota from '/classes/mascotas.js';
 
 class CitasController {
     constructor() {
@@ -17,7 +18,12 @@ class CitasController {
         this.vetSeleccionado = sessionStorage.getItem('vetSeleccionado');
         this.vetModel = new Veterinario();
         this.veterinarios = [];
-
+        this.mascotaModel = null; // para instanciar Mascota
+        this.mascotasUsuario = [];
+        this.mascotaSeleccionada = null;
+        this.modalMascota = null; // referencia al modal de mascotas
+        // this.modalMascota = null;
+        this.fotoDataUrlModal = '';
         this.initialize();
     }
 
@@ -29,7 +35,20 @@ class CitasController {
             this.citasModel = new Citas();
             this.getDOMElements();
 
+            // Inicializar modal de mascotas
+            this.inicializarModalMascotas();
+
+            if (this.btnGuardarModalMascota) {
+                        this.btnGuardarModalMascota.onclick = () => this.guardarMascotaDesdeModal();
+            }
+
+            // PRIMERO: Cargar veterinarios
             await this.cargarVeterinarios();
+
+            // SEGUNDO: Cargar mascotas del usuario
+            await this.cargarMascotasUsuario();
+
+            // await this.cargarVeterinarios();
 
             this.setupEventListeners();
             this.setMinDate();
@@ -51,6 +70,311 @@ class CitasController {
             this.mostrarError('Error al cargar la página. Por favor recarga.');
         }
     }
+
+    async cargarMascotasUsuario() {
+        const select = document.getElementById('mascotaSelector');
+        if (!select) return;
+
+        try {
+            const user = auth.currentUser;
+            if (!user) return;
+
+            const result = await Mascota.obtenerPorUsuario(user.uid);
+
+            if (result.success) {
+                this.mascotasUsuario = result.mascotas;
+
+                // Limpiar opciones excepto las primeras
+                let options = '<option value="">-- Selecciona una mascota --</option>';
+                options += '<option value="nueva">+ Registrar nueva mascota</option>';
+
+                this.mascotasUsuario.forEach(mascota => {
+                    options += `<option value="${mascota.id}">${mascota.nombre} (${mascota.especie})</option>`;
+                });
+
+                select.innerHTML = options;
+            }
+        } catch (error) {
+            console.error('Error cargando mascotas:', error);
+        }
+    }
+
+    async autocompletarConMascota(mascotaId) {
+        // Buscar en la lista de mascotas cargadas
+        let mascota = this.mascotasUsuario.find(m => m.id === mascotaId);
+        
+        // Si no está en la lista, recargar mascotas
+        if (!mascota) {
+            await this.cargarMascotasUsuario();
+            mascota = this.mascotasUsuario.find(m => m.id === mascotaId);
+        }
+        
+        if (!mascota) return;
+        
+        this.mascotaSeleccionada = mascota;
+        document.getElementById('mascotaId').value = mascota.id;
+        
+        // Autocompletar campos
+        document.getElementById('nombreMascota').value = mascota.nombre || '';
+        document.getElementById('especie').value = (mascota.especie || '').toLowerCase();
+        document.getElementById('raza').value = mascota.raza || '';
+        document.getElementById('genero').value = (mascota.genero || '').toLowerCase();
+        document.getElementById('edad').value = this.formatearEdad(mascota.edad);
+        document.getElementById('enfermedades').value = mascota.historialMedico || '';
+        
+        // Mostrar foto si existe
+        if (mascota.foto) {
+            const preview = document.getElementById('imagePreview');
+            const label = document.getElementById('fileUploadLabel');
+            if (preview) {
+                preview.innerHTML = `<img src="${mascota.foto}" alt="Preview" style="max-width: 100%; border-radius: 8px;">`;
+            }
+            if (label) {
+                label.style.display = 'none';
+            }
+            this.mascotaTieneFoto = true;
+        } else {
+            // Limpiar preview si no hay foto
+            const preview = document.getElementById('imagePreview');
+            const label = document.getElementById('fileUploadLabel');
+            if (preview) preview.innerHTML = '';
+            if (label) label.style.display = 'flex';
+            this.mascotaTieneFoto = false;
+        }
+        
+        // Ocultar mensaje de información
+        const infoContainer = document.getElementById('mascotaInfoContainer');
+        if (infoContainer) infoContainer.style.display = 'none';
+    }
+
+
+    formatearEdad(edad) {
+        if (!edad) return '';
+        if (edad < 1) {
+            const meses = Math.round(edad * 12);
+            return `${meses} ${meses === 1 ? 'mes' : 'meses'}`;
+        }
+        return `${edad} ${edad === 1 ? 'año' : 'años'}`;
+    }
+    
+    async onMascotaSelectorChange() {
+        const select = document.getElementById('mascotaSelector');
+        const value = select.value;
+        
+        if (value === 'nueva') {
+            // Abrir modal de registro de mascota
+            this.abrirModalMascotas();
+        } else if (value && value !== '') {
+            // Autocompletar con mascota existente
+            await this.autocompletarConMascota(value);
+        } else {
+            // Limpiar formulario
+            this.limpiarFormularioMascota();
+            document.getElementById('mascotaId').value = '';
+            this.mascotaSeleccionada = null;
+        }
+    }
+
+
+    limpiarFormularioMascota() {
+        document.getElementById('nombreMascota').value = '';
+        document.getElementById('especie').value = '';
+        document.getElementById('raza').value = '';
+        document.getElementById('genero').value = '';
+        document.getElementById('edad').value = '';
+        document.getElementById('enfermedades').value = '';
+
+        // Limpiar preview de imagen
+        const preview = document.getElementById('imagePreview');
+        const label = document.getElementById('fileUploadLabel');
+        if (preview) preview.innerHTML = '';
+        if (label) label.style.display = 'flex';
+        this.mascotaTieneFoto = false;
+    }
+
+    inicializarModalMascotas() {
+        this.modalMascota = document.getElementById('modalMascota');
+
+        if (!this.modalMascota) {
+            console.warn('Modal de mascotas no encontrado');
+            return;
+        }
+
+        // Elementos del modal
+        this.btnCerrarModalMascota = document.getElementById('btnCerrarModal');
+        this.btnCancelarModalMascota = document.getElementById('btnCancelarMascotaModal');
+        this.btnGuardarModalMascota = document.getElementById('btnGuardarMascotaModal');
+        this.fotoMascotaModal = document.getElementById('fotoMascotaModal');
+        this.fotoPreviewImgModal = document.getElementById('fotoPreviewImgModal');
+        this.placeholderIconModal = document.getElementById('placeholderIconModal');
+
+        // Configurar eventos del modal
+        if (this.btnCerrarModalMascota) {
+            this.btnCerrarModalMascota.onclick = () => this.cerrarModalMascotas();
+        }
+        if (this.btnCancelarModalMascota) {
+            this.btnCancelarModalMascota.onclick = () => this.cerrarModalMascotas();
+        }
+
+        // Evento para previsualizar imagen
+        if (this.fotoMascotaModal) {
+            this.fotoMascotaModal.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.fotoPreviewImgModal.src = e.target.result;
+                        this.fotoPreviewImgModal.style.display = 'block';
+                        if (this.placeholderIconModal) this.placeholderIconModal.style.display = 'none';
+                        this.fotoDataUrlModal = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            };
+        }
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = (event) => {
+            if (event.target === this.modalMascota) {
+                this.cerrarModalMascotas();
+            }
+        };
+    }
+
+    //modal de mascotas
+    abrirModalMascotas() {
+        if (!this.modalMascota) return;
+
+        this.limpiarFormularioMascotaModal();
+
+        const modalTitle = document.getElementById('modalTitle');
+        if (modalTitle) modalTitle.innerText = 'Registrar Mascota';
+
+        this.modalMascota.style.display = 'flex';
+    }
+
+    cerrarModalMascotas() {
+        if (this.modalMascota) {
+            this.modalMascota.style.display = 'none';
+            this.limpiarFormularioMascotaModal();
+        }
+    }
+
+    limpiarFormularioMascotaModal() {
+        document.getElementById('mascotaId').value = '';
+        document.getElementById('nombreMascotaModal').value = '';
+        document.getElementById('especieMascotaModal').value = '';
+        document.getElementById('generoMascotaModal').value = '';
+        document.getElementById('razaMascotaModal').value = '';
+        document.getElementById('coloresMascotaModal').value = '';
+        document.getElementById('edadMascotaModal').value = '';
+        document.getElementById('pesoMascotaModal').value = '';
+        document.getElementById('microchipMascotaModal').value = '';
+        document.getElementById('historialMedicoModal').value = '';
+
+        // Resetear radio buttons
+        const radios = document.getElementsByName('esterilizadoModal');
+        radios.forEach(r => {
+            if (r.value === 'No') r.checked = true;
+        });
+
+        // Limpiar foto
+        this.fotoDataUrlModal = '';
+        this.fotoPreviewImgModal.src = '';
+        this.fotoPreviewImgModal.style.display = 'none';
+        if (this.placeholderIconModal) this.placeholderIconModal.style.display = 'block';
+        this.fotoMascotaModal.value = '';
+    }
+
+    async guardarMascotaDesdeModal() {
+        const uidUsuario = auth.currentUser?.uid;
+        if (!uidUsuario) {
+            this.mostrarError('Debes iniciar sesión');
+            return;
+        }
+
+        const nombre = document.getElementById('nombreMascotaModal').value;
+        const especie = document.getElementById('especieMascotaModal').value;
+        const genero = document.getElementById('generoMascotaModal').value;
+        const raza = document.getElementById('razaMascotaModal').value;
+        const colores = document.getElementById('coloresMascotaModal').value;
+        const edad = parseFloat(document.getElementById('edadMascotaModal').value) || 0;
+        const peso = parseFloat(document.getElementById('pesoMascotaModal').value) || 0;
+        const microchip = document.getElementById('microchipMascotaModal').value;
+        const historialMedico = document.getElementById('historialMedicoModal').value;
+        const esterilizado = Array.from(document.getElementsByName('esterilizadoModal')).find(r => r.checked)?.value || 'No';
+
+        if (!nombre) {
+            this.mostrarError('El nombre de la mascota es requerido');
+            return;
+        }
+        if (!especie) {
+            this.mostrarError('La especie es requerida');
+            return;
+        }
+
+        try {
+            const mascota = new Mascota(
+                nombre,
+                raza,
+                especie,
+                genero,
+                colores,
+                edad,
+                peso,
+                microchip,
+                esterilizado,
+                historialMedico,
+                uidUsuario,
+                this.fotoDataUrlModal || null
+            );
+
+            const resultado = await mascota.guardar();
+
+            if (resultado.success) {
+                this.cerrarModalMascotas();
+
+                await this.cargarMascotasUsuario();
+
+                const select = document.getElementById('mascotaSelector');
+                if (select) {
+                    select.value = resultado.id;
+                    await this.autocompletarConMascota(resultado.id);
+                }
+
+                this.mostrarNotificacion('Mascota registrada correctamente', 'success');
+            } else {
+                this.mostrarError(resultado.error || 'Error al guardar la mascota');
+            }
+        } catch (error) {
+            console.error('Error al guardar mascota:', error);
+            this.mostrarError('Error al guardar la mascota');
+        }
+    }
+
+    mostrarNotificacion(mensaje, tipo = 'info') {
+        // Puedes usar SweetAlert o un toast
+        Swal.fire({
+            title: tipo === 'success' ? 'Éxito' : 'Información',
+            text: mensaje,
+            icon: tipo,
+            confirmButtonColor: '#667eea',
+            timer: 2000,
+            showConfirmButton: false
+        });
+    }
+
+
+    async onMascotaCreada(nuevaMascota) {
+        await this.cargarMascotasUsuario();
+
+        const select = document.getElementById('mascotaSelector');
+        if (select) {
+            select.value = nuevaMascota.id;
+            this.autocompletarConMascota(nuevaMascota.id);
+        }
+    }
+
 
     getDOMElements() {
         this.form = document.getElementById('citaForm');
@@ -150,6 +474,20 @@ class CitasController {
         if (horaSelect) {
             horaSelect.addEventListener('change', () => this.verificarDisponibilidad());
         }
+
+        const mascotaSelector = document.getElementById('mascotaSelector');
+        if (mascotaSelector) {
+            mascotaSelector.addEventListener('change', () => this.onMascotaSelectorChange());
+        }
+
+        // Escuchar evento de mascota creada desde el modal
+        window.addEventListener('mascotaCreada', (event) => {
+            if (event.detail && event.detail.mascota) {
+                this.onMascotaCreada(event.detail.mascota);
+            }
+        });
+
+
     }
 
     setMinDate() {
@@ -262,6 +600,15 @@ class CitasController {
             const datosCita = {
                 veterinarioId: veterinarioId,
                 veterinarioNombre: veterinarioNombre,
+                mascotaId: document.getElementById('mascotaId').value || null,
+                mascotaSnapshot: this.mascotaSeleccionada ? { // NUEVO: respaldo de datos
+                    nombre: this.mascotaSeleccionada.nombre,
+                    especie: this.mascotaSeleccionada.especie,
+                    raza: this.mascotaSeleccionada.raza,
+                    genero: this.mascotaSeleccionada.genero,
+                    edad: this.mascotaSeleccionada.edad,
+                    historialMedico: this.mascotaSeleccionada.historialMedico
+                } : null,
                 fecha: fecha,
                 hora: hora,
                 nombreMascota: nombreMascota,

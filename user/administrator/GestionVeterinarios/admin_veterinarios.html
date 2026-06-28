@@ -13,17 +13,25 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <title>Gestión de Veterinarios</title>
+    <title>Administrador - Gestión de Veterinarios</title>
 
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: #f8fafc;
+        }
+
         /* Contenedor principal de veterinarios */
         .container-all-vet {
-            width: 100%;
-            max-width: 1500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto;
+            width: calc(100% - 240px);
+            max-width: 1400px;
+            margin-left: 240px;
+            padding: 30px;
         }
 
         /* Header con título y buscador */
@@ -51,7 +59,7 @@
         /* Buscador */
         .search-container {
             position: relative;
-            width: 300px;
+            width: 320px;
         }
 
         .search-container i {
@@ -60,6 +68,7 @@
             top: 50%;
             transform: translateY(-50%);
             color: #a0aec0;
+            font-size: 1rem;
         }
 
         .search-container input {
@@ -78,12 +87,17 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
         }
 
+        .search-container input::placeholder {
+            color: #a0aec0;
+        }
+
         /* Grid de tarjetas */
         .veterinarios-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 25px;
             margin-top: 20px;
+            width: 100%;
         }
 
         /* Tarjeta */
@@ -156,10 +170,47 @@
             font-size: 1.1rem;
             font-weight: 600;
             color: #1a202c;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+        }
+
+        .vet-badges {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .vet-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .estado-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .estado-suspendido {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .verificado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .no-verificado {
+            background: #fff3cd;
+            color: #856404;
         }
 
         .vet-cedula {
@@ -184,7 +235,7 @@
             color: #5a67d8;
         }
 
-        /* Estado */
+        /* Estado en esquina (opcional) */
         .vet-estado {
             position: absolute;
             top: 15px;
@@ -200,38 +251,40 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        .estado-activo {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .estado-suspendido {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
         /* Cuerpo de la tarjeta */
         .vet-card-body {
             padding: 20px;
         }
 
-        .vet-especialidad {
-            display: inline-block;
+        .vet-clinica {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: #f7fafc;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #2d3748;
+        }
+
+        .vet-clinica i {
+            color: #667eea;
+            margin-right: 8px;
+        }
+
+        .vet-especialidades {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
             padding: 6px 12px;
             background: #f7fafc;
             border-radius: 20px;
             font-size: 0.85rem;
-            font-weight: 500;
-            margin-bottom: 15px;
             color: #2d3748;
-            border: 1px solid #e2e8f0;
+            flex-wrap: wrap;
         }
 
-        .vet-especialidad i {
+        .vet-especialidades i {
             color: #667eea;
-            margin-right: 5px;
         }
 
         .vet-contacto {
@@ -266,6 +319,7 @@
             justify-content: space-between;
             align-items: center;
             background: #fafafa;
+            gap: 10px;
         }
 
         .btn-ver {
@@ -289,8 +343,21 @@
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-ver i {
-            font-size: 1rem;
+        .btn-cedula:hover {
+            background: #38a169;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .btn-suspender:hover {
+            background: #93b818;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+        .btn-eliminar:hover {
+            background: rgb(132, 17, 17);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
         }
 
         .text-muted {
@@ -316,18 +383,33 @@
             margin-right: 10px;
         }
 
-        /* Responsive ajustado para el sidebar */
-        @media (max-width: 1024px) {
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .container-all-vet {
+                width: calc(100% - 240px);
+                padding: 20px;
+            }
+
+            .veterinarios-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+
+        @media (max-width: 992px) {
+            .container-all-vet {
+                width: calc(100% - 240px);
+            }
+
             .veterinarios-grid {
                 grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             }
         }
 
-        @media (max-width: 780px) {
-            .main {
-                margin-left: 0;
+        @media (max-width: 768px) {
+            .container-all-vet {
                 width: 100%;
-                padding: 20px 15px;
+                margin-left: 0;
+                padding: 15px;
             }
 
             .page-header {
@@ -358,11 +440,22 @@
                 width: 100%;
                 justify-content: center;
             }
+
+            .vet-card-footer {
+                flex-direction: column;
+            }
+
+            .btn-ver,
+            .btn-suspender,
+            .btn-eliminar {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
-            .main {
-                padding: 15px 10px;
+            .container-all-vet {
+                padding: 10px;
             }
 
             .vet-card-header {
@@ -374,19 +467,66 @@
                 width: 100%;
             }
 
+            .vet-badges {
+                justify-content: center;
+            }
+
             .vet-cedula {
                 justify-content: center;
             }
+        }
 
-            .vet-card-footer {
-                flex-direction: column;
-                gap: 10px;
-            }
+        .btn-suspender {
+            background: #f2d12b;
+            color: rgb(0, 0, 0);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
 
-            .btn-ver {
-                width: 100%;
-                justify-content: center;
-            }
+        }
+
+        .btn-reactivar {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .btn-eliminar {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+        }
+
+        .vet-card-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
         }
     </style>
 </head>
@@ -394,8 +534,21 @@
 <body>
     <navbar-admin></navbar-admin>
     <script src="/components/navbar-admin-component.js"></script>
-    <!--Buscador-->
+
     <div class="container-all-vet">
+        <!-- Header con título y buscador -->
+        <div class="page-header">
+            <h1>
+                <i class="fas fa-user-md"></i>
+                Veterinarios Registrados
+            </h1>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="buscarVeterinario"
+                    placeholder="Buscar veterinario por nombre, especialidad o clínica...">
+            </div>
+        </div>
+
         <!-- Grid de veterinarios -->
         <div class="veterinarios-grid" id="contenedorVeterinarios">
             <div class="no-veterinarios">
