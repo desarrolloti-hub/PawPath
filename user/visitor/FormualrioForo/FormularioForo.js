@@ -144,7 +144,7 @@ class ControladorFormularioForo {
             formContainer.insertBefore(mensajeNoAuth, formHeader.nextSibling);
             
             document.getElementById('btnIrLogin')?.addEventListener('click', () => {
-                window.location.href = '/login.html';
+                window.location.href = '../login/login.html';
             });
         }
     }

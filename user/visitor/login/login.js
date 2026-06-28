@@ -146,16 +146,6 @@ class AuthManager {
         console.log('✅ AuthManager initialized');
     }
 
-    // async setPersistenceToNone() {
-    //     try {
-    //         // Configurar para NO recordar sesión
-    //         await setPersistence(auth, browserLocalPersistence);
-    //         console.log('✅ Persistencia deshabilitada (inMemory)');
-    //     } catch (error) {
-    //         console.error('❌ Error al deshabilitar persistencia:', error);
-    //     }
-    // }
-
     initializeDOMElements() {
         // Containers
         this.loginContainer = document.getElementById('login-container');
@@ -182,8 +172,9 @@ class AuthManager {
 
         // Register form elements
         this.registerForm = document.getElementById('register-form');
-        this.primerNombre = document.getElementById('primer_nombre');
-        this.segundoNombre = document.getElementById('segundo_nombre');
+        this.nombres = document.getElementById('nombres');
+        //this.primerNombre = document.getElementById('primer_nombre');
+        //this.segundoNombre = document.getElementById('segundo_nombre');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -191,6 +182,14 @@ class AuthManager {
         this.confirmPassword = document.getElementById('confirm-password');
         this.registerBtn = document.getElementById('register-btn');
         this.termsCheckbox = document.getElementById('terms');
+
+        // Checklist elements for password validation
+        this.reqLength = document.getElementById('req-length');
+        this.reqUpper = document.getElementById('req-upper');
+        this.reqLower = document.getElementById('req-lower');
+        this.reqNumber = document.getElementById('req-number');
+        this.reqSpecial = document.getElementById('req-special');
+        this.reqConsecutive = document.getElementById('req-consecutive');
 
         // Google auth button
         this.googleAuthBtn = document.getElementById('google-auth');
@@ -220,6 +219,9 @@ class AuthManager {
 
         // Forgot password
         this.forgotPassword?.addEventListener('click', (e) => this.handleForgotPassword(e));
+
+        // Password Security Validation
+        this.registerPassword?.addEventListener('input', () => this.validatePasswordSecurity());
 
         // Password confirmation validation
         this.confirmPassword?.addEventListener('input', () => this.validatePasswordMatch());
@@ -395,14 +397,73 @@ class AuthManager {
         return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     }
 
+    // --- Funciones de Validación de Contraseña ---
+    
+    updateChecklistItem(element, isValid) {
+        if (!element) return false;
+        
+        const icon = element.querySelector('span');
+        if (isValid) {
+            element.classList.add('valid');
+            if (icon) icon.textContent = '✔';
+        } else {
+            element.classList.remove('valid');
+            if (icon) icon.textContent = '✖';
+        }
+        return isValid;
+    }
+
+    hasConsecutiveNumbers(str) {
+        for (let i = 0; i < str.length - 1; i++) {
+            if (/\d/.test(str[i]) && /\d/.test(str[i+1])) {
+                let num1 = parseInt(str[i]);
+                let num2 = parseInt(str[i+1]);
+                
+                if (Math.abs(num1 - num2) === 1 || num1 === num2) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    validatePasswordSecurity() {
+        if (!this.registerPassword) return false;
+        
+        const val = this.registerPassword.value;
+
+        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 8);
+        const validUpper = this.updateChecklistItem(this.reqUpper, /[A-Z]/.test(val));
+        const validLower = this.updateChecklistItem(this.reqLower, /[a-z]/.test(val));
+        const validNumber = this.updateChecklistItem(this.reqNumber, /\d/.test(val));
+        const validSpecial = this.updateChecklistItem(this.reqSpecial, /[^A-Za-z0-9]/.test(val));
+        const validConsecutive = this.updateChecklistItem(this.reqConsecutive, !this.hasConsecutiveNumbers(val));
+
+        const allValid = validLength && validUpper && validLower && validNumber && validSpecial && validConsecutive;
+        
+        if (!allValid && val.length > 0) {
+            this.registerPassword.setCustomValidity("La contraseña no cumple con los requisitos de seguridad de PawPath.");
+        } else {
+            this.registerPassword.setCustomValidity("");
+        }
+        
+        return allValid;
+    }
+
     validatePasswordMatch() {
-        if (this.confirmPassword?.value &&
+        if (!this.confirmPassword) return;
+
+        if (this.confirmPassword.value && 
             this.registerPassword?.value !== this.confirmPassword.value) {
             this.confirmPassword.style.borderColor = '#EF4444';
+            this.confirmPassword.setCustomValidity("Las contraseñas no coinciden.");
         } else {
             this.confirmPassword.style.borderColor = '';
+            this.confirmPassword.setCustomValidity("");
         }
     }
+
+    // ---------------------------------------------
 
     showLoginForm() {
         if (this.loginContainer) this.loginContainer.style.display = 'block';
@@ -451,6 +512,7 @@ class AuthManager {
         if (this.illustrationText) this.illustrationText.textContent = current.illText;
         if (this.illustrationBenefits) this.illustrationBenefits.innerHTML = current.benefits;
     }
+    
     async handleLogin(e) {
         e.preventDefault();
 
@@ -522,8 +584,8 @@ class AuthManager {
     async handleRegister(e) {
         e.preventDefault();
 
-        if (!this.primerNombre?.value.trim() || 
-            !this.apellidoPaterno?.value.trim() || 
+        if (!this.primerNombre?.value.trim() ||
+            !this.apellidoPaterno?.value.trim() ||
             !this.apellidoMaterno?.value.trim()) {
             this.showAlert('Completa todos los campos obligatorios', 'error');
             return;
@@ -538,8 +600,9 @@ class AuthManager {
 
         const password = this.registerPassword?.value;
 
-        if (password.length < 6) {
-            this.showAlert('La contraseña debe tener al menos 6 caracteres', 'error');
+        // Se invoca la nueva lógica de validación de seguridad
+        if (!this.validatePasswordSecurity()) {
+            this.showAlert('La contraseña no cumple con los requisitos de seguridad', 'error');
             return;
         }
 
@@ -564,15 +627,19 @@ class AuthManager {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            const arregloNombres = this.nombres.value.trim().split(' ');
+            const primerNombre = arregloNombres[0] || '';
+            const segundoNombre = arregloNombres.slice(1).join(' ') || '';
+
             console.log('✅ Usuario creado en Auth:', user.uid);
 
             // ==== CÓDIGO ORIGINAL: Preparar datos del usuario ====
             const userData = {
-                primer_nombre: this.primerNombre.value.trim(),
-                segundo_nombre: this.segundoNombre?.value.trim() || '',
+                primerNombre: primerNombre,
+                segundoNombre: segundoNombre,
                 apellido_paterno: this.apellidoPaterno.value.trim(),
                 apellido_materno: this.apellidoMaterno.value.trim(),
-                nombre_completo: this.getFullName(),
+                nombre_completo: this.nombres.value.trim(),
                 email: email,
                 // 👇 CAMBIO: Cambiamos de "usuario" a "visitante" (según tu captura)
                 rol: 'visitante',  // ANTES era: 'usuario'
@@ -591,6 +658,14 @@ class AuthManager {
             this.showAlert('¡Cuenta creada! Hemos enviado un correo de verificación a ' + email, 'success');
 
             this.registerForm?.reset();
+
+            // Limpiar visualmente el checklist
+            this.updateChecklistItem(this.reqLength, false);
+            this.updateChecklistItem(this.reqUpper, false);
+            this.updateChecklistItem(this.reqLower, false);
+            this.updateChecklistItem(this.reqNumber, false);
+            this.updateChecklistItem(this.reqSpecial, false);
+            this.updateChecklistItem(this.reqConsecutive, true);
 
             setTimeout(() => {
                 this.showLoginForm();
@@ -735,7 +810,7 @@ class AuthManager {
 
     getFullName() {
         const parts = [
-            this.primerNombre?.value.trim(),
+            this.nombres?.value.trim(),
             this.segundoNombre?.value.trim(),
             this.apellidoPaterno?.value.trim(),
             this.apellidoMaterno?.value.trim()

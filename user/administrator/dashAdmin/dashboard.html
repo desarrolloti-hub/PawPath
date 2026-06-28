@@ -1,20 +1,198 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="dashboard.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Panel Administrador</title>
-    <style>
-       
-    </style>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- CSS propio -->
+    <link rel="stylesheet" href="dashboard.css" />
 </head>
-
 <body>
-    <div class="bienvenida">
-        <h1>👋 Bienvenido Administrador</h1>
-    </div>
+
+    <!-- ===== SIDEBAR COMO COMPONENTE ===== -->
+    <navbar-admin></navbar-admin>
+
+    <!-- ===== CONTENIDO PRINCIPAL ===== -->
+    <main class="main-content">
+
+        <!-- Header superior -->
+        <header class="top-header">
+            <div class="header-left">
+                <!-- Botón hamburguesa para móvil -->
+                <button id="menuToggle" class="menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1>Dashboard</h1>
+                <span class="breadcrumb"> / Resumen general</span>
+            </div>
+            <div class="header-right">
+                <div class="datetime" id="datetime">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="clock"></span>
+                </div>
+                <div class="notifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge">3</span>
+                </div>
+                <div class="user-profile">
+                    <span class="avatar">A</span>
+                    <div class="user-info">
+                        <span class="name">Admin</span>
+                        <span class="role">Administrador</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== WELCOME BOX ===== -->
+        <div class="welcome-box">
+            <div>
+                <h2>👋 ¡Bienvenido, Administrador!</h2>
+                <p>Resumen general de tu plataforma PawPath</p>
+            </div>
+            <div class="welcome-stats">
+                <span><i class="fas fa-users"></i> <span id="welcomeUsers">0</span> usuarios</span>
+                <span><i class="fas fa-dog"></i> <span id="welcomePets">0</span> mascotas</span>
+                <span><i class="fas fa-calendar-check"></i> <span id="welcomeCitas">0</span> citas</span>
+            </div>
+        </div>
+
+        <!-- ===== WIDGETS / ESTADÍSTICAS ===== -->
+        <section class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalUsers">0</span>
+                    <span class="stat-label">Usuarios</span>
+                    <span class="stat-change positive" id="usersChange"><i class="fas fa-arrow-up"></i> +0%</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fas fa-dog"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalPets">0</span>
+                    <span class="stat-label">Mascotas</span>
+                    <span class="stat-change positive" id="petsChange"><i class="fas fa-arrow-up"></i> +0%</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fas fa-user-md"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalVets">0</span>
+                    <span class="stat-label">Veterinarios</span>
+                    <span class="stat-change negative" id="vetsChange"><i class="fas fa-arrow-down"></i> -0%</span>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fas fa-calendar-check"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalCitas">0</span>
+                    <span class="stat-label">Citas totales</span>
+                    <span class="stat-change positive" id="citasChange"><i class="fas fa-arrow-up"></i> +0%</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== SEGUNDA FILA DE ESTADÍSTICAS ===== -->
+        <section class="stats-grid-secondary">
+            <div class="stat-card small">
+                <div class="stat-icon cyan"><i class="fas fa-comments"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalPublicaciones">0</span>
+                    <span class="stat-label">Publicaciones foro</span>
+                </div>
+            </div>
+            <div class="stat-card small">
+                <div class="stat-icon red"><i class="fas fa-paw"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalPerdidas">0</span>
+                    <span class="stat-label">Mascotas perdidas</span>
+                </div>
+            </div>
+            <div class="stat-card small">
+                <div class="stat-icon yellow"><i class="fas fa-clock"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalPendientes">0</span>
+                    <span class="stat-label">Citas pendientes</span>
+                </div>
+            </div>
+            <div class="stat-card small">
+                <div class="stat-icon teal"><i class="fas fa-check-circle"></i></div>
+                <div class="stat-details">
+                    <span class="stat-value" id="totalConcluidas">0</span>
+                    <span class="stat-label">Citas concluidas</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== GRÁFICOS ===== -->
+        <section class="dashboard-grid">
+            <!-- Gráfico de barras -->
+            <div class="card chart-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-bar"></i> Citas por mes</h3>
+                    <span class="badge-date">Últimos 6 meses</span>
+                </div>
+                <div class="chart-bars" id="chartBars">
+                    <!-- JS genera -->
+                </div>
+            </div>
+
+            <!-- Gráfico de dona (especies) -->
+            <div class="card donut-card">
+                <div class="card-header">
+                    <h3><i class="fas fa-chart-pie"></i> Especies de mascotas</h3>
+                    <span class="badge-date">Distribución</span>
+                </div>
+                <div class="donut-container" id="donutContainer">
+                    <!-- JS genera -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== TABLA DE ÚLTIMOS USUARIOS ===== -->
+        <section class="table-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-user-plus"></i> Últimos usuarios registrados</h3>
+                    <a href="/user/administrator/GestionUsuarios/admin_usuarios.html" class="view-all">Ver todos</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="user-table" id="lastUsersTable">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Fecha registro</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lastUsersBody">
+                            <!-- JS genera -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== ACTIVIDAD RECIENTE Y MASCOTAS POPULARES ===== -->
+        <section class="dashboard-grid two-col" style="margin-top: 1.8rem;">
+            <!-- Actividad reciente -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-clock"></i> Actividad reciente</h3>
+                    <span class="badge-date">Últimos eventos</span>
+                </div>
+                <ul class="activity-list" id="activityList">
+                    <!-- JS genera -->
+                </ul>
+            </div>
 
     <ul class="cards-container">
         <li class="card">
@@ -30,7 +208,7 @@
             </a>
         </li>
         <li class="card">
-            <a href="/user/visitor">
+            <a href="../GestionVeterinarios/admin_veterinarios.html">
                 <span>🩺</span>
                 Veterinarios
             </a>
@@ -48,23 +226,11 @@
             </a>
         </li>
         <li class="card">
-            <!-- CAMBIO AQUÍ -->
-            <a href="#" onclick="logout()">
+            <a href="">
                 <span>⏻</span>
-                Cerrar sesión
+                Cerrar sesion
             </a>
         </li>
     </ul>
-    <script>
-        function logout() {
-            // Elimina datos de sesión (ajústalo según tu proyecto)
-            localStorage.clear();
-            sessionStorage.clear();
-
-            // Redirige al login
-            window.location.href = "/user/visitor/login/login.html"; // cambia la ruta si es necesario
-        }
-    </script>
 </body>
-
 </html>

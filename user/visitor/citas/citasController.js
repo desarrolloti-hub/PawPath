@@ -123,7 +123,7 @@ class CitasController {
         document.getElementById('enfermedades').value = mascota.historialMedico || '';
         
         // Mostrar foto si existe
-        if (mascota.foto) {
+       /* if (mascota.foto) {
             const preview = document.getElementById('imagePreview');
             const label = document.getElementById('fileUploadLabel');
             if (preview) {
@@ -140,7 +140,7 @@ class CitasController {
             if (preview) preview.innerHTML = '';
             if (label) label.style.display = 'flex';
             this.mascotaTieneFoto = false;
-        }
+        }*/
         
         // Ocultar mensaje de información
         const infoContainer = document.getElementById('mascotaInfoContainer');

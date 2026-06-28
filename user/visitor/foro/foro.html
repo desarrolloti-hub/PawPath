@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>PawPath · Foro Interactivo de Mascotas</title>
+    <title>PawPath · Foro Interactive de Mascotas</title>
     <link rel="stylesheet" href="./foro.css">
     <link rel="icon" href="/assets/images/PawPahtLogo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2=family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -18,145 +18,201 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <!-- Navbar dinámico -->
     <navbar-visitor></navbar-visitor>
 
-    <div class="forum-container">
-        <!-- Header del foro -->
-        <header class="forum-header">
-            <div class="header-left">
-                <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="forum-logo">
-                <h1>PawPath · Foro Interactivo</h1>
+    <header class="fb-header">
+        <div class="fb-header-left">
+            <img src="/assets/images/PawPahtLogo.png" alt="PawPath Logo" class="fb-logo">
+            <div class="fb-search-wrapper">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="buscador" class="fb-search-input" placeholder="Buscar en PawPath...">
             </div>
-            <div class="header-right">
-                <button id="btnFiltros" class="btn btn-outline btn-sm">
-                    <i class="fas fa-filter"></i> Filtros
-                </button>
-                <button class="btn btn-outline btn-sm" onclick="window.mostrarNotificacion()">
-                    <i class="fas fa-bell"></i> Notificaciones
-                </button>
-     
-                <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nueva Publicación
-                </a>
-            </div>
-        </header>
+        </div>
+        <div class="fb-header-right">
+            <button id="btnFiltros" class="fb-icon-btn" title="Filtros">
+                <i class="fas fa-filter"></i>
+            </button>
+            <button class="fb-icon-btn" onclick="window.mostrarNotificacion()" title="Notificaciones">
+                <i class="fas fa-bell"></i>
+            </button>
+        </div>
+    </header>
 
-        <!-- Panel de filtros (oculto por defecto) -->
+    <div class="fb-layout-container">
+        
         <div id="panelFiltros" class="filtros-panel" style="display: none;">
             <div class="filtros-grid">
                 <div class="filtro-group">
-                    <label><i class="fas fa-tag"></i> Tipo</label>
-                    <select id="filtroTipo">
-                        <option value="">Todos los tipos</option>
-                        <option value="Mascota Perdida">🔍 Mascota Perdida</option>
-                        <option value="En Adopción">🏠 En Adopción</option>
-                        <option value="Consejo de Cuidado">💡 Consejo de Cuidado</option>
-                        <option value="Galería de Fotos">📷 Galería de Fotos</option>
-                        <option value="Mascota Encontrada">✅ Mascota Encontrada</option>
-                    </select>
+                    <label><i class="fas fa-tag text-primary"></i> Tipo</label>
+                    <div class="fb-select-custom">
+                        <select id="filtroTipo">
+                            <option value="">Todos los tipos</option>
+                            <option value="Mascota Perdida">🔍 Mascota Perdida</option>
+                            <option value="En Adopción">🏠 En Adopción</option>
+                            <option value="Consejo de Cuidado">💡 Consejo de Cuidado</option>
+                            <option value="Galería de Fotos">📷 Galería de Fotos</option>
+                            <option value="Mascota Encontrada">✅ Mascota Encontrada</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
                 </div>
-
                 <div class="filtro-group">
-                    <label><i class="fas fa-tags"></i> Categoría</label>
-                    <select id="filtroCategoria">
-                        <option value="">Todas las categorías</option>
-                        <option value="Perros">🐕 Perros</option>
-                        <option value="Gatos">🐈 Gatos</option>
-                        <option value="Aves">🦜 Aves</option>
-                        <option value="Roedores">🐭 Roedores</option>
-                        <option value="Reptiles">🦎 Reptiles</option>
-                        <option value="Otros">🐾 Otros</option>
-                    </select>
+                    <label><i class="fas fa-tags text-secondary"></i> Categoría</label>
+                    <div class="fb-select-custom">
+                        <select id="filtroCategoria">
+                            <option value="">Todas las categorías</option>
+                            <option value="Perros">🐕 Perros</option>
+                            <option value="Gatos">🐈 Gatos</option>
+                            <option value="Aves">🦜 Aves</option>
+                            <option value="Roedores">🐭 Roedores</option>
+                            <option value="Reptiles">🦎 Reptiles</option>
+                            <option value="Otros">🐾 Otros</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
                 </div>
-
                 <div class="filtro-group">
-                    <label><i class="fas fa-map-marker-alt"></i> Cercanía</label>
-                    <select id="filtroCercania">
-                        <option value="0">En cualquier lugar</option>
-                        <option value="5">A 5km a la redonda</option>
-                        <option value="10">A 10km a la redonda</option>
-                        <option value="20">A 20km a la redonda</option>
-                        <option value="50">A 50km a la redonda</option>
-                    </select>
+                    <label><i class="fas fa-map-marker-alt text-success"></i> Cercanía</label>
+                    <div class="fb-select-custom">
+                        <select id="filtroCercania">
+                            <option value="0">En cualquier lugar</option>
+                            <option value="5">A 5km a la redonda</option>
+                            <option value="10">A 10km a la redonda</option>
+                            <option value="20">A 20km a la redonda</option>
+                            <option value="50">A 50km a la redonda</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
                 </div>
-
                 <div class="filtro-group">
-                    <label><i class="fas fa-calendar"></i> Ordenar por</label>
-                    <select id="filtroOrden">
-                        <option value="reciente">Más recientes</option>
-                        <option value="antiguo">Más antiguos</option>
-                        <option value="vistas">Más vistos</option>
-                        <option value="likes">Más likes</option>
-                    </select>
+                    <label><i class="fas fa-calendar text-warning"></i> Ordenar por</label>
+                    <div class="fb-select-custom">
+                        <select id="filtroOrden">
+                            <option value="reciente">Más recientes</option>
+                            <option value="antiguo">Más antiguos</option>
+                            <option value="vistas">Más vistos</option>
+                            <option value="likes">Más likes</option>
+                        </select>
+                        <i class="fas fa-chevron-down select-arrow"></i>
+                    </div>
                 </div>
             </div>
             <div class="filtros-actions">
-                <button id="btnAplicarFiltros" class="btn btn-primary btn-sm">Aplicar filtros</button>
-                <button id="btnLimpiarFiltros" class="btn btn-outline btn-sm">Limpiar</button>
+                <button id="btnLimpiarFiltros" class="btn btn-fb-secondary">Limpiar</button>
+                <button id="btnAplicarFiltros" class="btn btn-fb-primary">Aplicar filtros</button>
             </div>
         </div>
 
-        <!-- Contenido principal -->
-        <main class="forum-main">
-            <!-- Sidebar izquierdo -->
-            <aside class="forum-sidebar-left">
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-filter"></i> Filtros rápidos</h3>
-                    <ul class="filter-list">
-                        <li><a class="active" data-filter="all">📋 Todas las mascotas</a></li>
-                        <li><a data-filter="Perros">🐕 Perros</a></li>
-                        <li><a data-filter="Gatos">🐈 Gatos</a></li>
-                        <li><a data-filter="Otros">🐾 Otras mascotas</a></li>
-                        <li><a data-filter="ultimas24h">⏰ Últimas 24h</a></li>
-                        <li><a data-filter="cerca">📍 Cerca de mí</a></li>
-                    </ul>
-                </div>
-                
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-chart-line"></i> Estadísticas en vivo</h3>
-                    <div id="estadisticasContainer">
-                        <div class="stat-item">
-                            <span class="stat-label"><i class="fas fa-paw"></i> Mascotas reportadas:</span>
-                            <span class="stat-value" id="statsPublicaciones">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label"><i class="fas fa-calendar-day"></i> Publicaciones hoy:</span>
-                            <span class="stat-value" id="statsHoy">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label"><i class="fas fa-check-circle"></i> Mascotas encontradas:</span>
-                            <span class="stat-value" id="statsEncontradas">0</span>
-                        </div>
-                        <div class="stat-item">
-                            <span class="stat-label"><i class="fas fa-users"></i> Usuarios activos:</span>
-                            <span class="stat-value" id="statsUsuarios">0</span>
+        <div class="fb-main-grid">
+            <aside class="fb-sidebar left">
+                <div class="sidebar-sticky-content">
+                    <div class="fb-menu-section">
+                        <h3>Filtros rápidos</h3>
+                        <ul class="fb-menu-list">
+                            <li><a class="active" data-filter="all"><i class="fas fa-newspaper blue-i"></i> Todas las mascotas</a></li>
+                            <li><a data-filter="Perros"><i class="fas fa-dog orange-i"></i> Perros</a></li>
+                            <li><a data-filter="Gatos"><i class="fas fa-cat purple-i"></i> Gatos</a></li>
+                            <li><a data-filter="Otros"><i class="fas fa-paw green-i"></i> Otras mascotas</a></li>
+                            <li><a data-filter="ultimas24h"><i class="fas fa-clock red-i"></i> Últimas 24h</a></li>
+                            <li><a data-filter="cerca"><i class="fas fa-map-marker-alt blue-i"></i> Cerca de mí</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="fb-menu-section">
+                        <h3>Estadísticas en vivo</h3>
+                        <div id="estadisticasContainer" class="fb-stats-box">
+                            <div class="fb-stat-row">
+                                <span><i class="fas fa-paw"></i> Reportadas</span>
+                                <strong id="statsPublicaciones">0</strong>
+                            </div>
+                            <div class="fb-stat-row">
+                                <span><i class="fas fa-calendar-day"></i> Publicadas hoy</span>
+                                <strong id="statsHoy">0</strong>
+                            </div>
+                            <div class="fb-stat-row">
+                                <span><i class="fas fa-check-circle"></i> Encontradas</span>
+                                <strong id="statsEncontradas">0</strong>
+                            </div>
+                            <div class="fb-stat-row">
+                                <span><i class="fas fa-users"></i> Activos</span>
+                                <strong id="statsUsuarios">0</strong>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-fire"></i> Tendencias 🔥</h3>
-                    <div id="tendenciasContainer">
-                        <div class="trending-item">
-                            <div class="trending-icon"><i class="fas fa-spinner fa-spin"></i></div>
-                            <div class="trending-info">Cargando tendencias...</div>
+                    <div class="fb-menu-section">
+                        <h3>Tendencias 🔥</h3>
+                        <div id="tendenciasContainer">
+                            <div class="trending-item">
+                                <div class="trending-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                                <div class="trending-info">Cargando tendencias...</div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </aside>
 
-            <!-- Feed central -->
-            <section class="forum-feed">
-                <!-- Buscador -->
-                <div class="buscador-container">
-                    <input type="text" id="buscador" class="buscador-input" placeholder="🔍 Buscar publicaciones por título, descripción o usuario...">
+            <main class="fb-feed-center">
+                
+                <div class="fb-menu-section emergency-section mobile-only">
+                    <div class="emergency-header">
+                        <i class="fas fa-phone-alt animate-pulse"></i>
+                        <h3>Contactos de emergencia</h3>
+                    </div>
+                    <div class="emergency-grid">
+                        <a href="tel:555-0001" class="emergency-card">
+                            <div class="emergency-icon-wrapper p-animal"><i class="fas fa-dog"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Protectora Animal</span>
+                                <strong class="emergency-phone">555-0001</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:555-0002" class="emergency-card">
+                            <div class="emergency-icon-wrapper v-24h"><i class="fas fa-hospital"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Veterinaria 24h</span>
+                                <strong class="emergency-phone">555-0002</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:555-0003" class="emergency-card">
+                            <div class="emergency-icon-wrapper police"><i class="fas fa-shield-alt"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Policía</span>
+                                <strong class="emergency-phone">555-0003</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                        <a href="tel:911" class="emergency-card urgent">
+                            <div class="emergency-icon-wrapper urgencies"><i class="fas fa-ambulance"></i></div>
+                            <div class="emergency-info">
+                                <span class="emergency-title">Urgencias</span>
+                                <strong class="emergency-phone">911</strong>
+                            </div>
+                            <i class="fas fa-phone call-action-icon"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="fb-create-post-card">
+                    <div class="create-post-top">
+                        <div class="avatar-placeholder"><i class="fas fa-user"></i></div>
+                        <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="dummy-input-btn">
+                            ¿Qué está pasando con tus mascotas hoy?
+                        </a>
+                    </div>
+                    <div class="create-post-bottom">
+                        <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="action-shortcut">
+                            <i class="fas fa-plus-circle text-primary"></i> Nueva publicación
+                        </a>
+                        <div class="action-shortcut" id="btnFiltrosShortcut">
+                            <i class="fas fa-sliders-h text-secondary"></i> Ajustar vista
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Skeleton loader -->
                 <div id="skeletonLoader" class="skeleton-grid" style="display: none;">
-                    <div class="skeleton-card"></div>
-                    <div class="skeleton-card"></div>
                     <div class="skeleton-card"></div>
                     <div class="skeleton-card"></div>
                 </div>
@@ -166,77 +222,112 @@
                     <p>Cargando publicaciones...</p>
                 </div>
 
-                <div id="publicacionesGrid" class="publicaciones-grid"></div>
+                <div id="publicacionesGrid" class="fb-feed-grid"></div>
 
                 <div id="sinResultados" class="sin-resultados" style="display: none;">
                     <i class="fas fa-search"></i>
                     <h3>No hay publicaciones con estos filtros</h3>
-                    <p>Intenta con otros filtros o crea una nueva publicación</p>
-                    <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary btn-sm">
+                    <p>Intenta con otros filtros o comparte algo nuevo.</p>
+                    <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary">
                         <i class="fas fa-plus"></i> Crear publicación
                     </a>
                 </div>
 
                 <div id="cargarMasContainer" class="cargar-mas" style="display: none;">
-                    <button id="btnCargarMas" class="btn btn-outline btn-sm">
-                        <i class="fas fa-chevron-down"></i> Cargar más publicaciones
+                    <button id="btnCargarMas" class="btn-fb-more">
+                        Cargar más publicaciones <i class="fas fa-chevron-down"></i>
                     </button>
                 </div>
-            </section>
+            </main>
 
-            <!-- Sidebar derecho -->
-            <aside class="forum-sidebar-right">
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-phone-alt"></i> Contactos de emergencia</h3>
-                    <ul class="contact-list" id="contactosEmergencia">
-                        <li><i class="fas fa-dog"></i> Protectora Animal: <strong>555-0001</strong></li>
-                        <li><i class="fas fa-hospital"></i> Veterinaria 24h: <strong>555-0002</strong></li>
-                        <li><i class="fas fa-police"></i> Policía: <strong>555-0003</strong></li>
-                        <li><i class="fas fa-ambulance"></i> Urgencias: <strong>911</strong></li>
-                    </ul>
-                </div>
-
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-newspaper"></i> Consejos útiles</h3>
-                    <div id="consejosContainer">
-                        <div class="tip-item">
-                            <div class="tip-icon"><i class="fas fa-spinner fa-spin"></i></div>
-                            <div class="tip-text">Cargando consejos...</div>
+            <aside class="fb-sidebar right">
+                <div class="sidebar-sticky-content">
+                    
+                    <div class="fb-menu-section emergency-section">
+                        <div class="emergency-header">
+                            <i class="fas fa-phone-alt animate-pulse"></i>
+                            <h3>Contactos de emergencia</h3>
+                        </div>
+                        <div class="emergency-grid" id="contactosEmergencia">
+                            <a href="tel:555-0001" class="emergency-card">
+                                <div class="emergency-icon-wrapper p-animal"><i class="fas fa-dog"></i></div>
+                                <div class="emergency-info">
+                                    <span class="emergency-title">Protectora Animal</span>
+                                    <strong class="emergency-phone">555-0001</strong>
+                                </div>
+                                <i class="fas fa-phone call-action-icon"></i>
+                            </a>
+                            <a href="tel:555-0002" class="emergency-card">
+                                <div class="emergency-icon-wrapper v-24h"><i class="fas fa-hospital"></i></div>
+                                <div class="emergency-info">
+                                    <span class="emergency-title">Veterinaria 24h</span>
+                                    <strong class="emergency-phone">555-0002</strong>
+                                </div>
+                                <i class="fas fa-phone call-action-icon"></i>
+                            </a>
+                            <a href="tel:555-0003" class="emergency-card">
+                                <div class="emergency-icon-wrapper police"><i class="fas fa-shield-alt"></i></div>
+                                <div class="emergency-info">
+                                    <span class="emergency-title">Policía</span>
+                                    <strong class="emergency-phone">555-0003</strong>
+                                </div>
+                                <i class="fas fa-phone call-action-icon"></i>
+                            </a>
+                            <a href="tel:911" class="emergency-card urgent">
+                                <div class="emergency-icon-wrapper urgencies"><i class="fas fa-ambulance"></i></div>
+                                <div class="emergency-info">
+                                    <span class="emergency-title">Urgencias</span>
+                                    <strong class="emergency-phone">911</strong>
+                                </div>
+                                <i class="fas fa-phone call-action-icon"></i>
+                            </a>
                         </div>
                     </div>
-                </div>
 
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-chart-pie"></i> Estadísticas</h3>
-                    <button onclick="window.mostrarEstadisticas()" class="btn btn-outline btn-sm" style="width: 100%;">
-                        <i class="fas fa-chart-bar"></i> Ver estadísticas detalladas
-                    </button>
-                </div>
+                    <div class="fb-menu-section">
+                        <h3>Consejos útiles</h3>
+                        <div id="consejosContainer">
+                            <div class="tip-item">
+                                <div class="tip-icon"><i class="fas fa-spinner fa-spin"></i></div>
+                                <div class="tip-text">Cargando consejos...</div>
+                            </div>
+                        </div>
+                    </div>
 
-                <div class="sidebar-card">
-                    <h3><i class="fas fa-ad"></i> PawPath Recomienda</h3>
-                    <div class="ad-placeholder" style="text-align: center; padding: 20px; background: linear-gradient(135deg, #3b82f620, #8b5cf620); border-radius: 15px;">
-                        <i class="fas fa-paw" style="font-size: 40px; color: #3b82f6;"></i>
-                        <p style="margin-top: 10px;"><strong>¡Patrocinado!</strong></p>
-                        <p style="font-size: 12px;">Tienda de accesorios para mascotas</p>
-                        <button class="btn btn-primary btn-sm" style="margin-top: 10px;" onclick="window.open('https://tiendademascotas.com', '_blank')">
-                            Ver más
+                    <div class="fb-menu-section">
+                        <h3>Análisis rápidos</h3>
+                        <button onclick="window.mostrarEstadisticas()" class="fb-sidebar-btn">
+                            <i class="fas fa-chart-bar"></i> Ver estadísticas detalladas
                         </button>
                     </div>
+
+                    <div class="fb-menu-section">
+                        <span class="ad-label">Publicidad</span>
+                        <div class="ad-placeholder-fb">
+                            <i class="fas fa-paw ad-icon"></i>
+                            <div class="ad-info-fb">
+                                <h4>PawPath Recomienda</h4>
+                                <p>Los mejores accesorios para tus amigos peludos.</p>
+                            </div>
+                            <button class="btn-ad" onclick="window.open('https://tiendademascotas.com', '_blank')">Visitar</button>
+                        </div>
+                    </div>
+                    
+                    <footer class="fb-minimal-footer">
+                        <p>© 2026 PawPath · Hecho con <i class="fas fa-heart text-danger"></i></p>
+                    </footer>
                 </div>
             </aside>
-        </main>
-
-        <footer class="forum-footer">
-            <p>© 2025 PawPath - Foro Interactivo de Mascotas. Todos los derechos reservados.</p>
-            <p style="font-size: 12px; margin-top: 8px;">
-                <i class="fas fa-heart" style="color: #ef4444;"></i> 
-                Unidos por el amor a los animales
-            </p>
-        </footer>
+        </div>
     </div>
-
+    <main-footer></main-footer>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script src="/components/JS FooterVisitor.js"></script>
     <script type="module" src="Foro.js"></script>
+    <script>
+        document.getElementById('btnFiltrosShortcut')?.addEventListener('click', () => {
+            document.getElementById('btnFiltros').click();
+        });
+    </script>
 </body>
 </html>

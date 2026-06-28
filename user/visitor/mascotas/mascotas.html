@@ -20,26 +20,32 @@
 </head>
 
 <body class="pet-page" style="margin: 0;">
+
     <navbar-visitor></navbar-visitor>
+
     <main class="pet-main">
         <div class="container">
+
             <div class="header">
                 <div class="auth-logo">🐾</div>
                 <h1>Mis Mascotas</h1>
                 <p>Administra el perfil y bienestar de tus compañeros</p>
-                <button id="btnAgregarMascota" class="btn-agregar">
-                    <i class="fas fa-plus"></i> Nueva Mascota
-                </button>
-                <a href="/user/visitor/citas/citas.html">
-                    <button class="btn-agregar">
-                    <i class="fas fa-plus"></i> Agendar Cita Veterinaria
+
+                <div class="header-actions">
+                    <button id="btnAgregarMascota" class="btn-agregar">
+                        <i class="fas fa-plus"></i> Nueva Mascota
                     </button>
-                </a>
-                <a href="/user/visitor/citas/misCitas.html">
-                    <button class="btn-agregar">
-                    <i class="fas fa-plus"></i> Gestionar mis Citas
-                    </button>
-                </a>
+                    <a href="/user/visitor/citas/citas.html">
+                        <button class="btn-agregar">
+                            <i class="fas fa-calendar-plus"></i> Agendar Cita Veterinaria
+                        </button>
+                    </a>
+                    <a href="/user/visitor/citas/misCitas.html">
+                        <button class="btn-agregar">
+                            <i class="fas fa-calendar-check"></i> Gestionar mis Citas
+                        </button>
+                    </a>
+                </div>
             </div>
 
             <div class="content">
@@ -51,7 +57,6 @@
                 </div>
             </div>
         </div>
-
 
         <div id="modalMascota" class="modal-backdrop">
             <div class="modal-form">
@@ -83,12 +88,11 @@
                                 <option value="Reptil">🦎 Reptil</option>
                                 <option value="Conejo">🐰 Conejo</option>
                                 <option value="Otro">Otro</option>
-
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="generoMascota"><i class="fas fa-venus-mars"></i> Género</label>
+                            <label for="generoMascota"><i class="fas fa-venus-mars"></i> Género *</label>
                             <select id="generoMascota">
                                 <option value="">Seleccione un género</option>
                                 <option value="Macho">♂ Macho</option>
@@ -97,8 +101,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="razaMascota"><i class="fas fa-dna"></i> Raza</label>
-                            <input type="text" id="razaMascota" placeholder="Ej: Labrador">
+                            <label for="razaMascota"><i class="fas fa-dna"></i> Raza *</label>
+                            <input type="text" id="razaMascota" placeholder="Ej: Labrador" required>
                         </div>
 
                         <div class="form-group">
@@ -107,18 +111,18 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="edadMascota"><i class="fas fa-calendar-alt"></i> Edad (Años)</label>
-                            <input type="number" id="edadMascota" step="1" placeholder="Ej: 2">
+                            <label for="edadMascota"><i class="fas fa-calendar-alt"></i> Edad (Años) *</label>
+                            <input type="number" id="edadMascota" step="1" placeholder="Ej: 2" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="pesoMascota"><i class="fas fa-weight"></i> Peso (kg)</label>
-                            <input type="number" id="pesoMascota" step="0.1" placeholder="Ej: 15.5">
+                            <label for="pesoMascota"><i class="fas fa-weight"></i> Peso (kg) *</label>
+                            <input type="number" id="pesoMascota" step="0.1" placeholder="Ej: 15.5" required>
                         </div>
                     </div>
 
                     <div class="form-group full-width">
-                        <label for="microchipMascota"><i class="fas fa-microchip"></i> Número de Microchip</label>
+                        <label for="microchipMascota"><i class="fas fa-microchip"></i> Número de Microchip (si, aplica)</label>
                         <input type="text" id="microchipMascota" placeholder="Código de identificación">
                     </div>
 
@@ -129,14 +133,14 @@
                                 <input type="radio" name="esterilizado" value="Sí"> Sí
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="esterilizado" value="No" checked> No
+                                <input type="radio" name="esterilizado" value="No"checkbox> No
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="historialMedico"><i class="fas fa-notes-medical"></i> Historial / Notas
-                            Médicas</label>
+                            Médicas (opcional)</label>
                         <textarea id="historialMedico" rows="3"
                             placeholder="Alergias, vacunas pendientes, etc."></textarea>
                     </div>
@@ -148,7 +152,7 @@
                                 <img id="fotoPreviewImg" src="" alt="Vista previa" style="display:none;" />
                                 <i id="placeholderIcon" class="fas fa-image"></i>
                             </div>
-                            <input type="file" id="fotoMascota" accept="image/*">
+                            <input type="file" id="fotoMascota" accept="image/*" multiple>
                         </div>
                     </div>
 
@@ -164,8 +168,10 @@
             </div>
         </div>
     </main>
+
     <main-footer></main-footer>
-    <script type="module" src="/user/visitor/Mascotas/mascotas.js"></script>
+
+    <script type="module" src="/user/visitor/mascotas/mascotas.js"></script>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
     <script type="module" src="/components/JS ads-banner-component.js"></script>
     <script type="module" src="/components/JS forum-card-component.js"></script>
