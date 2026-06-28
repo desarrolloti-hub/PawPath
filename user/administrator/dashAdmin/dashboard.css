@@ -1,127 +1,897 @@
- * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+/* ============================================================
+   dashboard.css - Panel Administrador (completo + responsive)
+   ============================================================ */
 
-        body {
-            background-color: #f4f7fa;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 2rem;
-        }
+/* ===== RESET & BASE ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        /* Estilos para el mensaje de bienvenida */
-        .bienvenida {
-            text-align: center;
-            margin-bottom: 3rem;
-            padding: 2rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            width: 100%;
-            max-width: 800px;
-        }
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #f4f7fc;
+    color: #1e293b;
+    display: flex;
+    min-height: 100vh;
+}
 
-        .bienvenida h1 {
-            color: white;
-            font-size: 2.5rem;
-            font-weight: 600;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-            letter-spacing: 1px;
-        }
+/* ============================================================
+   SIDEBAR (estilos para el componente)
+   ============================================================ */
+/* Estos estilos también se aplican al componente porque usa Shadow DOM,
+   pero dejamos algunos por si el componente no usa Shadow DOM */
+.sidebar {
+    width: 280px;
+    background: #ffffff;
+    border-right: 1px solid #e9edf2;
+    display: flex;
+    flex-direction: column;
+    padding: 2rem 1.2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    flex-shrink: 0;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.02);
+}
 
-        /* Contenedor de las cards */
-        .cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
-            max-width: 1000px;
-            width: 100%;
-            padding: 1rem;
-        }
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.main-content {
+    flex: 1;
+    padding: 1.8rem 2.2rem 2.5rem;
+    overflow-x: hidden;
+    max-width: 100%;
+}
 
-        /* Estilos para las cards */
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 2rem 1.5rem;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            list-style: none;
-        }
+/* ===== TOP HEADER ===== */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
 
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.3);
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
 
-        .card a {
-            text-decoration: none;
-            color: #333;
-            font-size: 1.2rem;
-            font-weight: 500;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.8rem;
-            transition: color 0.3s ease;
-        }
+.menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 1.4rem;
+    color: #475569;
+    cursor: pointer;
+}
 
-        .card:hover a {
-            color: white;
-        }
+.header-left h1 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #0f172a;
+    letter-spacing: -0.3px;
+}
 
-        .card a span {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
+.breadcrumb {
+    color: #94a3b8;
+    font-weight: 400;
+    font-size: 0.95rem;
+}
 
-        /* Efecto de brillo en los íconos */
-        .card:hover a span {
-            filter: brightness(1.2);
-            transform: scale(1.1);
-            transition: transform 0.3s ease;
-        }
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 1.8rem;
+    flex-wrap: wrap;
+}
 
-        /* Media queries para responsividad */
-        @media (max-width: 768px) {
-            .bienvenida h1 {
-                font-size: 2rem;
-            }
+.datetime {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #475569;
+    font-size: 0.9rem;
+    background: #f1f5f9;
+    padding: 0.3rem 1rem;
+    border-radius: 40px;
+}
 
-            .cards-container {
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 1rem;
-            }
+.notifications {
+    position: relative;
+    font-size: 1.3rem;
+    color: #475569;
+    cursor: pointer;
+}
 
-            .card {
-                padding: 1.5rem 1rem;
-            }
+.notifications .badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ef4444;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 0.65rem;
+    font-weight: 600;
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-            .card a {
-                font-size: 1rem;
-            }
-        }
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
 
-        @media (max-width: 480px) {
-            body {
-                padding: 1rem;
-            }
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 1rem;
+}
 
-            .bienvenida h1 {
-                font-size: 1.5rem;
-            }
+.user-info .name {
+    display: block;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #0f172a;
+}
 
-            .cards-container {
-                grid-template-columns: 1fr;
-            }
-        }
+.user-info .role {
+    font-size: 0.75rem;
+    color: #94a3b8;
+}
+
+/* ===== WELCOME BOX ===== */
+.welcome-box {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border-radius: 20px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    color: #fff;
+}
+
+.welcome-box h2 {
+    font-weight: 600;
+    font-size: 1.4rem;
+}
+
+.welcome-box p {
+    opacity: 0.9;
+    font-size: 0.95rem;
+    margin-top: 0.2rem;
+}
+
+.welcome-stats {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.welcome-stats span {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255,255,255,0.15);
+    padding: 0.5rem 1.2rem;
+    border-radius: 40px;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.welcome-stats span i {
+    font-size: 1.1rem;
+}
+
+/* ===== STATS GRID ===== */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.stats-grid-secondary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #f1f4f9;
+    transition: 0.2s;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+}
+
+.stat-card.small {
+    padding: 1rem 1.2rem;
+}
+
+.stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.stat-card.small .stat-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+    border-radius: 12px;
+}
+
+.stat-icon.blue { background: #3b82f6; }
+.stat-icon.green { background: #10b981; }
+.stat-icon.purple { background: #8b5cf6; }
+.stat-icon.orange { background: #f59e0b; }
+.stat-icon.cyan { background: #06b6d4; }
+.stat-icon.yellow { background: #eab308; }
+.stat-icon.teal { background: #14b8a6; }
+.stat-icon.red { background: #ef4444; }
+.stat-icon.pink { background: #ec4899; }
+
+.stat-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.2;
+}
+
+.stat-card.small .stat-value {
+    font-size: 1.3rem;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-change {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-top: 0.25rem;
+}
+
+.stat-change.positive { color: #10b981; }
+.stat-change.negative { color: #ef4444; }
+
+/* ===== DASHBOARD GRID (charts + actividad) ===== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 1.8rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-grid.two-col {
+    grid-template-columns: 1fr 1fr;
+}
+
+.card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 1.5rem 1.5rem 1.8rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
+    border: 1px solid #f1f4f9;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.2rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.card-header h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.card-header h3 i {
+    color: #3b82f6;
+}
+
+.badge-date {
+    background: #f1f5f9;
+    padding: 0.2rem 0.8rem;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    color: #475569;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+.view-all {
+    font-size: 0.8rem;
+    color: #3b82f6;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.view-all:hover {
+    text-decoration: underline;
+}
+
+/* ===== CHART BARS ===== */
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    height: 150px;
+    padding: 0.5rem 0;
+    gap: 0.6rem;
+}
+
+.bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    gap: 0.3rem;
+}
+
+.bar {
+    width: 100%;
+    max-width: 40px;
+    background: #3b82f6;
+    border-radius: 6px 6px 0 0;
+    min-height: 8px;
+    transition: height 0.6s ease;
+}
+
+.bar-label {
+    font-size: 0.65rem;
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+/* ===== DONUT / PIE ===== */
+.donut-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 0.5rem 0;
+}
+
+.donut {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.donut-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 70px;
+    height: 70px;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.donut-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* ===== TABLA DE USUARIOS ===== */
+.table-responsive {
+    overflow-x: auto;
+    margin-top: 0.5rem;
+}
+
+.user-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.user-table th {
+    text-align: left;
+    padding: 0.6rem 0.4rem;
+    color: #64748b;
+    font-weight: 500;
+    border-bottom: 2px solid #f1f5f9;
+}
+.user-table td {
+    padding: 0.6rem 0.4rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.user-table tr:hover {
+    background: #f8fafc;
+}
+
+.status-badge {
+    padding: 0.2rem 0.8rem;
+    border-radius: 40px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+.status-badge.activo { background: #d1fae5; color: #065f46; }
+.status-badge.suspendido { background: #fee2e2; color: #991b1b; }
+
+/* ===== ACTIVITY LIST ===== */
+.activity-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.activity-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #eef2ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #3b82f6;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.activity-text {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #1e293b;
+}
+.activity-text strong {
+    font-weight: 600;
+}
+.activity-time {
+    font-size: 0.7rem;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+/* ===== TOP PETS / ESPECIES ===== */
+.top-pets-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.pet-item {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.3rem 0;
+}
+.pet-item .pet-icon {
+    font-size: 1.5rem;
+}
+.pet-item .pet-name {
+    flex: 1;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+.pet-item .pet-count {
+    background: #f1f5f9;
+    padding: 0.1rem 0.7rem;
+    border-radius: 40px;
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 600;
+}
+
+.pet-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-top: 0.2rem;
+}
+.pet-bar {
+    height: 100%;
+    border-radius: 10px;
+    background: #3b82f6;
+    transition: width 0.6s ease;
+}
+
+/* ===== QUICK ACCESS ===== */
+.quick-access h2 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 1.2rem;
+}
+
+.quick-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.2rem;
+}
+
+.quick-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 1.5rem 0.8rem;
+    text-align: center;
+    text-decoration: none;
+    color: #1e293b;
+    border: 1px solid #f1f4f9;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.quick-card i {
+    font-size: 2rem;
+    color: #3b82f6;
+}
+
+.quick-card span {
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.quick-card:hover {
+    background: #f8fafc;
+    border-color: #dbeafe;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+}
+
+/* ============================================================
+   RESPONSIVE - PUNTO CLAVE PARA TODOS LOS DISPOSITIVOS
+   ============================================================ */
+
+/* Tablets y pantallas medianas */
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-grid.two-col {
+        grid-template-columns: 1fr;
+    }
+    .main-content {
+        padding: 1.5rem 1.5rem 2rem;
+    }
+}
+
+/* Móviles y tablets pequeñas */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column; /* Para que el sidebar no afecte el flujo */
+    }
+
+    /* El sidebar se maneja desde el componente, pero aquí aseguramos que el contenido no se superponga */
+    .main-content {
+        padding: 1rem 1.2rem 2rem;
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .menu-btn {
+        display: block;
+    }
+
+    .top-header {
+        flex-wrap: wrap;
+    }
+
+    .header-right .user-info {
+        display: none;
+    }
+
+    .datetime {
+        display: none;
+    }
+
+    .welcome-box {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.2rem;
+    }
+    .welcome-stats {
+        justify-content: center;
+        gap: 0.8rem;
+    }
+    .welcome-stats span {
+        font-size: 0.8rem;
+        padding: 0.3rem 0.8rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+    .stats-grid-secondary {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .stat-card {
+        padding: 1rem;
+        gap: 0.8rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.3rem;
+    }
+    .stat-card.small .stat-value {
+        font-size: 1.1rem;
+    }
+    .stat-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+    }
+    .stat-card.small .stat-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 1rem;
+    }
+
+    .quick-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .card {
+        padding: 1.2rem;
+    }
+
+    .chart-bars {
+        height: 120px;
+    }
+    .bar {
+        max-width: 30px;
+    }
+
+    .donut {
+        width: 100px;
+        height: 100px;
+    }
+    .donut-center {
+        width: 60px;
+        height: 60px;
+        font-size: 0.8rem;
+    }
+
+    .user-table {
+        font-size: 0.8rem;
+    }
+    .user-table th,
+    .user-table td {
+        padding: 0.4rem 0.3rem;
+    }
+
+    /* Ajustes para la tabla en móvil: ocultar algunas columnas si es necesario */
+    .user-table th:nth-child(3),
+    .user-table td:nth-child(3) {
+        display: none;
+    }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.8rem 0.8rem 1.5rem;
+    }
+
+    .header-left h1 {
+        font-size: 1.2rem;
+    }
+    .breadcrumb {
+        font-size: 0.8rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+    .stats-grid-secondary {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .stat-card {
+        padding: 0.8rem;
+    }
+    .stat-card .stat-value {
+        font-size: 1.1rem;
+    }
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 1rem;
+    }
+    .stat-card.small .stat-value {
+        font-size: 1rem;
+    }
+    .stat-card.small .stat-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 0.9rem;
+    }
+
+    .quick-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .quick-card {
+        padding: 1rem 0.5rem;
+    }
+    .quick-card i {
+        font-size: 1.6rem;
+    }
+    .quick-card span {
+        font-size: 0.85rem;
+    }
+
+    .card {
+        padding: 0.8rem;
+    }
+    .card-header h3 {
+        font-size: 0.9rem;
+    }
+    .badge-date {
+        font-size: 0.6rem;
+        padding: 0.1rem 0.5rem;
+    }
+
+    .chart-bars {
+        height: 100px;
+        gap: 0.3rem;
+    }
+    .bar {
+        max-width: 24px;
+    }
+    .bar-label {
+        font-size: 0.55rem;
+    }
+
+    .donut {
+        width: 80px;
+        height: 80px;
+    }
+    .donut-center {
+        width: 50px;
+        height: 50px;
+        font-size: 0.7rem;
+    }
+    .donut-legend {
+        font-size: 0.7rem;
+    }
+
+    .welcome-box h2 {
+        font-size: 1.1rem;
+    }
+    .welcome-box p {
+        font-size: 0.8rem;
+    }
+    .welcome-stats span {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.6rem;
+    }
+
+    .activity-item {
+        gap: 0.5rem;
+        padding: 0.3rem 0;
+    }
+    .activity-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 0.7rem;
+    }
+    .activity-text {
+        font-size: 0.8rem;
+    }
+    .activity-time {
+        font-size: 0.6rem;
+    }
+
+    .user-table {
+        font-size: 0.7rem;
+    }
+    .user-table th,
+    .user-table td {
+        padding: 0.3rem 0.2rem;
+    }
+    .user-table th:nth-child(2),
+    .user-table td:nth-child(2) {
+        display: none; /* ocultar email en móvil muy pequeño */
+    }
+}
+
+/* Ajuste extra para pantallas muy grandes (opcional) */
+@media (min-width: 1400px) {
+    .main-content {
+        padding: 2rem 3rem 3rem;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+}
