@@ -8,7 +8,6 @@ class Veterinario {
         this.veterinariosCollection = 'veterinarios';
         this.citasCollection = 'citas';
     }
-
     async obtenerVeterinarioPorId(veterinarioId) {
         try {
             const docRef = doc(this.db, this.veterinariosCollection, veterinarioId);

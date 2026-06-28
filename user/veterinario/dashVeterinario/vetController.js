@@ -2,10 +2,14 @@ import { auth, db  } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
+import Citas from '../../../classes/Citas.js';
+import { ChatController } from './chatcontroller.js';
 
 class VetController {
     constructor() {
         this.vetModel = new Veterinario();
+        this.citasModel = new Citas(); // Instancia del archivo Citas.js
+        this.chatController = new ChatController(); // El controlador del chat
         this.veterinarioActual = null;
         this.citas = [];
         this.publicaciones = [];
@@ -965,41 +969,49 @@ class VetController {
 
     async guardarHorario(e) {
         e.preventDefault();
+        
+        // 1. Capturamos los datos del formulario que está en el HTML
+        const propietarioId = document.getElementById('citaPropietario').value;
+        const propietarioNombre = document.getElementById('citaPropietario').options[document.getElementById('citaPropietario').selectedIndex].text;
+        const mascotaNombre = document.getElementById('citaMascota').options[document.getElementById('citaMascota').selectedIndex].text;
+        const fecha = document.getElementById('citaFecha').value;
+        const hora = document.getElementById('citaHora').value;
 
-        const dias = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
-        const horarioConfig = [];
+        const datosCita = {
+            veterinarioId: this.veterinarioActual.uid, // ID del Veterinario logueado
+            veterinarioNombre: this.veterinarioActual.nombre || 'Veterinario',
+            usuarioId: propietarioId,                  // ID del dueño
+            usuarioEmail: "cliente@correo.com",        // Puedes recuperarlo de los datos del propietario
+            nombreMascota: mascotaNombre,
+            fecha: fecha,
+            hora: hora,
+            estado: 'pendiente'
+        };
 
-        dias.forEach(dia => {
-            const activo = document.getElementById(`${dia}_activo`)?.checked || false;
-            const apertura = document.getElementById(`${dia}_apertura`)?.value || '09:00';
-            const cierre = document.getElementById(`${dia}_cierre`)?.value || '18:00';
+        // 2. Llamamos al método real de tu archivo Citas.js para guardarlo en Firebase
+        const resultado = await this.citasModel.crearCitaConTransaccion(datosCita, null);
 
-            horarioConfig.push({
-                dia,
-                activo,
-                apertura,
-                cierre
+        if (resultado.success) {
+            // 3. ¡ÉXITO! SweetAlert avisa al usuario
+            Swal.fire({
+                title: '¡Cita Agendada!',
+                text: 'La cita fue registrada en Firebase. Abriendo chat con el dueño...',
+                icon: 'success',
+                timer: 2500,
+                showConfirmButton: false
+            }).then(() => {
+                // 4. Cambiamos visualmente a la pestaña de Mensajes
+                this.cambiarSeccion('Mensajes');
+                
+                // 5. Activamos el chat en pantalla automáticamente
+                this.chatController.enfocarChatAutomatico(datosCita.usuarioId, datosCita.veterinarioId);
+                
+                // Opcional: Limpiamos el formulario y recargamos la interfaz
+                document.getElementById('horarioForm').reset();
+                this.cargarTodo(); 
             });
-        });
-
-        const duracionCita = parseInt(document.getElementById('duracionCita').value);
-        const diasAnticipacion = parseInt(document.getElementById('diasAnticipacion').value);
-
-        const result = await this.vetModel.guardarConfiguracionHorario(
-            this.veterinarioActual.id,
-            horarioConfig,
-            duracionCita,
-            diasAnticipacion
-        );
-
-        if (result.success) {
-            this.veterinarioActual.horarioSemanal = horarioConfig;
-            this.veterinarioActual.duracionCita = duracionCita;
-            this.veterinarioActual.diasAnticipacion = diasAnticipacion;
-            
-            this.mostrarNotificacion('Horario guardado correctamente', 'success');
         } else {
-            this.mostrarNotificacion('Error: ' + result.error, 'error');
+            Swal.fire('Error', 'No se pudo agendar la cita: ' + resultado.error, 'error');
         }
     }
 
@@ -1124,6 +1136,7 @@ class VetController {
 
         const titulos = {
             dashboard: 'Dashboard',
+            chats: 'Mensajes',
             citas: 'Gestión de Citas',
             publicaciones: 'Gestionar Publicaciones',
             adopciones: 'Solicitudes de Adopción',
@@ -1648,7 +1661,6 @@ async editarPublicacion(id) {
             notificacion.remove();
         }, 3000);
     }
-
     setupEventListeners() {
         // nav
         document.querySelectorAll('.nav-link').forEach(link => {
