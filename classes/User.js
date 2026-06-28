@@ -52,8 +52,7 @@ export class AuthManager {
         
         // Register form elements
         this.registerForm = document.getElementById('register-form');
-        this.primerNombre = document.getElementById('primer_nombre');
-        this.segundoNombre = document.getElementById('segundo_nombre');
+        this.nombres = document.getElementById('nombres');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -226,7 +225,7 @@ export class AuthManager {
         e.preventDefault();
 
         // Validate required fields
-        if (!this.primerNombre?.value.trim() || 
+        if (!this.nombres.trim() || 
             !this.apellidoPaterno?.value.trim() || 
             !this.apellidoMaterno?.value.trim()) {
             this.showAlert('Completa todos los campos obligatorios', 'error');
@@ -267,14 +266,16 @@ export class AuthManager {
             const user = userCredential.user;
             
             console.log('✅ Usuario creado en Auth:', user.uid);
-
+            const arregloNombres = this.nombres.value.trim().split(' ');
+            const primer_nombre = arregloNombres[0] || '';
+            const segundo_nombre = arregloNombres.slice(1).join(' ') || '';
             // 2. Crear documento en Firestore (colección 'users')
             const userData = {
-                primer_nombre: this.primerNombre.value.trim(),
-                segundo_nombre: this.segundoNombre?.value.trim() || '',
+                primer_nombre: primer_nombre,
+                segundo_nombre: segundo_nombre,
                 apellido_paterno: this.apellidoPaterno.value.trim(),
                 apellido_materno: this.apellidoMaterno.value.trim(),
-                nombre_completo: this.getFullName(),
+                nombre_completo: this.nombres.value.trim(),
                 email: email,
                 rol: 'visitante',
                 fecha_registro: serverTimestamp(),
@@ -378,8 +379,7 @@ export class AuthManager {
     // Helper methods
     getFullName() {
         const parts = [
-            this.primerNombre?.value.trim(),
-            this.segundoNombre?.value.trim(),
+            this.nombres.value.trim(),
             this.apellidoPaterno?.value.trim(),
             this.apellidoMaterno?.value.trim()
         ].filter(Boolean);
