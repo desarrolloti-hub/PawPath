@@ -98,20 +98,20 @@ export class ChatController {
     }
     
     abrirChat(chat) {
-
         this.chatActual = chat;
 
-        document.getElementById("chatNombre").textContent = chat.propietario;
-
-        document.getElementById("chatMascota").textContent =
-            "Mascota: " + chat.mascota;
+        // Mapeamos los datos reales según la estructura que guarda tu ChatService
+        document.getElementById("chatNombre").textContent = chat.usuarioEmail || "Cliente";
+        document.getElementById("chatMascota").textContent = "Mascota: " + (chat.nombreMascota || "No especificada");
 
         this.chatMessages.innerHTML = "";
 
-        this.agregarMensaje("Hola doctor.", "received");
-
-        this.agregarMensaje("Hola, ¿cómo está tu mascota?", "sent");
-
+        // Si el chat tiene un último mensaje registrado en Firebase, lo mostramos como burbuja inicial
+        if (chat.ultimoMensaje) {
+            this.agregarMensaje(chat.ultimoMensaje, "received");
+        } else {
+            this.chatMessages.innerHTML = '<div class="empty-chat">¡Canal listo! Escribe un mensaje para iniciar la conversación.</div>';
+        }
     }
 
     agregarMensaje(texto, tipo) {
@@ -142,17 +142,18 @@ export class ChatController {
     }
 
     enviarMensaje() {
-
         if (!this.chatActual) return;
 
         const texto = this.inputMensaje.value.trim();
-
         if (texto === "") return;
 
+        // Coloca el mensaje visualmente en la pantalla
         this.agregarMensaje(texto, "sent");
 
-        this.inputMensaje.value = "";
+        // TODO: Aquí deberás añadir la llamada a Firebase usando tu ChatService 
+        // para guardar el mensaje en una subcolección de mensajes si deseas persistencia total.
 
+        this.inputMensaje.value = "";
     }
 
 }
