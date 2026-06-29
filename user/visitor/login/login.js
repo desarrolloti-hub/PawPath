@@ -60,8 +60,9 @@ class AuthManager {
 
         // Register form elements
         this.registerForm = document.getElementById('register-form');
-        this.primerNombre = document.getElementById('primer_nombre');
-        this.segundoNombre = document.getElementById('segundo_nombre');
+        this.nombres = document.getElementById('nombres');
+        //this.primerNombre = document.getElementById('primer_nombre');
+        //this.segundoNombre = document.getElementById('segundo_nombre');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -319,7 +320,7 @@ class AuthManager {
         
         const val = this.registerPassword.value;
 
-        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 8);
+        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 10);
         const validUpper = this.updateChecklistItem(this.reqUpper, /[A-Z]/.test(val));
         const validLower = this.updateChecklistItem(this.reqLower, /[a-z]/.test(val));
         const validNumber = this.updateChecklistItem(this.reqNumber, /\d/.test(val));
@@ -471,7 +472,7 @@ class AuthManager {
     async handleRegister(e) {
         e.preventDefault();
 
-        if (!this.primerNombre?.value.trim() ||
+        if (!this.nombres?.value.trim() ||
             !this.apellidoPaterno?.value.trim() ||
             !this.apellidoMaterno?.value.trim()) {
             this.showAlert('Completa todos los campos obligatorios', 'error');
@@ -514,14 +515,18 @@ class AuthManager {
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
+            const arregloNombres = this.nombres.value.trim().split(' ');
+            const primerNombre = arregloNombres[0] || '';
+            const segundoNombre = arregloNombres.slice(1).join(' ') || '';
+
             console.log('✅ Usuario creado en Auth:', user.uid);
 
             const userData = {
-                primer_nombre: this.primerNombre.value.trim(),
-                segundo_nombre: this.segundoNombre?.value.trim() || '',
+                primerNombre: primerNombre,
+                segundoNombre: segundoNombre,
                 apellido_paterno: this.apellidoPaterno.value.trim(),
                 apellido_materno: this.apellidoMaterno.value.trim(),
-                nombre_completo: this.getFullName(),
+                nombre_completo: this.nombres.value.trim(),
                 email: email,
                 rol: 'usuario',
                 fecha_registro: serverTimestamp(),
@@ -648,7 +653,7 @@ class AuthManager {
 
     getFullName() {
         const parts = [
-            this.primerNombre?.value.trim(),
+            this.nombres?.value.trim(),
             this.segundoNombre?.value.trim(),
             this.apellidoPaterno?.value.trim(),
             this.apellidoMaterno?.value.trim()

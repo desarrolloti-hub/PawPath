@@ -92,7 +92,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="generoMascota"><i class="fas fa-venus-mars"></i> Género</label>
+                            <label for="generoMascota"><i class="fas fa-venus-mars"></i> Género *</label>
                             <select id="generoMascota">
                                 <option value="">Seleccione un género</option>
                                 <option value="Macho">♂ Macho</option>
@@ -101,8 +101,8 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="razaMascota"><i class="fas fa-dna"></i> Raza</label>
-                            <input type="text" id="razaMascota" placeholder="Ej: Labrador">
+                            <label for="razaMascota"><i class="fas fa-dna"></i> Raza *</label>
+                            <input type="text" id="razaMascota" placeholder="Ej: Labrador" required>
                         </div>
 
                         <div class="form-group">
@@ -111,18 +111,18 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="edadMascota"><i class="fas fa-calendar-alt"></i> Edad (Años)</label>
-                            <input type="number" id="edadMascota" step="1" placeholder="Ej: 2">
+                            <label for="edadMascota"><i class="fas fa-calendar-alt"></i> Edad (Años) *</label>
+                            <input type="number" id="edadMascota" step="1" placeholder="Ej: 2" required>
                         </div>
 
                         <div class="form-group">
-                            <label for="pesoMascota"><i class="fas fa-weight"></i> Peso (kg)</label>
-                            <input type="number" id="pesoMascota" step="0.1" placeholder="Ej: 15.5">
+                            <label for="pesoMascota"><i class="fas fa-weight"></i> Peso (kg) *</label>
+                            <input type="number" id="pesoMascota" step="0.1" placeholder="Ej: 15.5" required>
                         </div>
                     </div>
 
                     <div class="form-group full-width">
-                        <label for="microchipMascota"><i class="fas fa-microchip"></i> Número de Microchip</label>
+                        <label for="microchipMascota"><i class="fas fa-microchip"></i> Número de Microchip (si, aplica)</label>
                         <input type="text" id="microchipMascota" placeholder="Código de identificación">
                     </div>
 
@@ -133,14 +133,14 @@
                                 <input type="radio" name="esterilizado" value="Sí"> Sí
                             </label>
                             <label class="radio-option">
-                                <input type="radio" name="esterilizado" value="No" checked> No
+                                <input type="radio" name="esterilizado" value="No"checkbox> No
                             </label>
                         </div>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="historialMedico"><i class="fas fa-notes-medical"></i> Historial / Notas
-                            Médicas</label>
+                            Médicas (opcional)</label>
                         <textarea id="historialMedico" rows="3"
                             placeholder="Alergias, vacunas pendientes, etc."></textarea>
                     </div>

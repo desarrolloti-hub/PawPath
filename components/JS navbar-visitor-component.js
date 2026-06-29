@@ -337,7 +337,7 @@
             @media (max-width: 992px) {
                 .paw-navbar-desktop { display: none; }
                 .paw-toggle-btn { display: flex; }
-                .paw-sidebar { width: 65%; }
+                .paw-sidebar { width: 100%; }
             }
 
             @media (min-width: 993px) {
@@ -436,7 +436,7 @@
                 <li><a href="/">Inicio</a></li>
                 <li><a href="/user/visitor/foro/foro.html">Foro</a></li>
                 <li><a href="/user/visitor/MapaForo/mapaforo.html">Mapa</a></li>
-                <!-- <li><a href="/user/visitor/citas/citas.html">Agendar Cita</a></li> -->
+                <li><a href="/user/visitor/citas/misCitas.html">Mis citas</a></li>
                 <li><a href="/user/visitor/mascotas/mascotas.html">Mis Mascotas</a></li>
             </ul> 
             <div id="userActionDesktop"></div>
@@ -495,8 +495,8 @@
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-            toggleBtn.classList.toggle('menu-abierto',active);
-            
+            toggleBtn.classList.toggle('menu-abierto', active);
+
         };
 
 
@@ -535,7 +535,7 @@
     function cargarDatosUsuario() {
         // Verificar si hay datos en localStorage
         let userData = null;
-        let pNombre = null;
+        let nombreUsuario = null;
         let aPaterno = null;
         let rol = null;
 
@@ -543,12 +543,12 @@
             const fullData = localStorage.getItem('userFullData');
             if (fullData) {
                 userData = JSON.parse(fullData);
-                pNombre = userData.primer_nombre;
+                nombreUsuario = userData.nombre_completo || userData.primer_nombre;
                 aPaterno = userData.apellido_paterno;
                 rol = userData.rol;
             }
 
-            if (!pNombre) pNombre = localStorage.getItem('user_primer_nombre');
+            if (!nombreUsuario) nombreUsuario = localStorage.getItem('userDisplayName') || localStorage.getItem('user_primer_nombre');
             if (!aPaterno) aPaterno = localStorage.getItem('user_apellido_paterno');
             if (!rol) rol = localStorage.getItem('user_rol');
 
@@ -561,10 +561,17 @@
         const sideUserName = document.getElementById('sideUserName');
         const sideUserRole = document.getElementById('sideUserRole');
 
-        if (pNombre) {
+        if (nombreUsuario) {
             // Hay usuario logueado
-            const initial = pNombre.charAt(0).toUpperCase();
-            const fullName = aPaterno ? `${pNombre} ${aPaterno}` : pNombre;
+            const initial = nombreUsuario.charAt(0).toUpperCase(); 
+            let fullName;
+            if(userData && userData.nombre_completo){
+                fullName = userData.nombre_completo;
+            }else if(localStorage.getItem('userDisplayName')){
+                fullName.localStorage.getItem('userDisplayName');
+            }else{
+                fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
+            }
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
 
             if (userAction && userMovilAction) {

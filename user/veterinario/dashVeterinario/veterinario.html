@@ -38,6 +38,12 @@
                         </a>
                     </li>
                     <li>
+                        <a href="#" class="nav-link" data-section="Mensajes">
+                            <i class="fas fa-comments"></i>
+                            <span>Mensajes</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="#" class="nav-link" data-section="citas">
                             <i class="fas fa-calendar-check"></i>
                             <span>Citas</span>
@@ -191,7 +197,80 @@
                         </ul>
                     </div>
                 </section>
+                <!-- MENSAJES SECTION -->
+                <section class="content-section" id="Mensajes-section">
+                    <div class="chat-container">
+                        <!-- Lista de conversaciones -->
+                        <aside class="chat-sidebar">
 
+                            <div class="chat-header">
+                                <h2>Mensajes</h2>
+
+                                <input
+                                    type="text"
+                                    id="buscarChat"
+                                    placeholder="Buscar propietario..."
+                                >
+                            </div>
+
+                            <div id="listaChats" class="lista-chats">
+
+                                <!-- Se llenará desde JavaScript -->
+
+                            </div>
+
+                        </aside>
+
+                        <!-- Conversación -->
+                        <main class="chat-main">
+
+                            <div class="chat-top">
+
+                                <div class="chat-user">
+                                    <div>
+
+                                        <h3 id="chatNombre">
+                                            Selecciona una conversación
+                                        </h3>
+
+                                        <span id="chatMascota"></span>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                            <div
+                                id="chatMessages"
+                                class="chat-messages"
+                            >
+
+                                <div class="empty-chat">
+
+                                    Selecciona un propietario para comenzar.
+
+                                </div>
+
+                            </div>
+
+                            <div class="chat-input">
+
+                                <input
+                                    type="text"
+                                    id="mensajeInput"
+                                    placeholder="Escribe un mensaje..."
+                                >
+
+                                <button id="btnEnviar">
+
+                                    <i class="fas fa-paper-plane"></i>
+
+                                </button>
+                            </div>
+                        </main>
+                    </div>
+                </section>
                 <!-- CITAS SECTION -->
                 <section class="content-section" id="citas-section">
                     <div class="section-header">

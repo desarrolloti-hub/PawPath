@@ -128,6 +128,28 @@
                                         placeholder="Describe detalladamente el motivo de la consulta..."></textarea>
                                 </div>
 
+                                <!-- Recomendación IA -->
+                                <div id="ai-recomendacion-section" class="ai-section" style="display:none;">
+                                    <div id="ai-loading" class="ai-loading" style="display:none;">
+                                        <div class="ai-spinner"></div>
+                                        <span>Analizando síntomas con IA...</span>
+                                    </div>
+                                    <div id="ai-result" style="display:none;">
+                                        <div class="ai-card">
+                                            <div class="ai-card-header">
+                                                <i class="fas fa-robot"></i>
+                                                <span>Recomendación de IA</span>
+                                                <span id="ai-urgente-badge" class="ai-urgente-badge" style="display:none;">⚠️ Urgente</span>
+                                            </div>
+                                            <p id="ai-recomendacion-texto" class="ai-recomendacion-texto"></p>
+                                        </div>
+                                        <div id="ai-vets-section">
+                                            <h4 class="ai-vets-title"><i class="fas fa-user-md"></i> Veterinarios recomendados para este caso</h4>
+                                            <div id="ai-vets-list" class="ai-vets-list"></div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="card-header">
                                     <h3>Fecha y Hora de la Cita</h3>
                                 </div>
@@ -155,12 +177,12 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                               <div class="form-group">
                                     <label for="imagenMascota">Foto de la mascota *</label>
                                     <div class="file-upload">
-                                        <input type="file" id="imagenMascota" name="imagenMascota" accept="image/*">
                                         <div class="file-upload-label" id="fileUploadLabel">
-                                            <span>Haz clic para subir una foto</span>
+                                            <input type="file" id="imagenMascota" name="imagenMascota" accept="image/*">
+                                           <span>Haz clic para subir una foto</span>
                                             <small>Formatos: JPG, PNG, GIF (Máx. 5MB)</small>
                                         </div>
                                         <div id="imagePreview" class="image-preview"></div>

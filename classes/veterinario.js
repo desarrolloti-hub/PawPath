@@ -8,7 +8,6 @@ class Veterinario {
         this.veterinariosCollection = 'veterinarios';
         this.citasCollection = 'citas';
     }
-
     async obtenerVeterinarioPorId(veterinarioId) {
         try {
             const docRef = doc(this.db, this.veterinariosCollection, veterinarioId);
@@ -255,21 +254,6 @@ class Veterinario {
         }
     }
 
-    async guardarConfiguracionHorario(veterinarioId, horarioConfig) {
-        try {
-            const vetRef = doc(this.db, this.veterinariosCollection, veterinarioId);
-
-            await updateDoc(vetRef, {
-                horarioSemanal: horarioConfig,
-                fechaActualizacion: serverTimestamp()
-            });
-
-            return { success: true, message: 'Horario actualizado correctamente' };
-        } catch (error) {
-            console.error('Error al guardar horario:', error);
-            return { success: false, error: error.message };
-        }
-    }
 
     async obtenerEstadisticas(veterinarioId) {
         try {
@@ -297,23 +281,32 @@ class Veterinario {
         }
     }
 
-    async guardarConfiguracionHorario(veterinarioId, horarioSemanal, duracionCita, diasAnticipacion) {
-        try {
-            const vetRef = doc(this.db, this.veterinariosCollection, veterinarioId);
+    // ====== REEMPLAZA ESTE MÉTODO EN TU ARCHIVO Veterinario.js ======
+async guardarConfiguracionHorario(veterinarioId, horarioSemanal, duracionCita, diasAnticipacion) {
+    try {
+        // En lugar de forzar un updateDoc que se cae si el perfil no existe en la nube,
+        // usamos setDoc con { merge: true } que lo crea si no existe, o lo actualiza si ya existe.
+        const { setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
+        
+        const vetRef = doc(this.db, this.veterinariosCollection, veterinarioId);
 
-            await updateDoc(vetRef, {
-                horarioSemanal: horarioSemanal,
-                duracionCita: duracionCita,
-                diasAnticipacion: diasAnticipacion,
-                fechaActualizacion: serverTimestamp()
-            });
+        await setDoc(vetRef, {
+            horarioSemanal: horarioSemanal,
+            duracionCita: duracionCita,
+            diasAnticipacion: diasAnticipacion,
+            fechaActualizacion: serverTimestamp(),
+            // Agregamos estos datos de respaldo por si es la primera vez que se crea el documento en la bd
+            nombreCompleto: "Dr. Veterinario Real",
+            nombreClinica: "Clínica Veterinaria PawPath Principal"
+        }, { merge: true }); // ✨ MERGE EVITA QUE SE BORREN LOS DEMÁS CAMPOS SI YA EXISTÍA
 
-            return { success: true, message: 'Horario actualizado correctamente' };
-        } catch (error) {
-            console.error('Error al guardar horario:', error);
-            return { success: false, error: error.message };
-        }
+        console.log('¡Agenda e información de horarios guardada exitosamente en Firestore!');
+        return { success: true, message: 'Horario actualizado correctamente' };
+    } catch (error) {
+        console.error('Error al guardar horario:', error);
+        return { success: false, error: error.message };
     }
+}
 }
 
 export default Veterinario;

@@ -4,6 +4,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/fi
 import {
     collection,
     addDoc,
+    setDoc,
     serverTimestamp,
     doc,
     getDoc,
@@ -445,8 +446,8 @@ class FormVeterinarioController {
                 fechaActualizacion: serverTimestamp()
             };
 
-            const docRef = await addDoc(collection(db, this.veterinariosCollection), veterinarioData);
-
+            await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
+            
             console.log('Veterinario registrado con ID:', docRef.id);
             this.mostrarModalExito();
 

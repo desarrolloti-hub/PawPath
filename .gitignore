@@ -1,0 +1,9 @@
+# Archivo de configuración con API key de Gemini — NO compartir
+config/gemini-config.js
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Dependencias
+node_modules/

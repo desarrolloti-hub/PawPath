@@ -1,5 +1,6 @@
 import { db, auth } from '/config/firebase-config.js';
 import { collection, addDoc, query, where, getDocs, doc, getDoc, updateDoc, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { ChatService } from './../user/veterinario/dashVeterinario/chatservice.js';
 
 class Citas {
     constructor() {
@@ -166,6 +167,25 @@ class Citas {
             };
 
             const docRef = await addDoc(collection(this.db, this.citasCollection), citaData);
+            const citaId = docRef.id;
+            //NUEVO: Creamos el chat automáticamente en Firebase vinculando esta cita
+            try {
+                const datosParaChat = {
+                    id: citaId,
+                    usuarioId: citaData.usuarioId,
+                    veterinarioId: citaData.veterinarioId,
+                    mascotaId: citaData.mascotaId || 'sin_id',
+                    nombreMascota: citaData.nombreMascota || 'Mascota',
+                    veterinarioNombre: citaData.veterinarioNombre || 'Veterinario',
+                    usuarioEmail: citaData.usuarioEmail
+                };
+                // Llamamos al servicio de Firebase que ya analiza si existe o no
+                await ChatService.crearChatSiNoExiste(datosParaChat);
+            } catch (chatError) {
+                console.error("Error automático al crear sala de chat:", chatError);
+                // No bloqueamos el retorno de la cita si el chat falla por red
+            }
+            return { success: true, id: citaId, data: citaData };
             return { success: true, id: docRef.id, data: citaData };
         } catch (error) {
             console.error('Error al crear cita:', error);

@@ -3,6 +3,7 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/fi
 import Citas from '/classes/Citas.js';
 import Veterinario from '/classes/Veterinario.js';
 import Mascota from '/classes/mascotas.js';
+import { obtenerRecomendacionIA } from '/config/gemini-service.js';
 
 class CitasController {
     constructor() {
@@ -123,7 +124,7 @@ class CitasController {
         document.getElementById('enfermedades').value = mascota.historialMedico || '';
         
         // Mostrar foto si existe
-        if (mascota.foto) {
+       /* if (mascota.foto) {
             const preview = document.getElementById('imagePreview');
             const label = document.getElementById('fileUploadLabel');
             if (preview) {
@@ -140,7 +141,7 @@ class CitasController {
             if (preview) preview.innerHTML = '';
             if (label) label.style.display = 'flex';
             this.mascotaTieneFoto = false;
-        }
+        }*/
         
         // Ocultar mensaje de información
         const infoContainer = document.getElementById('mascotaInfoContainer');
@@ -478,6 +479,11 @@ class CitasController {
         const mascotaSelector = document.getElementById('mascotaSelector');
         if (mascotaSelector) {
             mascotaSelector.addEventListener('change', () => this.onMascotaSelectorChange());
+        }
+
+        const problemaSaludInput = document.getElementById('problemaSalud');
+        if (problemaSaludInput) {
+            problemaSaludInput.addEventListener('input', () => this.onProblemaChange());
         }
 
         // Escuchar evento de mascota creada desde el modal
@@ -983,6 +989,105 @@ class CitasController {
         if (this.modal) {
             this.modal.style.display = 'none';
         }
+    }
+
+    onProblemaChange() {
+        clearTimeout(this._aiDebounceTimer);
+        const descripcion = document.getElementById('problemaSalud')?.value?.trim();
+        const section = document.getElementById('ai-recomendacion-section');
+        if (!section) return;
+
+        if (!descripcion || descripcion.length < 15) {
+            section.style.display = 'none';
+            return;
+        }
+
+        const loading = document.getElementById('ai-loading');
+        const result = document.getElementById('ai-result');
+        section.style.display = 'block';
+        if (loading) loading.style.display = 'flex';
+        if (result) result.style.display = 'none';
+
+        this._aiDebounceTimer = setTimeout(() => this.consultarIA(descripcion), 2000);
+    }
+
+    async consultarIA(descripcion) {
+        try {
+            const infoPet = {
+                especie: document.getElementById('especie')?.value,
+                raza: document.getElementById('raza')?.value,
+                edad: document.getElementById('edad')?.value,
+                enfermedades: document.getElementById('enfermedades')?.value,
+            };
+
+            // Extraer especialidades únicas de los veterinarios ya cargados desde Firestore
+            const especialidadesDisponibles = [
+                ...new Set(this.veterinarios.flatMap(v => v.especialidades || []))
+            ];
+
+            const { recomendacion, especialidades, urgente, fuera_de_tema } = await obtenerRecomendacionIA(descripcion, infoPet, especialidadesDisponibles);
+
+            if (fuera_de_tema) {
+                const section = document.getElementById('ai-recomendacion-section');
+                const loading = document.getElementById('ai-loading');
+                if (loading) loading.style.display = 'none';
+                if (section) section.innerHTML = `<p class="ai-error-msg"><i class="fas fa-paw"></i> ${recomendacion}</p>`;
+                return;
+            }
+
+            this.mostrarRecomendacionIA(recomendacion, especialidades || [], urgente);
+        } catch (error) {
+            console.error('Error consultando IA:', error);
+            const loading = document.getElementById('ai-loading');
+            if (loading) loading.style.display = 'none';
+
+            const section = document.getElementById('ai-recomendacion-section');
+            const msgs = {
+                QUOTA_EXCEEDED: 'Límite de IA alcanzado. Intenta en unos segundos.',
+                INVALID_KEY:    'API key de Gemini inválida. Revisa la configuración.',
+                MODEL_NOT_FOUND:'Modelo de IA no disponible. Revisa tu API key.',
+            };
+            const texto = msgs[error.message] || 'No se pudo obtener recomendación de IA.';
+            if (section) section.innerHTML = `<p class="ai-error-msg"><i class="fas fa-exclamation-circle"></i> ${texto}</p>`;
+        }
+    }
+
+    mostrarRecomendacionIA(recomendacion, especialidades, urgente) {
+        const loading = document.getElementById('ai-loading');
+        const result = document.getElementById('ai-result');
+        const texto = document.getElementById('ai-recomendacion-texto');
+        const urgenteBadge = document.getElementById('ai-urgente-badge');
+        const vetsList = document.getElementById('ai-vets-list');
+
+        if (loading) loading.style.display = 'none';
+        if (result) result.style.display = 'block';
+        if (texto) texto.textContent = recomendacion;
+        if (urgenteBadge) urgenteBadge.style.display = urgente ? 'inline-flex' : 'none';
+        if (!vetsList) return;
+
+        const vetsFiltrados = this.veterinarios.filter(vet => {
+            const esps = vet.especialidades || [];
+            return especialidades.some(e => esps.includes(e)) || esps.length === 0;
+        });
+
+        if (vetsFiltrados.length === 0) {
+            vetsList.innerHTML = '<p class="ai-no-vets">No se encontraron veterinarios con esa especialidad.</p>';
+            return;
+        }
+
+        vetsList.innerHTML = vetsFiltrados.map(vet => `
+            <div class="ai-vet-card" onclick="document.getElementById('veterinario').value='${vet.id}'; document.querySelectorAll('.ai-vet-card').forEach(c=>c.classList.remove('selected')); this.classList.add('selected')">
+                <div class="ai-vet-foto">
+                    ${vet.foto ? `<img src="${vet.foto}" alt="${vet.nombre}">` : '<i class="fas fa-user-md"></i>'}
+                </div>
+                <div class="ai-vet-info">
+                    <strong>${vet.nombre}</strong>
+                    <span class="ai-vet-clinica">${vet.nombreClinica}</span>
+                    <span class="ai-vet-esp">${vet.specialty}</span>
+                    ${vet.rating > 0 ? `<span class="ai-vet-rating">★ ${vet.rating.toFixed(1)}</span>` : ''}
+                </div>
+            </div>
+        `).join('');
     }
 
     cancelarFormulario() {
