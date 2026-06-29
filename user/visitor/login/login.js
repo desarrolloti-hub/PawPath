@@ -320,7 +320,7 @@ class AuthManager {
         
         const val = this.registerPassword.value;
 
-        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 8);
+        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 10);
         const validUpper = this.updateChecklistItem(this.reqUpper, /[A-Z]/.test(val));
         const validLower = this.updateChecklistItem(this.reqLower, /[a-z]/.test(val));
         const validNumber = this.updateChecklistItem(this.reqNumber, /\d/.test(val));
