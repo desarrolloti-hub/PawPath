@@ -122,7 +122,7 @@ class FormVeterinarioController {
 
         try {
 
-            const q = query(collection(db, 'usuarios'), where('email', '==', email));
+            const q = query(collection(db, 'usarios'), where('email', '==', email));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
@@ -523,14 +523,6 @@ class FormVeterinarioController {
         if (registroForm) {
             registroForm.addEventListener('submit', (e) => this.handleSubmit(e));
         }
-
-        // const logoutBtn = document.getElementById('logoutBtn');
-        // if (logoutBtn) {
-        //     logoutBtn.addEventListener('click', (e) => {
-        //         e.preventDefault();
-        //         this.logout();
-        //     });
-        // }
 
         this.setupImagePreview();
     }
