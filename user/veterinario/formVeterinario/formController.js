@@ -49,7 +49,7 @@ class FormVeterinarioController {
                     window.location.href = '/user/visitor/login/login.html';
                     reject();
                 } else {
-                    this.userName = user.primer_nombre;
+                    this.userName = user.nombre_completo;
                     this.userEmail = user.email;
                     resolve(user);
                 }
@@ -83,14 +83,9 @@ class FormVeterinarioController {
             if (userDoc.exists()) {
                 const userData = userDoc.data();
 
-                const primerNombreInput = document.getElementById('primerNombre');
-                if (primerNombreInput && userData.primer_nombre) {
-                    primerNombreInput.value = userData.primer_nombre;
-                }
-
-                const segundoNombreInput = document.getElementById('segundoNombre');
-                if (segundoNombreInput && userData.segundo_nombre) {
-                    segundoNombreInput.value = userData.segundo_nombre;
+                const nombresInput = document.getElementById('nombres');
+                if (nombresInput && userData.nombre_completo) {
+                    nombresInput.value = userData.nombre_completo;
                 }
 
                 const apellidoPatInput = document.getElementById('apellidoPat');
@@ -128,16 +123,10 @@ class FormVeterinarioController {
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
-
                 // Mapear los campos
-                const primerNombreInput = document.getElementById('primerNombre');
-                if (primerNombreInput && userData.primer_nombre) {
-                    primerNombreInput.value = userData.primer_nombre;
-                }
-
-                const segundoNombreInput = document.getElementById('segundoNombre');
-                if (segundoNombreInput && userData.segundo_nombre) {
-                    segundoNombreInput.value = userData.segundo_nombre;
+                const nombresInput = document.getElementById('nombres');
+                if (nombresInput && userData.nombre_completo) {
+                    nombresInput.value = userData.nombre_completo;
                 }
 
                 const apellidoPatInput = document.getElementById('apellidoPat');
@@ -447,7 +436,7 @@ class FormVeterinarioController {
             };
 
             await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
-            
+
             console.log('Veterinario registrado con ID:', docRef.id);
             this.mostrarModalExito();
 
