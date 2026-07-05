@@ -26,12 +26,10 @@ import {
 
 class AuthManager {
     constructor() {
-        console.log('🚀 Inicializando AuthManager...');
         this.initializeDOMElements();
         this.attachEventListeners();
         this.setupAuthStateListener();
         //this.setPersistenceToNone(); // Deshabilitar persistencia
-        console.log('✅ AuthManager initialized');
     }
 
     initializeDOMElements() {
@@ -61,8 +59,6 @@ class AuthManager {
         // Register form elements
         this.registerForm = document.getElementById('register-form');
         this.nombres = document.getElementById('nombres');
-        //this.primerNombre = document.getElementById('primer_nombre');
-        //this.segundoNombre = document.getElementById('segundo_nombre');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -125,7 +121,6 @@ class AuthManager {
 
     setupAuthStateListener() {
         onAuthStateChanged(auth, async (user) => {
-            console.log('🔔 onAuthStateChanged disparado');
             if (user) {
                 console.log('✅ Usuario autenticado en Firebase Auth');
 
@@ -705,8 +700,6 @@ class AuthManager {
 
     async logout() {
         try {
-            console.log('🚪 Cerrando sesión desde AuthManager...');
-
             // Forzar signOut
             await signOut(auth);
 
@@ -715,8 +708,6 @@ class AuthManager {
 
             // Limpiar sessionStorage
             sessionStorage.clear();
-
-            console.log('✅ Sesión cerrada correctamente');
 
             // Redirigir con timestamp para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();

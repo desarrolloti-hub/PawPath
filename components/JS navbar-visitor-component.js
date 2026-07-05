@@ -461,7 +461,7 @@
                     <a href="/" class="sidebar-link"><i class="fas fa-home"></i> Inicio</a>
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
-                    <!--<a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>-->
+                    <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
                     <a href="/user/visitor/mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
                 </div>
