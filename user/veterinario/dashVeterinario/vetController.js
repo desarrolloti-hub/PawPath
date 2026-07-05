@@ -127,8 +127,6 @@ class VetController {
     async cargarTodo() {
     if (!this.veterinarioActual) return;
 
-    console.log('Cargando datos reales para el veterinario en Dashboard:', this.veterinarioActual.uid);
-
     try {
         // 1. CARGAR CITAS REALES DESDE FIRESTORE
         if (this.citasModel && typeof this.citasModel.obtenerCitasVeterinario === 'function') {
@@ -164,14 +162,11 @@ class VetController {
         // 6. ACTUALIZAR LOS CONTADORES DEL DASHBOARD (Adiós al "Cargando...")
         this.actualizarContadoresSeguros();
 
-        console.log('¡Dashboard inicializado correctamente con todos los datos de Firestore!');
-
     } catch (error) {
         console.error('Error crítico al cargar los componentes del dashboard:', error);
     }
 }
 actualizarContadoresSeguros() {
-    console.log("Calculando estadísticas para las tarjetas del Dashboard...");
     
     const hoy = new Date().toISOString().split('T')[0];
 
@@ -206,7 +201,6 @@ actualizarContadoresSeguros() {
             return;
         }
 
-        console.log("Buscando citas en Firestore para el veterinario ID:", vId);
         const resultado = await this.citasModel.obtenerCitasVeterinario(vId);
         
         if (resultado.success) {
@@ -242,8 +236,6 @@ actualizarContadoresSeguros() {
             console.error("No se pueden cargar publicaciones: Falta ID del veterinario.");
             return;
         }
-
-        console.log("Consultando publicaciones reales en Firestore para el ID:", vId);
         
         // 1. Quitamos el 'orderBy' de la consulta de Firebase para evitar que se congele por falta de índices.
         const q = query(
@@ -267,8 +259,6 @@ actualizarContadoresSeguros() {
             const fechaB = b.fechaCreacion?.seconds || 0;
             return fechaB - fechaA; // De la más reciente a la más antigua
         });
-
-        console.log("¡Publicaciones cargadas con éxito! Total encontradas:", this.publicaciones.length);
         
         // 3. Mandamos a dibujar las tarjetas en la pantalla
         this.renderizarPublicaciones();
@@ -1136,7 +1126,6 @@ actualizarContadoresSeguros() {
 
     async guardarHorario(e) {
     e.preventDefault();
-    console.log("Procesando actualización de horarios disponibles...");
 
     try {
         const vId = this.veterinarioActual?.id || auth.currentUser?.uid;
@@ -1174,8 +1163,6 @@ actualizarContadoresSeguros() {
                 });
             }
         });
-
-        console.log("Guardando configuración de agenda para el veterinario:", vId, horarioSemanal);
         
         const resultado = await this.vetModel.guardarConfiguracionHorario(vId, horarioSemanal, duracionCita, diasAnticipacion);
 
@@ -1197,7 +1184,6 @@ actualizarContadoresSeguros() {
 }
 
     async cargarHorariosDisponibles() {
-        console.log('🕒 Cargando horarios disponibles...');
 
         const veterinarioId = document.getElementById('veterinario')?.value;
         const fecha = document.getElementById('fecha')?.value;
@@ -1226,8 +1212,6 @@ actualizarContadoresSeguros() {
                 horaSelect.disabled = false;
                 return;
             }
-
-            console.log('✅ Horario del veterinario:', vetSeleccionado.horarioSemanal);
 
             if (!vetSeleccionado.horarioSemanal || vetSeleccionado.horarioSemanal.length === 0) {
                 horaSelect.innerHTML = '<option value="">El veterinario no tiene horario configurado</option>';
@@ -1268,7 +1252,6 @@ actualizarContadoresSeguros() {
         const horarioDia = vet.horarioSemanal.find(h => h.dia === diaSemana);
         
         if (!horarioDia || !horarioDia.activo) {
-            console.log(`⚠️ Veterinario no atiende los ${diaSemana}`);
             return [];
         }
 
@@ -1499,7 +1482,6 @@ actualizarContadoresSeguros() {
 
     async guardarPublicacion(e) {
     e.preventDefault();
-    console.log('Iniciando guardado de publicación...');
 
     if (!this.veterinarioActual) {
         Swal.fire('Error', 'No se identificaron datos del veterinario', 'error');
@@ -1549,9 +1531,7 @@ actualizarContadoresSeguros() {
             nuevaPublicacion.fechaEvento = fechaInput.value;
         }
 
-        console.log('Enviando publicación a Firestore:', nuevaPublicacion);
         const docRef = await addDoc(collection(db, 'publicaciones'), nuevaPublicacion);
-        console.log('Publicación guardada con ID:', docRef.id);
 
         Swal.fire({
             icon: 'success',

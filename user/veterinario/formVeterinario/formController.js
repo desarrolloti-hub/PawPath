@@ -61,7 +61,6 @@ class FormVeterinarioController {
     async mostrarDatosUsuario() {
         const user = auth.currentUser;
         if (!user) {
-            console.log('No hay usuario autenticado');
             return;
         }
 
@@ -157,8 +156,7 @@ class FormVeterinarioController {
 
                 this.mostrarNotificacion('Datos cargados correctamente', 'success');
             } else {
-                console.log('no se encontro:', email);
-            }
+               }
         } catch (error) {
             console.error(error);
         }
@@ -453,7 +451,6 @@ class FormVeterinarioController {
 
             await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
             
-            console.log('Veterinario registrado con ID:', user.uid);
             this.mostrarModalExito();
 
         } catch (error) {
