@@ -495,7 +495,7 @@
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-            toggleBtn.classList.toggle('menu-abierto', active);
+
 
         };
 
@@ -509,7 +509,7 @@
                 overlay.classList.remove('active');
                 toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
 
-                toggleBtn.classList.remove('menu-abierto');
+
             });
         });
         sidebar.addEventListener('click', (e) => {
@@ -563,13 +563,13 @@
 
         if (nombreUsuario) {
             // Hay usuario logueado
-            const initial = nombreUsuario.charAt(0).toUpperCase(); 
+            const initial = nombreUsuario.charAt(0).toUpperCase();
             let fullName;
-            if(userData && userData.nombre_completo){
+            if (userData && userData.nombre_completo) {
                 fullName = userData.nombre_completo;
-            }else if(localStorage.getItem('userDisplayName')){
+            } else if (localStorage.getItem('userDisplayName')) {
                 fullName.localStorage.getItem('userDisplayName');
-            }else{
+            } else {
                 fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
             }
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
@@ -611,9 +611,11 @@
             // No hay usuario - mostrar botón de login
             if (userAction && userMovilAction) {
                 userAction.innerHTML = `
-                 <div style="display:flex; gap:10px;">
-                    <i class="fa-solid fa-user"></i>                    
-                </div>
+                    <div class="paw-nav-links" style="display:flex; gap:10px;">
+                        <a href="/user/visitor/login/login.html" style="text-decoration: none;">
+                            Iniciar sesión
+                        </a>             
+                    </div>
                 `;
                 userMovilAction.innerHTML = ` <div style="padding: 20px;">
                 <a href="/user/visitor/login/login.html" style="text-decoration: none;">
