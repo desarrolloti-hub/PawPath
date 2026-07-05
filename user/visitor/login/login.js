@@ -138,12 +138,10 @@ class DataProtectionSHA256 {
 
 class AuthManager {
     constructor() {
-        console.log('🚀 Inicializando AuthManager...');
         this.initializeDOMElements();
         this.attachEventListeners();
         this.setupAuthStateListener();
         //this.setPersistenceToNone(); // Deshabilitar persistencia
-        console.log('✅ AuthManager initialized');
     }
 
     initializeDOMElements() {
@@ -173,8 +171,6 @@ class AuthManager {
         // Register form elements
         this.registerForm = document.getElementById('register-form');
         this.nombres = document.getElementById('nombres');
-        //this.primerNombre = document.getElementById('primer_nombre');
-        //this.segundoNombre = document.getElementById('segundo_nombre');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -237,7 +233,6 @@ class AuthManager {
 
     setupAuthStateListener() {
         onAuthStateChanged(auth, async (user) => {
-            console.log('🔔 onAuthStateChanged disparado');
             if (user) {
                 console.log('✅ Usuario autenticado en Firebase Auth');
 
@@ -305,7 +300,6 @@ class AuthManager {
                     localStorage.setItem('userFullData', JSON.stringify(userData));
                 }
 
-                console.log('✅ Datos guardados en caché correctamente');
             }
         } catch (error) {
             console.error('Error al guardar en caché:', error);
@@ -313,7 +307,6 @@ class AuthManager {
     }
 
     redirectBasedOnRole(role) {
-        console.log('🔄 Redirigiendo según rol:', role);
 
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
@@ -432,7 +425,7 @@ class AuthManager {
         
         const val = this.registerPassword.value;
 
-        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 8);
+        const validLength = this.updateChecklistItem(this.reqLength, val.length >= 10);
         const validUpper = this.updateChecklistItem(this.reqUpper, /[A-Z]/.test(val));
         const validLower = this.updateChecklistItem(this.reqLower, /[a-z]/.test(val));
         const validNumber = this.updateChecklistItem(this.reqNumber, /\d/.test(val));
@@ -536,7 +529,7 @@ class AuthManager {
 
             console.log('✅ Login exitoso en Firebase Auth');
 
-            if (user.email_verificado==false) {
+            if (user.emailVerified==false) {
                 console.log('Email no verificado');
                 this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
                 await signOut(auth);
@@ -864,8 +857,6 @@ class AuthManager {
 
     async logout() {
         try {
-            console.log('🚪 Cerrando sesión desde AuthManager...');
-
             // Forzar signOut
             await signOut(auth);
 
@@ -874,8 +865,6 @@ class AuthManager {
 
             // Limpiar sessionStorage
             sessionStorage.clear();
-
-            console.log('✅ Sesión cerrada correctamente');
 
             // Redirigir con timestamp para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();

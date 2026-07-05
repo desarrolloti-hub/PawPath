@@ -186,7 +186,6 @@ class Citas {
                 // No bloqueamos el retorno de la cita si el chat falla por red
             }
             return { success: true, id: citaId, data: citaData };
-            return { success: true, id: docRef.id, data: citaData };
         } catch (error) {
             console.error('Error al crear cita:', error);
             return { success: false, error: error.message };

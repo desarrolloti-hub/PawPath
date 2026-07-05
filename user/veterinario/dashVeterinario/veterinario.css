@@ -1197,7 +1197,7 @@ body {
     line-height: 1.4;
     margin-bottom: 0.75rem;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    /*-webkit-line-clamp: 2;*/
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
@@ -1635,13 +1635,41 @@ body {
     padding:25px;
 }
 
-.empty-chat{
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100%;
-    color:#888;
-    font-size:18px;
+/* ==========================================================================
+   REDISEÑO DEL MENSAJE VACÍO DE CHATS (IMAGE_933F39)
+   ========================================================================== */
+
+/* Asegura que el contenedor sepa comportarse si está vacío */
+.lista-chats {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Rediseño total para el aviso de "No hay conversaciones" */
+.lista-chats .empty-chat-sidebar {
+    padding: 30px 20px;
+    text-align: center;
+    color: var(--gray-500);
+    font-size: 0.95rem;
+    font-weight: 500;
+    line-height: 1.4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: auto 0; /* Lo centra perfectamente de forma vertical */
+}
+
+/* Icono decorativo opcional para que no se vea plano */
+.lista-chats .empty-chat-sidebar::before {
+    content: "\f4ad"; /* Icono de bocadillo de chat en FontAwesome */
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--gray-300);
 }
 
 /* Mensaje */
@@ -1706,4 +1734,105 @@ body {
 
 .chat-input button:hover{
     background:#43a047;
+}
+
+/* ==========================================================================
+   CORRECCIÓN Y DISEÑO MODERNO DE PUBLICACIONES (IMAGE_933B97)
+   ========================================================================== */
+#publicacionesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
+    gap: 24px !important;
+    padding: 15px 0;
+}
+
+.pub-card {
+    background: white;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+    border: 1px solid var(--gray-200);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pub-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.pub-image-container {
+    position: relative; /* Crucial para que el badge flote encima */
+    width: 100%;
+    height: 180px;
+    background-color: var(--gray-100);
+}
+
+.pub-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* Badges flotantes e identificables */
+.pub-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: white !important;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.badge-adopcion {
+    background-color: #10b981; /* Verde esmeralda */
+}
+
+.badge-perdido {
+    background-color: #ef4444; /* Rojo vibrante */
+}
+
+.pub-body {
+    padding: 20px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pub-body h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.pub-body p {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    line-height: 1.5;
+    margin: 0;
+}
+
+.pub-info-meta {
+    font-size: 0.85rem;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.pub-footer-actions {
+    padding: 12px 20px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+    display: flex;
+    justify-content: flex-end;
 }

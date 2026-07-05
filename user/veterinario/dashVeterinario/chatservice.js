@@ -4,7 +4,11 @@ import {
     where,
     getDocs,
     addDoc,
-    serverTimestamp
+    updateDoc,
+    doc,
+    serverTimestamp,
+    onSnapshot,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 import { db } from "../../../config/firebase-config.js";
@@ -12,13 +16,12 @@ import { db } from "../../../config/firebase-config.js";
 export class ChatService {
 
     static async crearChatSiNoExiste(cita) {
-
+console.log(cita);
         const chatsRef = collection(db, "chats");
 
         const q = query(
             chatsRef,
-            where("usuarioId", "==", cita.usuarioId),
-            where("veterinarioId", "==", cita.veterinarioId)
+            where("citaId","==", cita.id)
         );
 
         const resultado = await getDocs(q);
@@ -28,9 +31,12 @@ export class ChatService {
             return resultado.docs[0].id;
 
         }
+        
 
         const nuevoChat = {
 
+            id: docRef.id,
+            
             usuarioId: cita.usuarioId,
 
             veterinarioId: cita.veterinarioId,
@@ -52,11 +58,69 @@ export class ChatService {
             activo: true
 
         };
+        
 
         const chatCreado = await addDoc(chatsRef, nuevoChat);
 
         return chatCreado.id;
 
     }
+    static async enviarMensaje(chatId, mensaje){
+
+    const mensajesRef = collection(
+        db,
+        "chats",
+        chatId,
+        "mensajes"
+    );
+
+    await addDoc(mensajesRef,{
+        texto: mensaje.texto,
+        emisorId: mensaje.emisorId,
+        emisorTipo: mensaje.emisorTipo,
+        fecha: serverTimestamp()
+    });
+
+    await updateDoc(
+        doc(db,"chats",chatId),
+        {
+            ultimoMensaje: mensaje.texto,
+            ultimaActualizacion: serverTimestamp()
+        }
+    );
+
+}
+static escucharMensajes(chatId, callback){
+
+    const mensajesRef = collection(
+        db,
+        "chats",
+        chatId,
+        "mensajes"
+    );
+
+    const q = query(
+        mensajesRef,
+        orderBy("fecha","asc")
+    );
+
+    return onSnapshot(q,(snapshot)=>{
+
+        const mensajes=[];
+
+        snapshot.forEach(doc=>{
+
+            mensajes.push({
+                id:doc.id,
+                ...doc.data()
+            });
+
+        });
+
+        callback(mensajes);
+
+    });
+
+}
 
 }

@@ -3,7 +3,8 @@ import { collection, query, where, onSnapshot, orderBy } from "https://www.gstat
 import { ChatService } from './chatservice.js';
 
 export class ChatController {
-    constructor() {
+    constructor(veterinarioId) {
+        this.veterinarioId = veterinarioId;
         // IDs reales mapeados desde tu veterinario.html
         this.listaChats = document.getElementById("listaChats");
         this.chatMessages = document.getElementById("chatMessages");
@@ -11,6 +12,8 @@ export class ChatController {
         this.btnEnviar = document.getElementById("btnEnviar");
         
         this.chatActual = null;
+        this.unsubscribeMensajes = null;
+         console.log("Veterinario del chat:", this.veterinarioId);
         this.init();
     }
 
@@ -32,7 +35,12 @@ export class ChatController {
         const chatsRef = collection(db, "chats");
         
         // 2. Traemos los chats ordenados por la última actualización
-        const q = query(chatsRef, orderBy("ultimaActualizacion", "desc"));
+        //const q = query(chatsRef, orderBy("ultimaActualizacion", "desc"));
+        const q = query(
+            chatsRef,
+            where("veterinarioId","==", this.veterinarioId),
+            orderBy("ultimaActualizacion","desc")
+        );
 
         // 3. Oímos en tiempo real (onSnapshot) cada vez que la base de datos cambie
         onSnapshot(q, (snapshot) => {
@@ -99,20 +107,51 @@ export class ChatController {
     
     abrirChat(chat) {
 
-        this.chatActual = chat;
+    this.chatActual = chat;
 
-        document.getElementById("chatNombre").textContent = chat.propietario;
+    document.getElementById("chatNombre").textContent =
+        chat.usuarioEmail || "Cliente";
 
-        document.getElementById("chatMascota").textContent =
-            "Mascota: " + chat.mascota;
+    document.getElementById("chatMascota").textContent =
+        "Mascota: " + (chat.nombreMascota || "No especificada");
 
-        this.chatMessages.innerHTML = "";
+    this.chatMessages.innerHTML = "";
 
-        this.agregarMensaje("Hola doctor.", "received");
-
-        this.agregarMensaje("Hola, ¿cómo está tu mascota?", "sent");
-
+    // Si ya había un listener abierto lo cerramos
+    if (this.unsubscribeMensajes) {
+        this.unsubscribeMensajes();
     }
+
+    this.unsubscribeMensajes =
+        ChatService.escucharMensajes(chat.id, (mensajes) => {
+
+            this.chatMessages.innerHTML = "";
+
+            if (mensajes.length === 0) {
+
+                this.chatMessages.innerHTML =
+                    '<div class="empty-chat">Todavía no hay mensajes.</div>';
+
+                return;
+            }
+
+            mensajes.forEach(mensaje => {
+
+                const tipo =
+                    mensaje.emisorTipo === "veterinario"
+                        ? "sent"
+                        : "received";
+
+                this.agregarMensaje(
+                    mensaje.texto,
+                    tipo
+                );
+
+            });
+
+        });
+
+}
 
     agregarMensaje(texto, tipo) {
 
@@ -141,18 +180,25 @@ export class ChatController {
 
     }
 
-    enviarMensaje() {
+   async enviarMensaje() {
 
-        if (!this.chatActual) return;
+    if (!this.chatActual) return;
 
-        const texto = this.inputMensaje.value.trim();
+    const texto = this.inputMensaje.value.trim();
 
-        if (texto === "") return;
+    if (texto === "") return;
 
-        this.agregarMensaje(texto, "sent");
+    await ChatService.enviarMensaje(
+        this.chatActual.id,
+        {
+            texto,
+            emisorId: this.veterinarioId,
+            emisorTipo: "veterinario"
+        }
+    );
 
-        this.inputMensaje.value = "";
+    this.inputMensaje.value = "";
 
-    }
+}
 
 }

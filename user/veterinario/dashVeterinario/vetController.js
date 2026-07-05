@@ -1,15 +1,17 @@
 import { auth, db  } from '/config/firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { collection, query, where, getDocs, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from './chatcontroller.js';
 
+
 class VetController {
     constructor() {
+        this.veterinarioId = null;
         this.vetModel = new Veterinario();
         this.citasModel = new Citas(); // Instancia del archivo Citas.js
-        this.chatController = new ChatController(); // El controlador del chat
+        this.chatController = null; // Instancia del ChatController
         this.veterinarioActual = null;
         this.citas = [];
         this.publicaciones = [];
@@ -27,7 +29,10 @@ class VetController {
 
     async initialize() {
         try {
-            await this.checkAuth();
+            const user = await this.checkAuth();
+            this.veterinarioId = user.uid;
+            // Ahora que ya tenemos el UID, creamos el chat
+            this.chatController = new ChatController(this.veterinarioId);
             await this.cargarDatosVeterinario();
             this.setupEventListeners();
             this.actualizarFecha();
@@ -41,7 +46,7 @@ class VetController {
 
     checkAuth() {
         return new Promise((resolve, reject) => {
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth,(user) => {
                 if (!user) {
                     window.location.href = '../../visitor/login/login.html';
                     reject();
@@ -52,57 +57,62 @@ class VetController {
         });
     }
 
-    async cargarDatosVeterinario() {
-        const result = await this.vetModel.obtenerVeterinarioActual();
+   async cargarDatosVeterinario() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const docRef = doc(db, 'veterinarios', user.uid);
+                    const docSnap = await getDoc(docRef);
 
-        if (result.success) {
-            this.veterinarioActual = result.data;
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        this.veterinarioActual = {
+                            id: user.uid, //AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DEL CÓDIGO
+                            uid: user.uid,
+                            nombre: data.nombreCompleto || data.nombre || 'Veterinario Registrado',
+                            especialidad: data.especialidad || 'Medicina General',
+                            clinica: data.nombreClinica || data.clinica || 'Mi Clínica',
+                            ...data
+                        };
+                    } else {
+                       if (docSnap.exists()) {
 
-            const vetNameElement = document.getElementById('vetName');
-            const vetSpecialtyElement = document.getElementById('vetSpecialty');
-            const vetFotoElement = document.getElementById('vetFoto');
-            if (vetNameElement) {
-                vetNameElement.textContent = this.veterinarioActual.primerNombre || 'Veterinario';
-            }
+                        const data = docSnap.data();
 
-            if (vetSpecialtyElement) {
-                vetSpecialtyElement.textContent = this.veterinarioActual.especialidades?.join(', ') || 'Veterinario General';
-            }
-            if (vetFotoElement) {
-                if (this.veterinarioActual.fotoPerfil) {
-                    vetFotoElement.innerHTML = `<img class="vet-avatar" src="${this.veterinarioActual.fotoPerfil}" alt="Foto de ${this.veterinarioActual.primerNombre}">`;
-                } else {
-                    vetFotoElement.innerHTML = `<i class="fas fa-user-md"></i>`;
+                        this.veterinarioActual = {
+                            id: user.uid,
+                            uid: user.uid,
+                            nombre: data.nombreCompleto || data.nombre || "Veterinario",
+                            especialidad: data.especialidad || "Medicina General",
+                            clinica: data.nombreClinica || data.clinica || "Mi Clínica",
+                            ...data
+                        };
+
+                    }
                 }
+
+                    // Pintamos los datos en la UI de forma segura
+                    const txtName = document.getElementById('vetName');
+                    const txtSpecialty = document.getElementById('vetSpecialty');
+                    const divFoto = document.getElementById('vetFoto');
+
+                    if (txtName) txtName.textContent = this.veterinarioActual.nombre;
+                    if (txtSpecialty) txtSpecialty.textContent = this.veterinarioActual.especialidad;
+                    if (divFoto) divFoto.innerHTML = `<i class="fas fa-user-md"></i>`;
+
+                    resolve();
+                } catch (error) {
+                    console.error("🔴 Error crítico al consultar Firestore:", error);
+                    reject(error);
+                }
+            } else {
+                window.location.href = '../../../index.html';
+                reject(new Error('No hay usuario autenticado'));
             }
-
-
-        } else {
-            console.log('Perfil no encontrado, usando datos temporales...');
-            this.veterinarioActual = {
-                id: 'temp-id',
-                nombre: 'Veterinario de Prueba',
-                email: auth.currentUser?.email,
-                especialidades: ['General'],
-                horarioSemanal: [],
-                duracionCita: 30,
-                diasAnticipacion: 30
-            };
-
-            const vetNameElement = document.getElementById('vetName');
-            const vetSpecialtyElement = document.getElementById('vetSpecialty');
-
-            if (vetNameElement) {
-                vetNameElement.textContent = this.veterinarioActual.nombre;
-            }
-
-            if (vetSpecialtyElement) {
-                vetSpecialtyElement.textContent = 'Veterinario General';
-            }
-
-            this.mostrarNotificacion('Usando perfil de prueba - Crea un perfil en Firestore', 'warning');
-        }
-    }
+        });
+    });
+}
 
     actualizarFecha() {
         const fecha = new Date();
@@ -111,60 +121,152 @@ class VetController {
     }
 
     async cargarTodo() {
-        await Promise.all([
-            this.cargarCitas(),
-            this.cargarPublicaciones(),
-            this.cargarSolicitudesAdopcion(),
-            this.cargarReclamos()
-        ]);
-        this.actualizarEstadisticas();
-        this.actualizarBadges();
+    if (!this.veterinarioActual) return;
+
+    try {
+        // 1. CARGAR CITAS REALES DESDE FIRESTORE
+        if (this.citasModel && typeof this.citasModel.obtenerCitasVeterinario === 'function') {
+            const resultadoCitas = await this.citasModel.obtenerCitasVeterinario(this.veterinarioActual.uid);
+            if (resultadoCitas && resultadoCitas.success) {
+                this.citas = resultadoCitas.data || [];
+                this.renderizarCitas();
+                this.renderizarProximasCitas(); // <- Añadido para que pinte la lista del Home del Dashboard
+            } else {
+                console.warn('No se pudieron obtener citas reales o el arreglo está vacío.');
+                this.citas = [];
+                this.renderizarCitas();
+            }
+        }
+
+        // 2. CONECTAR CHAT REAL EN TIEMPO REAL
+        if (this.chatController) {
+            this.chatController.veterinarioId = this.veterinarioActual.uid;
+            if (typeof this.chatController.cargarChatsRealtime === 'function') {
+                this.chatController.cargarChatsRealtime();
+            }
+        }
+
+        // 3. CARGAR PUBLICACIONES REALES
+        await this.cargarPublicaciones();
+
+        // 4. TRAER DATOS REALES DE ADOPCIONES DESDE FIRESTORE
+        await this.cargarSolicitudesAdopcion();
+
+        // 5. TRAER DATOS REALES DE RECLAMOS DESDE FIRESTORE
+        await this.cargarReclamos();
+
+        // 6. ACTUALIZAR LOS CONTADORES DEL DASHBOARD (Adiós al "Cargando...")
+        this.actualizarContadoresSeguros();
+
+    } catch (error) {
+        console.error('Error crítico al cargar los componentes del dashboard:', error);
     }
+}
+actualizarContadoresSeguros() {
+    
+    const hoy = new Date().toISOString().split('T')[0];
+
+    // Contamos según el estado real de las citas
+    const pendientes = this.citas.filter(c => c.estado === 'pendiente').length;
+    const aceptadas = this.citas.filter(c => c.estado === 'aceptada' || c.estado === 'confirmada').length;
+    const concluidas = this.citas.filter(c => c.estado === 'concluida').length;
+    const hoyCitas = this.citas.filter(c => c.fecha === hoy).length;
+
+    // Asignamos directamente a los IDs reales del HTML de veterinario.html
+    const txtHoy = document.getElementById('statsCitasHoy');
+    const txtPendientes = document.getElementById('statsPendientes');
+    const txtAceptadas = document.getElementById('statsAceptadas');
+    const txtConcluidas = document.getElementById('statsConcluidas');
+
+    if (txtHoy) txtHoy.textContent = hoyCitas;
+    if (txtPendientes) txtPendientes.textContent = pendientes;
+    if (txtAceptadas) txtAceptadas.textContent = aceptadas;
+    if (txtConcluidas) txtConcluidas.textContent = concluidas;
+    
+    // Actualizamos también los badges del menú lateral
+    this.actualizarBadges();
+}
 
     async cargarCitas() {
-        if (!this.veterinarioActual) return;
-
-        const result = await this.vetModel.obtenerCitasVeterinario(
-            this.veterinarioActual.id,
-            { estado: this.filtros.citas !== 'todos' ? this.filtros.citas : null }
-        );
-
-        if (result.success) {
-            this.citas = result.data;
-            this.renderizarCitas();
-            this.renderizarProximasCitas();
+    try {
+        // Aseguramos obtener el ID del veterinario logueado
+        const vId = this.veterinarioActual?.id || auth.currentUser?.uid;
+        
+        if (!vId) {
+            console.error("No se pueden cargar citas: Falta ID del veterinario.");
+            return;
         }
+
+        const resultado = await this.citasModel.obtenerCitasVeterinario(vId);
+        
+        if (resultado.success) {
+            this.citas = resultado.data;
+            this.renderizarCitas(); // Aquí se quita el "Cargando..." del HTML
+        } else {
+            console.error('Error al obtener citas del modelo:', resultado.error);
+            this.citas = [];
+            this.renderizarCitas();
+        }
+    } catch (error) {
+        console.error('Error al obtener citas:', error);
+        // Evitamos que la UI se quede congelada en "Cargando..." si falla Firestore
+        this.citas = [];
+        this.renderizarCitas();
     }
+}
 
     async cargarPublicaciones() {
-        if (!this.veterinarioActual) return;
-
-
-        try {
-            const publicacionesRef = collection(db, 'publicaciones');
-            const q = query(
-                publicacionesRef,
-                where('veterinarioId', '==', this.veterinarioActual.id),
-                orderBy('fechaPublicacion', 'desc')
-            );
-            
-            const querySnapshot = await getDocs(q);
-            this.publicaciones = [];
-            
-            querySnapshot.forEach(doc => {
-                const data = doc.data();
-                this.publicaciones.push({
-                    id: doc.id,
-                    ...doc.data()
-                });
-            });
-            
-            this.renderizarPublicaciones();
-        } catch (error) {
-            console.error('Error cargando publicaciones:', error);
-            this.mostrarNotificacion('Error al cargar publicaciones', 'error');
-        }
+    const contenedor = document.getElementById('listaPublicaciones');
+    if (contenedor) {
+        contenedor.innerHTML = `
+            <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando publicaciones...</p>
+            </div>
+        `;
     }
+
+    try {
+        const vId = this.veterinarioActual?.id || auth.currentUser?.uid;
+        if (!vId) {
+            console.error("No se pueden cargar publicaciones: Falta ID del veterinario.");
+            return;
+        }
+        
+        // 1. Quitamos el 'orderBy' de la consulta de Firebase para evitar que se congele por falta de índices.
+        const q = query(
+            collection(db, 'publicaciones'),
+            where('veterinarioId', '==', vId)
+        );
+
+        const querySnapshot = await getDocs(q);
+        const listaDocs = [];
+        
+        querySnapshot.forEach((doc) => {
+            listaDocs.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        // 2. Ordenamos por fecha aquí mismo en JavaScript (Súper seguro y rápido)
+        this.publicaciones = listaDocs.sort((a, b) => {
+            const fechaA = a.fechaCreacion?.seconds || 0;
+            const fechaB = b.fechaCreacion?.seconds || 0;
+            return fechaB - fechaA; // De la más reciente a la más antigua
+        });
+        
+        // 3. Mandamos a dibujar las tarjetas en la pantalla
+        this.renderizarPublicaciones();
+
+    } catch (error) {
+        console.error('Error crítico al cargar publicaciones de Firestore:', error);
+        
+        // Si Firebase llega a fallar, limpiamos el estado de "Cargando..." para que no se congele la UI
+        this.publicaciones = [];
+        this.renderizarPublicaciones();
+    }
+}
 
     contarSolicitudesAdopcion(publicacionId) {
         // Temporal: retorna 0 hasta que implementemos las solicitudes
@@ -354,31 +456,82 @@ class VetController {
     }
 
     renderizarPublicaciones() {
-        const container = document.getElementById('publicacionesGrid');
-        if (!container) return;
-        
-        let filtradas = this.publicaciones;
-        
-        // Aplicar filtro según la pestaña activa
-        if (this.filtros.publicaciones === 'adopcion') {
-            filtradas = this.publicaciones.filter(p => p.tipo === 'En Adopción');
-        } else if (this.filtros.publicaciones === 'perdidos') {
-            filtradas = this.publicaciones.filter(p => p.tipo === 'Mascota Perdida');
-        } else if (this.filtros.publicaciones === 'encontrados') {
-            filtradas = this.publicaciones.filter(p => p.tipo === 'Mascota Encontrada');
-        }
+        const contenedor = document.getElementById('publicacionesGrid'); 
+        if (!contenedor) return;
 
-        if (filtradas.length === 0) {
-            container.innerHTML = '<p class="loading">No tienes publicaciones en esta categoría</p>';
+        // Filtramos las publicaciones de forma estricta según el botón seleccionado
+        const publicacionesFiltradas = this.publicaciones.filter(pub => {
+            const tipoFiltro = this.filtros.publicaciones; // 'adopcion', 'perdido' o 'encontrado'
+            const tipoPub = (pub.tipo || '').toLowerCase();
+
+            if (tipoFiltro === 'adopcion') {
+                return tipoPub.includes('adopc');
+            } else if (tipoFiltro === 'perdidos') {
+                // Retorna SÓLO si es perdido, ignorando explícitamente "encontrado"
+                return tipoPub.includes('perd') && !tipoPub.includes('encontr');
+            } else if (tipoFiltro === 'encontrados') {
+                // Retorna SÓLO si contiene la palabra encontrado
+                return tipoPub.includes('encontr');
+            }
+            return true;
+        });
+
+        if (publicacionesFiltradas.length === 0) {
+            contenedor.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-bullhorn"></i>
+                    <p>No tienes publicaciones en esta categoría.</p>
+                </div>
+            `;
             return;
         }
 
         let html = '';
-        filtradas.forEach(pub => {
-            html += this.generarCardPublicacion(pub);
-        });
+        publicacionesFiltradas.forEach(pub => {
+            const fecha = pub.fechaCreacion ? new Date(pub.fechaCreacion.seconds * 1000).toLocaleDateString() : 'Reciente';
+            
+            const tipoPubBajo = (pub.tipo || '').toLowerCase();
+            let tipoTexto = 'En Adopción';
+            let claseBadge = 'badge-adopcion';
 
-        container.innerHTML = html;
+            // Asignamos la etiqueta visual correcta a la tarjeta
+            if (tipoPubBajo.includes('encontr')) {
+                tipoTexto = 'Mascota Encontrada';
+                claseBadge = 'badge-encontrado'; // Asegúrate de tener este estilo o usará el diseño base
+            } else if (tipoPubBajo.includes('perd')) {
+                tipoTexto = 'Mascota Perdida';
+                claseBadge = 'badge-perdido';
+            }
+            
+            const urlImagen = (pub.fotos && pub.fotos.length > 0) ? pub.fotos[0] : (pub.imagenUrl || pub.foto || 'https://via.placeholder.com/300x180?text=Sin+Foto');
+
+            html += `
+                <div class="pub-card">
+                    <div class="pub-image-container">
+                        <span class="pub-badge ${claseBadge}">${tipoTexto}</span>
+                        <img src="${urlImagen}" alt="${pub.titulo || 'Mascota'}">
+                    </div>
+                    <div class="pub-body">
+                        <div class="pub-info-meta">
+                            <i class="far = calendar-alt"></i> ${fecha}
+                        </div>
+                        <h3>${pub.titulo || 'Sin Título'}</h3>
+                        <p>${pub.descripcion || 'Sin descripción disponible.'}</p>
+                        ${pub.ubicacionTexto ? `<div class="pub-info-meta"><i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}</div>` : ''}
+                    </div>
+                    <div class="pub-footer-actions">
+                        <span style="font-size: 0.85rem; color: var(--gray-500); display: flex; align-items: center; gap: 4px;">
+                            <i class="fas fa-eye"></i> ${pub.vistas || 0} vistas
+                        </span>
+                        <button class="btn-danger-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 5px;" onclick="vetController.eliminarPublicacion('${pub.id}')">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        
+        contenedor.innerHTML = html;
     }
 
     generarCardPublicacion(pub) {
@@ -459,34 +612,34 @@ class VetController {
     }
 
 
-    // renderizarSolicitudesAdopcion() {
-    //     const container = document.getElementById('solicitudesGrid');
-    //     if (!container) {
-    //         return;
-    //     }
-    //     let filtradas = this.solicitudesAdopcion;
+     renderizarSolicitudesAdopcion() {
+        const container = document.getElementById('solicitudesGrid');
+         if (!container) {
+             return;
+         }
+         let filtradas = this.solicitudesAdopcion;
         
-    //     if (this.filtros.adopciones === 'pendientes') {
-    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
+         if (this.filtros.adopciones === 'pendientes') {
+             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
 
-    //     } else if (this.filtros.adopciones === 'aprobadas') {
-    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
-    //     } else if (this.filtros.adopciones === 'rechazadas') {
-    //         filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
-    //     }
+         } else if (this.filtros.adopciones === 'aprobadas') {
+             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
+         } else if (this.filtros.adopciones === 'rechazadas') {
+             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
+         }
         
-    //     if (filtradas.length === 0) {
-    //         container.innerHTML = '<p class="loading">No hay solicitudes de adopción</p>';
-    //         return;
-    //     }
+         if (filtradas.length === 0) {
+             container.innerHTML = '<p class="loading">No hay solicitudes de adopción</p>';
+             return;
+         }
         
-    //     let html = '';
-    //     filtradas.forEach(sol => {
-    //         html += this.generarCardSolicitudAdopcion(sol);
-    //     });
+         let html = '';
+         filtradas.forEach(sol => {
+             html += this.generarCardSolicitudAdopcion(sol);
+         });
         
-    //     container.innerHTML = html;
-    // }
+         container.innerHTML = html;
+    }
 
     renderizarSolicitudesAdopcion() {
         const container = document.getElementById('solicitudesGrid');
@@ -818,28 +971,28 @@ class VetController {
         document.getElementById('estadoModal').style.display = 'flex';
     }
 
-    // async guardarCambioEstado(e) {
-    //     e.preventDefault();
+     async guardarCambioEstado(e) {
+         e.preventDefault();
 
-    //     const id = document.getElementById('itemIdActual').value;
-    //     const tipo = document.getElementById('itemTipoActual').value;
-    //     const nuevoEstado = document.getElementById('nuevoEstado').value;
-    //     const notas = document.getElementById('notasEstado').value;
+         const id = document.getElementById('itemIdActual').value;
+         const tipo = document.getElementById('itemTipoActual').value;
+         const nuevoEstado = document.getElementById('nuevoEstado').value;
+         const notas = document.getElementById('notasEstado').value;
 
-    //     if (tipo === 'cita') {
-    //         const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
-    //         if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
-    //     } 
-    //     else if (tipo === 'adopcion') {
-    //         await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
-    //     } 
-    //     else if (tipo === 'reclamo') {
-    //         await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
-    //     }
+         if (tipo === 'cita') {
+             const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
+             if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
+         } 
+         else if (tipo === 'adopcion') {
+             await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
+         } 
+         else if (tipo === 'reclamo') {
+             await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
+         }
 
-    //     this.cerrarEstadoModal();
-    //     await this.cargarTodo();
-    // }
+         this.cerrarEstadoModal();
+         await this.cargarTodo();
+     }
 
 
 
@@ -968,55 +1121,65 @@ class VetController {
     }
 
     async guardarHorario(e) {
-        e.preventDefault();
+    e.preventDefault();
+
+    try {
+        const vId = this.veterinarioActual?.id || auth.currentUser?.uid;
+        if (!vId) throw new Error("No hay UID de veterinario disponible.");
+
+        const inputDuracion = document.getElementById('duracionCita');
+        const inputDias = document.getElementById('diasAnticipacion');
         
-        // 1. Capturamos los datos del formulario que está en el HTML
-        const propietarioId = document.getElementById('citaPropietario').value;
-        const propietarioNombre = document.getElementById('citaPropietario').options[document.getElementById('citaPropietario').selectedIndex].text;
-        const mascotaNombre = document.getElementById('citaMascota').options[document.getElementById('citaMascota').selectedIndex].text;
-        const fecha = document.getElementById('citaFecha').value;
-        const hora = document.getElementById('citaHora').value;
+        const duracionCita = inputDuracion ? parseInt(inputDuracion.value) : 30;
+        const diasAnticipacion = inputDias ? parseInt(inputDias.value) : 7;
 
-        const datosCita = {
-            veterinarioId: this.veterinarioActual.uid, // ID del Veterinario logueado
-            veterinarioNombre: this.veterinarioActual.nombre || 'Veterinario',
-            usuarioId: propietarioId,                  // ID del dueño
-            usuarioEmail: "cliente@correo.com",        // Puedes recuperarlo de los datos del propietario
-            nombreMascota: mascotaNombre,
-            fecha: fecha,
-            hora: hora,
-            estado: 'pendiente'
-        };
-
-        // 2. Llamamos al método real de tu archivo Citas.js para guardarlo en Firebase
-        const resultado = await this.citasModel.crearCitaConTransaccion(datosCita, null);
+        // Recolectamos los checkboxes de los días de la semana
+        const horarioSemanal = [];
+        const diasSemana = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
+        
+        diasSemana.forEach(dia => {
+            // Nota: Asegúrate de que el ID en tu HTML sea exactamente como lo busca el script
+            const checkbox = document.getElementById(`${dia}_activo`);
+            if (checkbox && checkbox.checked) {
+                const apertura = document.getElementById(`${dia}_apertura`)?.value || "09:00";
+                const cierre = document.getElementById(`${dia}_cierre`)?.value || "18:00";
+                
+                horarioSemanal.push({
+                    dia: dia,
+                    activo: true,
+                    apertura: apertura,
+                    cierre: cierre
+                });
+            } else {
+                horarioSemanal.push({
+                    dia: dia,
+                    activo: false,
+                    apertura: "09:00",
+                    cierre: "18:00"
+                });
+            }
+        });
+        
+        const resultado = await this.vetModel.guardarConfiguracionHorario(vId, horarioSemanal, duracionCita, diasAnticipacion);
 
         if (resultado.success) {
-            // 3. ¡ÉXITO! SweetAlert avisa al usuario
-            Swal.fire({
-                title: '¡Cita Agendada!',
-                text: 'La cita fue registrada en Firebase. Abriendo chat con el dueño...',
-                icon: 'success',
-                timer: 2500,
-                showConfirmButton: false
-            }).then(() => {
-                // 4. Cambiamos visualmente a la pestaña de Mensajes
-                this.cambiarSeccion('Mensajes');
-                
-                // 5. Activamos el chat en pantalla automáticamente
-                this.chatController.enfocarChatAutomatico(datosCita.usuarioId, datosCita.veterinarioId);
-                
-                // Opcional: Limpiamos el formulario y recargamos la interfaz
-                document.getElementById('horarioForm').reset();
-                this.cargarTodo(); 
-            });
+            //LA CLAVE: Actualizamos la memoria local del controlador de inmediato
+            this.veterinarioActual.horarioSemanal = horarioSemanal;
+            this.veterinarioActual.duracionCita = duracionCita;
+            this.veterinarioActual.diasAnticipacion = diasAnticipacion;
+
+            Swal.fire('¡Agenda Guardada!', 'Tus días de atención han sido actualizados en el sistema.', 'success');
         } else {
-            Swal.fire('Error', 'No se pudo agendar la cita: ' + resultado.error, 'error');
+            throw new Error(resultado.error);
         }
+
+    } catch (error) {
+        console.error("Error al guardar horario en el controlador:", error);
+        Swal.fire('Error al guardar agenda', 'Detalles: ' + error.message, 'error');
     }
+}
 
     async cargarHorariosDisponibles() {
-        console.log('🕒 Cargando horarios disponibles...');
 
         const veterinarioId = document.getElementById('veterinario')?.value;
         const fecha = document.getElementById('fecha')?.value;
@@ -1045,8 +1208,6 @@ class VetController {
                 horaSelect.disabled = false;
                 return;
             }
-
-            console.log('✅ Horario del veterinario:', vetSeleccionado.horarioSemanal);
 
             if (!vetSeleccionado.horarioSemanal || vetSeleccionado.horarioSemanal.length === 0) {
                 horaSelect.innerHTML = '<option value="">El veterinario no tiene horario configurado</option>';
@@ -1087,7 +1248,6 @@ class VetController {
         const horarioDia = vet.horarioSemanal.find(h => h.dia === diaSemana);
         
         if (!horarioDia || !horarioDia.activo) {
-            console.log(`⚠️ Veterinario no atiende los ${diaSemana}`);
             return [];
         }
 
@@ -1317,97 +1477,73 @@ class VetController {
     }
 
     async guardarPublicacion(e) {
-        e.preventDefault();
-        
-        const publicacionId = document.getElementById('publicacionId')?.value;
-        const tipo = document.getElementById('pubTipo').value;
+    e.preventDefault();
+
+    if (!this.veterinarioActual) {
+        Swal.fire('Error', 'No se identificaron datos del veterinario', 'error');
+        return;
+    }
+
+    try {
+        const tipoInput = document.getElementById('pubTipo').value; // Ej: "En Adopción" o "Mascota Perdida"
+        let tipoEstandar = 'adopcion'; // Valor por defecto seguro
         const titulo = document.getElementById('pubTitulo').value;
-        const categoria = document.getElementById('pubCategoria').value;
         const descripcion = document.getElementById('pubDescripcion').value;
         const contacto = document.getElementById('pubContacto').value;
-        const ubicacionTexto = document.getElementById('pubUbicacion').value;
-        const recompensa = document.getElementById('pubRecompensa').value;
-        const fechaEvento = document.getElementById('pubFechaEvento').value;
-        
-        if (!tipo || !titulo || !descripcion) {
-            this.mostrarNotificacion('Completa los campos requeridos', 'warning');
+
+        // Validaciones básicas de tus campos obligatorios
+        if (!titulo || !descripcion || !contacto) {
+            Swal.fire('Atención', 'Por favor llena los campos obligatorios', 'warning');
             return;
         }
-        
-        const fotosInput = document.getElementById('pubFotos');
-        const fotos = [];
-        
-        for (const file of fotosInput.files) {
-            if (file.size > 2 * 1024 * 1024) {
-                this.mostrarNotificacion('Una imagen supera los 2MB', 'error');
-                return;
-            }
-            const base64 = await this.convertirImagenABase64(file);
-            fotos.push(base64);
+        if (tipoInput.toLowerCase().includes('perd') || tipoInput.toLowerCase().includes('encontr')) {
+            tipoEstandar = 'perdido';
+        } else {
+            tipoEstandar = 'adopcion';
         }
-        
-        const fotosExistentes = [];
-        const fotosPreview = document.getElementById('pubFotosPreview');
-        if (fotosPreview) {
-            const imagenes = fotosPreview.querySelectorAll('img');
-            imagenes.forEach(img => {
-                if (img.src && !img.src.includes('blob:')) {
-                    fotosExistentes.push(img.src);
-                }
-            });
-        }
-        
-        const todasFotos = [...fotosExistentes, ...fotos];
-        
-        const publicacionData = {
-            titulo,
-            tipo,
-            categoria,
-            descripcion,
-            contacto,
-            ubicacionTexto,
-            recompensa: tipo === 'Mascota Perdida' ? recompensa : '',
-            fechaEvento: tipo === 'Mascota Perdida' ? fechaEvento : null,
-            fotos: todasFotos,
-            fechaActualizacion: serverTimestamp()
+
+        // Armamos el objeto final que va a Firebase
+        const nuevaPublicacion = {
+            veterinarioId: this.veterinarioActual.id || auth.currentUser?.uid,
+            nombreVeterinario: this.veterinarioActual.nombre,
+            clinica: this.veterinarioActual.clinica,
+            tipo: tipoEstandar, // ✨ AHORA GUARDA "adopcion" o "perdido" limpiamente
+            titulo: titulo,
+            descripcion: descripcion,
+            contacto: contacto,
+            estado: 'activo',
+            fechaCreacion: serverTimestamp(),
+            vistas: 0
         };
-        
-        try {
-            if (publicacionId) {
-                const publicacionRef = doc(db, 'publicaciones', publicacionId);
-                await updateDoc(publicacionRef, publicacionData);
-                this.mostrarNotificacion('Publicación actualizada correctamente', 'success');
-            } else {
-                publicacionData.usuarioId = auth.currentUser.uid;
-                publicacionData.usuarioNombre = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
-                publicacionData.veterinarioId = this.veterinarioActual.id;
-                publicacionData.fechaPublicacion = serverTimestamp();
-                publicacionData.vistas = 0;
-                publicacionData.likes = 0;
-                publicacionData.comentarios = 0;
-                publicacionData.usuariosLike = [];
-                
-                await addDoc(collection(db, 'publicaciones'), publicacionData);
-                this.mostrarNotificacion('Publicación creada exitosamente', 'success');
-            }
-            
-            document.getElementById('publicacionId').value = '';
-            document.getElementById('pubFotos').value = '';
-            document.getElementById('pubFotosPreview').innerHTML = '';
-            
-            const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
-            if (btnGuardar) {
-                btnGuardar.innerHTML = '<i class="fas fa-save"></i> Publicar';
-            }
-            
-            this.cerrarPublicacionModal();
-            await this.cargarPublicaciones();
-            
-        } catch (error) {
-            console.error('Error al guardar publicación:', error);
-            this.mostrarNotificacion('Error al guardar la publicación', 'error');
+
+        // Campos condicionales (mascotas perdidas / adopciones)
+        const recompensaInput = document.getElementById('pubRecompensa');
+        if (recompensaInput && tipo === 'perdido') {
+            nuevaPublicacion.recompensa = recompensaInput.value || '';
         }
+
+        const fechaInput = document.getElementById('pubFechaEvento');
+        if (fechaInput && fechaInput.value) {
+            nuevaPublicacion.fechaEvento = fechaInput.value;
+        }
+
+        const docRef = await addDoc(collection(db, 'publicaciones'), nuevaPublicacion);
+
+        Swal.fire({
+            icon: 'success',
+            title: '¡Publicado con éxito!',
+            text: 'Tu publicación ya está disponible en la comunidad.'
+        });
+
+        document.getElementById('publicacionForm').reset();
+        this.cerrarPublicacionModal();
+        this.cargarPublicaciones(); // Recarga la lista real
+
+    } catch (error) {
+        console.error('Error al guardar publicación:', error);
+        Swal.fire('Error', 'No se pudo guardar la publicación: ' + error.message, 'error');
     }
+}
 
     convertirImagenABase64(file) {
         return new Promise((resolve, reject) => {
