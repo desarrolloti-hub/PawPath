@@ -193,7 +193,6 @@ class AuthManager {
                     localStorage.setItem('userFullData', JSON.stringify(userData));
                 }
 
-                console.log('✅ Datos guardados en caché correctamente');
             }
         } catch (error) {
             console.error('Error al guardar en caché:', error);
@@ -201,7 +200,6 @@ class AuthManager {
     }
 
     redirectBasedOnRole(role) {
-        console.log('🔄 Redirigiendo según rol:', role);
 
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
@@ -424,7 +422,7 @@ class AuthManager {
 
             console.log('✅ Login exitoso en Firebase Auth');
 
-            if (user.email_verificado==false) {
+            if (user.emailVerified==false) {
                 console.log('Email no verificado');
                 this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
                 await signOut(auth);

@@ -1,9 +1,10 @@
 import { auth, db  } from '/config/firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from './chatcontroller.js';
+
 
 class VetController {
     constructor() {
@@ -71,30 +72,21 @@ class VetController {
                             ...data
                         };
                     } else {
-                        // PLAN B MAESTRO PARA TU CUENTA REAL
-                        if (user.uid) {
-                            this.veterinarioActual = {
-                                id: user.uid,  //Crucial para que funcionen las publicaciones, citas y horarios
-                                uid: user.uid,
-                                nombre: "Dr. Veterinario Real", 
-                                email: user.email,
-                                especialidad: "Cardiología y Cirugía Vet",
-                                clinica: "Clínica Veterinaria PawPath Principal",
-                                foto: "../../../assets/images/default-user.png"
-                            };
-                        } else {
-                            console.warn("⚠️ No se encontró el perfil clínico en Firestore para este UID. Usando perfil de respaldo.");
-                            this.veterinarioActual = {
-                                id: user.uid,
-                                uid: user.uid,
-                                nombre: user.displayName || 'Dr. Veterinario Invitado',
-                                email: user.email,
-                                especialidad: 'Medicina General',
-                                clinica: 'Clínica PawPath',
-                                foto: '../../../assets/images/default-user.png'
-                            };
-                        }
+                       if (docSnap.exists()) {
+
+                        const data = docSnap.data();
+
+                        this.veterinarioActual = {
+                            id: user.uid,
+                            uid: user.uid,
+                            nombre: data.nombreCompleto || data.nombre || "Veterinario",
+                            especialidad: data.especialidad || "Medicina General",
+                            clinica: data.nombreClinica || data.clinica || "Mi Clínica",
+                            ...data
+                        };
+
                     }
+                }
 
                     // Pintamos los datos en la UI de forma segura
                     const txtName = document.getElementById('vetName');
