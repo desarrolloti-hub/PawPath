@@ -63,7 +63,7 @@ class VetController {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         this.veterinarioActual = {
-                            id: user.uid, // ✨ AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DE TU CÓDIGO
+                            id: user.uid, //AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DEL CÓDIGO
                             uid: user.uid,
                             nombre: data.nombreCompleto || data.nombre || 'Veterinario Registrado',
                             especialidad: data.especialidad || 'Medicina General',
@@ -72,10 +72,9 @@ class VetController {
                         };
                     } else {
                         // PLAN B MAESTRO PARA TU CUENTA REAL
-                        if (user.uid === 'dt2PYldIYzR1t7Zg5lO5nEk5PEk2') {
-                            console.log("¡Identidad verificada! Cargando perfil veterinario maestro en código.");
+                        if (user.uid) {
                             this.veterinarioActual = {
-                                id: user.uid,  // ✨ Crucial para que funcionen las publicaciones, citas y horarios
+                                id: user.uid,  //Crucial para que funcionen las publicaciones, citas y horarios
                                 uid: user.uid,
                                 nombre: "Dr. Veterinario Real", 
                                 email: user.email,
@@ -1181,7 +1180,7 @@ actualizarContadoresSeguros() {
         const resultado = await this.vetModel.guardarConfiguracionHorario(vId, horarioSemanal, duracionCita, diasAnticipacion);
 
         if (resultado.success) {
-            // ✨ LA CLAVE: Actualizamos la memoria local del controlador de inmediato
+            //LA CLAVE: Actualizamos la memoria local del controlador de inmediato
             this.veterinarioActual.horarioSemanal = horarioSemanal;
             this.veterinarioActual.duracionCita = duracionCita;
             this.veterinarioActual.diasAnticipacion = diasAnticipacion;

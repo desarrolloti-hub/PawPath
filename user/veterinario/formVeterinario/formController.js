@@ -117,7 +117,7 @@ class FormVeterinarioController {
 
         try {
 
-            const q = query(collection(db, 'usuarios'), where('email', '==', email));
+            const q = query(collection(db, 'usarios'), where('email', '==', email));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
@@ -376,6 +376,11 @@ class FormVeterinarioController {
         btnLoading.style.display = 'inline';
 
         try {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("No hay un usuario autenticado.");
+            }
+
             // Procesar imágenes
             let fotoPerfilBase64 = null;
             let fotoClinicaBase64 = null;
@@ -436,7 +441,7 @@ class FormVeterinarioController {
             };
 
             await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
-
+            
             console.log('Veterinario registrado con ID:', docRef.id);
             this.mostrarModalExito();
 
@@ -507,14 +512,6 @@ class FormVeterinarioController {
         if (registroForm) {
             registroForm.addEventListener('submit', (e) => this.handleSubmit(e));
         }
-
-        // const logoutBtn = document.getElementById('logoutBtn');
-        // if (logoutBtn) {
-        //     logoutBtn.addEventListener('click', (e) => {
-        //         e.preventDefault();
-        //         this.logout();
-        //     });
-        // }
 
         this.setupImagePreview();
     }
