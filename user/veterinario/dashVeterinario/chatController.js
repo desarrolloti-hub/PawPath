@@ -3,7 +3,8 @@ import { collection, query, where, onSnapshot, orderBy } from "https://www.gstat
 import { ChatService } from './chatservice.js';
 
 export class ChatController {
-    constructor() {
+    constructor(veterinarioId) {
+        this.veterinarioId = veterinarioId;
         // IDs reales mapeados desde tu veterinario.html
         this.listaChats = document.getElementById("listaChats");
         this.chatMessages = document.getElementById("chatMessages");
@@ -11,6 +12,8 @@ export class ChatController {
         this.btnEnviar = document.getElementById("btnEnviar");
         
         this.chatActual = null;
+        this.unsubscribeMensajes = null;
+         console.log("Veterinario del chat:", this.veterinarioId);
         this.init();
     }
 
@@ -32,7 +35,12 @@ export class ChatController {
         const chatsRef = collection(db, "chats");
         
         // 2. Traemos los chats ordenados por la última actualización
-        const q = query(chatsRef, orderBy("ultimaActualizacion", "desc"));
+        //const q = query(chatsRef, orderBy("ultimaActualizacion", "desc"));
+        const q = query(
+            chatsRef,
+            where("veterinarioId","==", this.veterinarioId),
+            orderBy("ultimaActualizacion","desc")
+        );
 
         // 3. Oímos en tiempo real (onSnapshot) cada vez que la base de datos cambie
         onSnapshot(q, (snapshot) => {
@@ -98,21 +106,52 @@ export class ChatController {
     }
     
     abrirChat(chat) {
-        this.chatActual = chat;
 
-        // Mapeamos los datos reales según la estructura que guarda tu ChatService
-        document.getElementById("chatNombre").textContent = chat.usuarioEmail || "Cliente";
-        document.getElementById("chatMascota").textContent = "Mascota: " + (chat.nombreMascota || "No especificada");
+    this.chatActual = chat;
 
-        this.chatMessages.innerHTML = "";
+    document.getElementById("chatNombre").textContent =
+        chat.usuarioEmail || "Cliente";
 
-        // Si el chat tiene un último mensaje registrado en Firebase, lo mostramos como burbuja inicial
-        if (chat.ultimoMensaje) {
-            this.agregarMensaje(chat.ultimoMensaje, "received");
-        } else {
-            this.chatMessages.innerHTML = '<div class="empty-chat">¡Canal listo! Escribe un mensaje para iniciar la conversación.</div>';
-        }
+    document.getElementById("chatMascota").textContent =
+        "Mascota: " + (chat.nombreMascota || "No especificada");
+
+    this.chatMessages.innerHTML = "";
+
+    // Si ya había un listener abierto lo cerramos
+    if (this.unsubscribeMensajes) {
+        this.unsubscribeMensajes();
     }
+
+    this.unsubscribeMensajes =
+        ChatService.escucharMensajes(chat.id, (mensajes) => {
+
+            this.chatMessages.innerHTML = "";
+
+            if (mensajes.length === 0) {
+
+                this.chatMessages.innerHTML =
+                    '<div class="empty-chat">Todavía no hay mensajes.</div>';
+
+                return;
+            }
+
+            mensajes.forEach(mensaje => {
+
+                const tipo =
+                    mensaje.emisorTipo === "veterinario"
+                        ? "sent"
+                        : "received";
+
+                this.agregarMensaje(
+                    mensaje.texto,
+                    tipo
+                );
+
+            });
+
+        });
+
+}
 
     agregarMensaje(texto, tipo) {
 
@@ -141,19 +180,25 @@ export class ChatController {
 
     }
 
-    enviarMensaje() {
-        if (!this.chatActual) return;
+   async enviarMensaje() {
 
-        const texto = this.inputMensaje.value.trim();
-        if (texto === "") return;
+    if (!this.chatActual) return;
 
-        // Coloca el mensaje visualmente en la pantalla
-        this.agregarMensaje(texto, "sent");
+    const texto = this.inputMensaje.value.trim();
 
-        // TODO: Aquí deberás añadir la llamada a Firebase usando tu ChatService 
-        // para guardar el mensaje en una subcolección de mensajes si deseas persistencia total.
+    if (texto === "") return;
 
-        this.inputMensaje.value = "";
-    }
+    await ChatService.enviarMensaje(
+        this.chatActual.id,
+        {
+            texto,
+            emisorId: this.veterinarioId,
+            emisorTipo: "veterinario"
+        }
+    );
+
+    this.inputMensaje.value = "";
+
+}
 
 }

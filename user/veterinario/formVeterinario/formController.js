@@ -242,7 +242,11 @@ class FormVeterinarioController {
         // const primerNombre = document.getElementById('primerNombre').value;
         const apellidoPat = document.getElementById('apellidoPat').value;
         const telefono = document.getElementById('telefono').value;
-        const cedula = document.getElementById('cedula').value; // NUEVO
+        const cedula = document.getElementById("cedula").value.trim();
+            if (!/^\d{7,8}$/.test(cedula)) {
+                alert("La cédula profesional debe contener únicamente 7 u 8 números.");
+                return;
+            } // NUEVO
 
         // if (!primerNombre) {
         //     this.mostrarNotificacion('Por favor ingresa tu primer nombre', 'error');

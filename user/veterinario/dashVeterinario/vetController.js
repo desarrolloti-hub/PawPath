@@ -8,9 +8,10 @@ import { ChatController } from './chatcontroller.js';
 
 class VetController {
     constructor() {
+        this.veterinarioId = null;
         this.vetModel = new Veterinario();
         this.citasModel = new Citas(); // Instancia del archivo Citas.js
-        this.chatController = new ChatController(); // El controlador del chat
+        this.chatController = null; // Instancia del ChatController
         this.veterinarioActual = null;
         this.citas = [];
         this.publicaciones = [];
@@ -28,7 +29,10 @@ class VetController {
 
     async initialize() {
         try {
-            await this.checkAuth();
+            const user = await this.checkAuth();
+            this.veterinarioId = user.uid;
+            // Ahora que ya tenemos el UID, creamos el chat
+            this.chatController = new ChatController(this.veterinarioId);
             await this.cargarDatosVeterinario();
             this.setupEventListeners();
             this.actualizarFecha();
@@ -42,7 +46,7 @@ class VetController {
 
     checkAuth() {
         return new Promise((resolve, reject) => {
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth,(user) => {
                 if (!user) {
                     window.location.href = '../../visitor/login/login.html';
                     reject();
