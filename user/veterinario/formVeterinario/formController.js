@@ -145,7 +145,7 @@ class FormVeterinarioController {
 
                 this.mostrarNotificacion('Datos cargados correctamente', 'success');
             } else {
-               }
+            }
         } catch (error) {
             console.error(error);
         }
@@ -418,13 +418,25 @@ class FormVeterinarioController {
                     cierre
                 });
             });
+            // 1. Extraemos los valores directamente de los inputs que sí existen
+            const nombresInput = document.getElementById('nombres').value.trim();
+            const apellidoPatInput = document.getElementById('apellidoPat').value.trim();
+            const apellidoMatInput = document.getElementById('apellidoMat').value.trim() || '';
 
+            // 2. Separamos el nombre para guardar primer y segundo nombre en la BD
+            const partesNombre = nombresInput.split(' ');
+            const primerNombreExtraido = partesNombre[0] || '';
+            const segundoNombreExtraido = partesNombre.slice(1).join(' ') || null;
+
+            // 3. Limpiamos el nombre completo para evitar dobles espacios si no hay apellido materno
+            const nombreCompletoLimpio = `${nombresInput} ${apellidoPatInput} ${apellidoMatInput}`.trim().replace(/\s+/g, ' ');
             const veterinarioData = {
-                primerNombre: document.getElementById('primerNombre').value,
-                segundoNombre: document.getElementById('segundoNombre').value || null,
-                apellidoPat: document.getElementById('apellidoPat').value,
-                apellidoMat: document.getElementById('apellidoMat').value || null,
-                nombreCompleto: `${document.getElementById('primerNombre').value} ${document.getElementById('segundoNombre').value || ''} ${document.getElementById('apellidoPat').value} ${document.getElementById('apellidoMat').value || ''}`.trim(),
+                nombres: nombresInput,
+                primerNombre: primerNombreExtraido,
+                segundoNombre: segundoNombreExtraido,
+                apellidoPat: apellidoPatInput,
+                apellidoMat: apellidoMatInput || null,
+                nombreCompleto: nombreCompletoLimpio,
                 cedula: document.getElementById('cedula').value, // NUEVO CAMPO
                 fotoPerfil: fotoPerfilBase64, // NUEVO CAMPO
                 email: this.userEmail,
@@ -443,7 +455,9 @@ class FormVeterinarioController {
             };
 
             await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
-            
+            const userDocRef = doc(db, 'usarios',user.uid);
+            await setDoc(userDocRef, {rol: 'veterinario'},{merge: true});
+
             this.mostrarModalExito();
 
         } catch (error) {
