@@ -1,5 +1,4 @@
 import Admin_usuarios from "/classes/admin_usuarios.js";
-// 👇 IMPORTAR AuthManager
 import { auth } from '/config/firebase-config.js';
 import { signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 
@@ -76,27 +75,38 @@ class Admin_usuariosController {
 
         console.log(`📌 Renderizando ${usuarios.length} usuarios`);
 
+        // Definir roles disponibles
+        const roles = ['usuarios', 'veterinario', 'administrador'];
+
         usuarios.forEach(usuario => {
             console.log("📌 Usuario:", usuario);
 
             const row = tbody.insertRow();
             
-            // ✅ AGREGADO: Clase para usuarios suspendidos (fondo transparente)
             if (usuario.suspendido) {
                 row.classList.add('usuario-suspendido');
             }
 
-            // Determinar texto del botón según estado
             const botonTexto = usuario.suspendido ? 'Reactivar' : 'Suspender';
             const botonIcono = usuario.suspendido ? 'fa-check-circle' : 'fa-ban';
             const botonTitulo = usuario.suspendido ? 'Reactivar usuario' : 'Suspender usuario';
+
+            // Opciones del select de roles
+            const optionsHtml = roles.map(rol => 
+                `<option value="${rol}" ${usuario.rol === rol ? 'selected' : ''}>${rol}</option>`
+            ).join('');
 
             row.innerHTML = `
                 <td>${this.escapeHtml(usuario.nombre || '')}</td>
                 <td>${this.escapeHtml(usuario.apellidos || '')}</td>
                 <td>${this.escapeHtml(usuario.email || '')}</td>
                 <td>${this.escapeHtml(usuario.fecha_registro || 'N/A')}</td>
-                <td>${this.escapeHtml(usuario.rol || '')}</td>
+                <td>
+                    <select class="form-select form-select-sm rol-select" data-id="${usuario.id}" 
+                            style="min-width: 120px; font-size: 0.875rem;">
+                        ${optionsHtml}
+                    </select>
+                </td>
                 <td class="acciones">
                     <button class="btn-eliminar" onclick="admin_usuariosController.eliminarUsuario('${usuario.id}')" title="Eliminar usuario">
                         <i class="fas fa-trash"></i>
@@ -108,6 +118,15 @@ class Admin_usuariosController {
                     </button>
                 </td>
             `;
+        });
+
+        // Agregar evento change a cada select
+        document.querySelectorAll('.rol-select').forEach(select => {
+            select.addEventListener('change', (e) => {
+                const userId = e.target.dataset.id;
+                const newRol = e.target.value;
+                window.admin_usuariosController.actualizarRol(userId, newRol, e.target);
+            });
         });
 
         console.log("✅ Renderizado completado");
@@ -162,12 +181,67 @@ class Admin_usuariosController {
         }
     }
 
+    // ============ NUEVO MÉTODO PARA ACTUALIZAR ROL ============
+    async actualizarRol(userId, nuevoRol, selectElement) {
+        try {
+            console.log(`🔄 Cambiando rol del usuario ${userId} a ${nuevoRol}`);
+
+            const rolesValidos = ['usuarios', 'veterinario', 'administrador'];
+            if (!rolesValidos.includes(nuevoRol)) {
+                this.mostrarNotificacion('Rol no válido', 'error');
+                const anterior = selectElement.dataset.oldValue || selectElement.value;
+                selectElement.value = anterior;
+                return;
+            }
+
+            // Guardar valor anterior por si falla
+            const valorAnterior = selectElement.value;
+            selectElement.dataset.oldValue = valorAnterior;
+
+            this.mostrarLoading(true);
+
+            const admin = new Admin_usuarios();
+            admin.id = userId;
+            const resultado = await admin.actualizarRol(nuevoRol);
+
+            this.mostrarLoading(false);
+
+            if (resultado.success) {
+                this.mostrarNotificacion(`Rol actualizado a "${nuevoRol}" correctamente`, 'success');
+                
+                const currentUser = auth.currentUser;
+                if (currentUser && currentUser.uid === userId) {
+                    Swal.fire({
+                        title: 'Rol actualizado',
+                        text: 'Has cambiado tu propio rol. La página se recargará para aplicar cambios.',
+                        icon: 'info',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                }
+                // No es necesario recargar la tabla porque el select ya tiene el nuevo valor
+            } else {
+                this.mostrarNotificacion(resultado.error || 'Error al actualizar rol', 'error');
+                selectElement.value = valorAnterior;
+            }
+        } catch (error) {
+            console.error('❌ Error actualizando rol:', error);
+            this.mostrarLoading(false);
+            this.mostrarNotificacion('Error al actualizar rol', 'error');
+            if (selectElement) {
+                const anterior = selectElement.dataset.oldValue;
+                if (anterior) selectElement.value = anterior;
+            }
+        }
+    }
+
     // ============ MÉTODO SUSPENDER USUARIO MEJORADO ============
     async suspenderUsuario(id) {
         try {
             console.log('🔒 Preparando suspensión/activación de usuario:', id);
 
-            // Obtener información del usuario
             const admin_usuarios = new Admin_usuarios();
             admin_usuarios.id = id;
 
@@ -215,7 +289,6 @@ class Admin_usuariosController {
 
             this.mostrarLoading(true);
 
-            // 1️⃣ PRIMERO: Actualizar en Firestore
             const admin_usuarios2 = new Admin_usuarios();
             admin_usuarios2.id = id;
 
@@ -229,16 +302,11 @@ class Admin_usuariosController {
                 resultadoOperacion = await admin_usuarios2.reactivarUsuario();
             }
 
-            // 2️⃣ SEGUNDO: Si se suspendió y ES EL MISMO ADMIN, forzar logout
             if (esSuspender && resultadoOperacion.success) {
                 try {
-                    // Verificar si el usuario suspendido es el mismo que está logueado
                     const currentUser = auth.currentUser;
-                    
                     if (currentUser && currentUser.uid === id) {
                         console.log('⚠️ El admin se está suspendiendo a sí mismo. Cerrando sesión...');
-                        
-                        // Mostrar mensaje especial
                         Swal.fire({
                             title: 'Te has suspendido',
                             text: 'Has suspendido tu propia cuenta. Cerrando sesión...',
@@ -246,11 +314,7 @@ class Admin_usuariosController {
                             timer: 2000,
                             showConfirmButton: false
                         });
-                        
-                        // Forzar logout
                         await signOut(auth);
-                        
-                        // Redirigir al login después de 2 segundos
                         setTimeout(() => {
                             window.location.href = '/user/visitor/login/login.html';
                         }, 2000);
@@ -271,8 +335,6 @@ class Admin_usuariosController {
                     timer: 2000,
                     showConfirmButton: false
                 });
-
-                // Recargar la tabla
                 this.cargarUsuarios();
             } else {
                 this.mostrarNotificacion(resultadoOperacion.error || 'Error al procesar', 'error');
@@ -289,7 +351,6 @@ class Admin_usuariosController {
         try {
             console.log('🗑️ Preparando eliminación de usuario:', id);
 
-            // Obtener información del usuario
             const admin_usuarios = new Admin_usuarios();
             admin_usuarios.id = id;
 
@@ -320,7 +381,6 @@ class Admin_usuariosController {
                     this.mostrarLoading(false);
 
                     if (resultadoEliminacion.success) {
-                        // Si el usuario eliminado es el admin actual, cerrar sesión
                         const currentUser = auth.currentUser;
                         if (currentUser && currentUser.uid === id) {
                             await signOut(auth);
