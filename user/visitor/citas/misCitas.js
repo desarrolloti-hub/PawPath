@@ -544,7 +544,8 @@ class MiPanelController {
         `;
         document.getElementById('detalleModal').style.display = 'flex';
     }
-    
+    // ========== MENSAJES ==========
+    cargarMensajes
     // ========== UTILIDADES ==========
     estadoTexto(estado) {
         const estados = { 'pendiente': 'Pendiente', 'aceptada': 'Aceptada', 'rechazada': 'Rechazada', 'concluida': 'Concluida' };

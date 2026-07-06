@@ -41,6 +41,10 @@
                     <i class="fas fa-clipboard-list"></i> Mis Reclamos
                     <span class="badge" id="reclamosBadge">0</span>
                 </button>
+                <button class="main-tab" data-main="mensajes">
+                    <i class="fa-solid fa-message"></i> Chat
+                    <span class="badge" id="mensajes">0</span>
+                </button>
             </div>
 
             <!-- ========== SECCIÓN CITAS ========== -->
@@ -185,6 +189,17 @@
             <div class="modal-footer" id="modalFooter">
                 <button class="btn-cerrar" onclick="cerrarModal()">Cerrar</button>
             </div>
+        </div>
+    </div>
+    <!-- ========== SECCIÓN DEL CHAT ========== -->
+    <div id="chatSection" class="main-section">
+        <div class="tabs-container">
+            <button class="tab-btn" data-reclamo-tab="verificados">
+                <i class="fas fa-search"></i> Leidos
+            </button>
+            <button class="tab-btn" data-reclamo-tab="aprobados">
+                <i class="fas fa-check-circle"></i> No leidos
+            </button>
         </div>
     </div>
 
