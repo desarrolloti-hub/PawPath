@@ -41,10 +41,6 @@
                     <i class="fas fa-clipboard-list"></i> Mis Reclamos
                     <span class="badge" id="reclamosBadge">0</span>
                 </button>
-                <button class="main-tab" data-main="chats">
-                    <i class="fa-solid fa-message"></i> chats
-                    <span class="badge" id="chatsBadage">0</span>
-                </button>
             </div>
 
             <!-- ========== SECCIÓN CITAS ========== -->
@@ -167,37 +163,6 @@
                 </div>
             </div>
 
-            <!-- ========== SECCIÓN CHATS ========== -->
-            <div id="chatsSection" class="main-section">
-                <div class="tabs-container">
-                    <button class="tab-btn active" data-chat-tab="todos">
-                        <i class="fas fa-comments"></i> Todos
-                        <span class="badge" id="chatsTodosBadge">0</span>
-                    </button>
-                    <button class="tab-btn" data-chat-tab="no-leidos">
-                        <i class="fas fa-comment-dots"></i> No leídos
-                        <span class="badge" id="chatsNoLeidosBadge">0</span>
-                    </button>
-                </div>
-
-                <div class="filtros-bar">
-                    <div class="filtro-group">
-                        <label>Buscar:</label>
-                        <input type="text" id="chatsBuscar" placeholder="Buscar veterinairo...">
-                    </div>
-                    <button id="btnRefrescarChats" class="btn-refrescar">
-                        <i class="fas fa-sync-alt"></i>
-                    </button>
-                </div>
-
-                <div class="items-lista" id="chatsLista">
-                    <div class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando tus chats...</p>
-                    </div>
-                </div>
-            </div>
-
             <!-- Sin resultados (compartido) -->
             <div class="sin-resultados" id="sinResultados" style="display: none;">
                 <i class="fas fa-inbox"></i>
@@ -223,8 +188,6 @@
         </div>
     </div>
 
-
-    <script type="module" src="/components/JS access control.js"></script>
     <script type="module" src="misCitas.js"></script>
     <script type="module" src="/components/JS navbar-visitor-component.js"></script>
 </body>
