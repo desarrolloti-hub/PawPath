@@ -49,7 +49,7 @@ class FormVeterinarioController {
                     window.location.href = '/user/visitor/login/login.html';
                     reject();
                 } else {
-                    this.userName = user.primer_nombre;
+                    this.userName = user.nombre_completo;
                     this.userEmail = user.email;
                     resolve(user);
                 }
@@ -61,7 +61,6 @@ class FormVeterinarioController {
     async mostrarDatosUsuario() {
         const user = auth.currentUser;
         if (!user) {
-            console.log('No hay usuario autenticado');
             return;
         }
 
@@ -83,14 +82,9 @@ class FormVeterinarioController {
             if (userDoc.exists()) {
                 const userData = userDoc.data();
 
-                const primerNombreInput = document.getElementById('primerNombre');
-                if (primerNombreInput && userData.primer_nombre) {
-                    primerNombreInput.value = userData.primer_nombre;
-                }
-
-                const segundoNombreInput = document.getElementById('segundoNombre');
-                if (segundoNombreInput && userData.segundo_nombre) {
-                    segundoNombreInput.value = userData.segundo_nombre;
+                const nombresInput = document.getElementById('nombres');
+                if (nombresInput && userData.nombre_completo) {
+                    nombresInput.value = userData.nombre_completo;
                 }
 
                 const apellidoPatInput = document.getElementById('apellidoPat');
@@ -122,22 +116,16 @@ class FormVeterinarioController {
 
         try {
 
-            const q = query(collection(db, 'usuarios'), where('email', '==', email));
+            const q = query(collection(db, 'usarios'), where('email', '==', email));
             const querySnapshot = await getDocs(q);
 
             if (!querySnapshot.empty) {
                 const userDoc = querySnapshot.docs[0];
                 const userData = userDoc.data();
-
                 // Mapear los campos
-                const primerNombreInput = document.getElementById('primerNombre');
-                if (primerNombreInput && userData.primer_nombre) {
-                    primerNombreInput.value = userData.primer_nombre;
-                }
-
-                const segundoNombreInput = document.getElementById('segundoNombre');
-                if (segundoNombreInput && userData.segundo_nombre) {
-                    segundoNombreInput.value = userData.segundo_nombre;
+                const nombresInput = document.getElementById('nombres');
+                if (nombresInput && userData.nombre_completo) {
+                    nombresInput.value = userData.nombre_completo;
                 }
 
                 const apellidoPatInput = document.getElementById('apellidoPat');
@@ -157,7 +145,6 @@ class FormVeterinarioController {
 
                 this.mostrarNotificacion('Datos cargados correctamente', 'success');
             } else {
-                console.log('no se encontro:', email);
             }
         } catch (error) {
             console.error(error);
@@ -255,7 +242,11 @@ class FormVeterinarioController {
         // const primerNombre = document.getElementById('primerNombre').value;
         const apellidoPat = document.getElementById('apellidoPat').value;
         const telefono = document.getElementById('telefono').value;
-        const cedula = document.getElementById('cedula').value; // NUEVO
+        const cedula = document.getElementById("cedula").value.trim();
+            if (!/^\d{7,8}$/.test(cedula)) {
+                alert("La cédula profesional debe contener únicamente 7 u 8 números.");
+                return;
+            } // NUEVO
 
         // if (!primerNombre) {
         //     this.mostrarNotificacion('Por favor ingresa tu primer nombre', 'error');
@@ -387,6 +378,11 @@ class FormVeterinarioController {
         btnLoading.style.display = 'inline';
 
         try {
+            const user = auth.currentUser;
+            if (!user) {
+                throw new Error("No hay un usuario autenticado.");
+            }
+
             // Procesar imágenes
             let fotoPerfilBase64 = null;
             let fotoClinicaBase64 = null;
@@ -422,13 +418,25 @@ class FormVeterinarioController {
                     cierre
                 });
             });
+            // 1. Extraemos los valores directamente de los inputs que sí existen
+            const nombresInput = document.getElementById('nombres').value.trim();
+            const apellidoPatInput = document.getElementById('apellidoPat').value.trim();
+            const apellidoMatInput = document.getElementById('apellidoMat').value.trim() || '';
 
+            // 2. Separamos el nombre para guardar primer y segundo nombre en la BD
+            const partesNombre = nombresInput.split(' ');
+            const primerNombreExtraido = partesNombre[0] || '';
+            const segundoNombreExtraido = partesNombre.slice(1).join(' ') || null;
+
+            // 3. Limpiamos el nombre completo para evitar dobles espacios si no hay apellido materno
+            const nombreCompletoLimpio = `${nombresInput} ${apellidoPatInput} ${apellidoMatInput}`.trim().replace(/\s+/g, ' ');
             const veterinarioData = {
-                primerNombre: document.getElementById('primerNombre').value,
-                segundoNombre: document.getElementById('segundoNombre').value || null,
-                apellidoPat: document.getElementById('apellidoPat').value,
-                apellidoMat: document.getElementById('apellidoMat').value || null,
-                nombreCompleto: `${document.getElementById('primerNombre').value} ${document.getElementById('segundoNombre').value || ''} ${document.getElementById('apellidoPat').value} ${document.getElementById('apellidoMat').value || ''}`.trim(),
+                nombres: nombresInput,
+                primerNombre: primerNombreExtraido,
+                segundoNombre: segundoNombreExtraido,
+                apellidoPat: apellidoPatInput,
+                apellidoMat: apellidoMatInput || null,
+                nombreCompleto: nombreCompletoLimpio,
                 cedula: document.getElementById('cedula').value, // NUEVO CAMPO
                 fotoPerfil: fotoPerfilBase64, // NUEVO CAMPO
                 email: this.userEmail,
@@ -447,8 +455,9 @@ class FormVeterinarioController {
             };
 
             await setDoc(doc(db, this.veterinariosCollection, user.uid), veterinarioData);
-            
-            console.log('Veterinario registrado con ID:', docRef.id);
+            const userDocRef = doc(db, 'usarios',user.uid);
+            await setDoc(userDocRef, {rol: 'veterinario'},{merge: true});
+
             this.mostrarModalExito();
 
         } catch (error) {
@@ -518,14 +527,6 @@ class FormVeterinarioController {
         if (registroForm) {
             registroForm.addEventListener('submit', (e) => this.handleSubmit(e));
         }
-
-        // const logoutBtn = document.getElementById('logoutBtn');
-        // if (logoutBtn) {
-        //     logoutBtn.addEventListener('click', (e) => {
-        //         e.preventDefault();
-        //         this.logout();
-        //     });
-        // }
 
         this.setupImagePreview();
     }

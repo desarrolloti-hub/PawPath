@@ -1,15 +1,17 @@
 import { auth, db  } from '/config/firebase-config.js';
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from './chatcontroller.js';
 
+
 class VetController {
     constructor() {
+        this.veterinarioId = null;
         this.vetModel = new Veterinario();
         this.citasModel = new Citas(); // Instancia del archivo Citas.js
-        this.chatController = new ChatController(); // El controlador del chat
+        this.chatController = null; // Instancia del ChatController
         this.veterinarioActual = null;
         this.citas = [];
         this.publicaciones = [];
@@ -27,7 +29,10 @@ class VetController {
 
     async initialize() {
         try {
-            await this.checkAuth();
+            const user = await this.checkAuth();
+            this.veterinarioId = user.uid;
+            // Ahora que ya tenemos el UID, creamos el chat
+            this.chatController = new ChatController(this.veterinarioId);
             await this.cargarDatosVeterinario();
             this.setupEventListeners();
             this.actualizarFecha();
@@ -41,7 +46,7 @@ class VetController {
 
     checkAuth() {
         return new Promise((resolve, reject) => {
-            onAuthStateChanged(auth, async (user) => {
+            onAuthStateChanged(auth,(user) => {
                 if (!user) {
                     window.location.href = '../../visitor/login/login.html';
                     reject();
@@ -63,7 +68,7 @@ class VetController {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         this.veterinarioActual = {
-                            id: user.uid, // ✨ AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DE TU CÓDIGO
+                            id: user.uid, //AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DEL CÓDIGO
                             uid: user.uid,
                             nombre: data.nombreCompleto || data.nombre || 'Veterinario Registrado',
                             especialidad: data.especialidad || 'Medicina General',
@@ -71,31 +76,21 @@ class VetController {
                             ...data
                         };
                     } else {
-                        // PLAN B MAESTRO PARA TU CUENTA REAL
-                        if (user.uid === 'dt2PYldIYzR1t7Zg5lO5nEk5PEk2') {
-                            console.log("¡Identidad verificada! Cargando perfil veterinario maestro en código.");
-                            this.veterinarioActual = {
-                                id: user.uid,  // ✨ Crucial para que funcionen las publicaciones, citas y horarios
-                                uid: user.uid,
-                                nombre: "Dr. Veterinario Real", 
-                                email: user.email,
-                                especialidad: "Cardiología y Cirugía Vet",
-                                clinica: "Clínica Veterinaria PawPath Principal",
-                                foto: "../../../assets/images/default-user.png"
-                            };
-                        } else {
-                            console.warn("⚠️ No se encontró el perfil clínico en Firestore para este UID. Usando perfil de respaldo.");
-                            this.veterinarioActual = {
-                                id: user.uid,
-                                uid: user.uid,
-                                nombre: user.displayName || 'Dr. Veterinario Invitado',
-                                email: user.email,
-                                especialidad: 'Medicina General',
-                                clinica: 'Clínica PawPath',
-                                foto: '../../../assets/images/default-user.png'
-                            };
-                        }
+                       if (docSnap.exists()) {
+
+                        const data = docSnap.data();
+
+                        this.veterinarioActual = {
+                            id: user.uid,
+                            uid: user.uid,
+                            nombre: data.nombreCompleto || data.nombre || "Veterinario",
+                            especialidad: data.especialidad || "Medicina General",
+                            clinica: data.nombreClinica || data.clinica || "Mi Clínica",
+                            ...data
+                        };
+
                     }
+                }
 
                     // Pintamos los datos en la UI de forma segura
                     const txtName = document.getElementById('vetName');
@@ -127,8 +122,6 @@ class VetController {
 
     async cargarTodo() {
     if (!this.veterinarioActual) return;
-
-    console.log('Cargando datos reales para el veterinario en Dashboard:', this.veterinarioActual.uid);
 
     try {
         // 1. CARGAR CITAS REALES DESDE FIRESTORE
@@ -165,14 +158,11 @@ class VetController {
         // 6. ACTUALIZAR LOS CONTADORES DEL DASHBOARD (Adiós al "Cargando...")
         this.actualizarContadoresSeguros();
 
-        console.log('¡Dashboard inicializado correctamente con todos los datos de Firestore!');
-
     } catch (error) {
         console.error('Error crítico al cargar los componentes del dashboard:', error);
     }
 }
 actualizarContadoresSeguros() {
-    console.log("Calculando estadísticas para las tarjetas del Dashboard...");
     
     const hoy = new Date().toISOString().split('T')[0];
 
@@ -207,7 +197,6 @@ actualizarContadoresSeguros() {
             return;
         }
 
-        console.log("Buscando citas en Firestore para el veterinario ID:", vId);
         const resultado = await this.citasModel.obtenerCitasVeterinario(vId);
         
         if (resultado.success) {
@@ -243,8 +232,6 @@ actualizarContadoresSeguros() {
             console.error("No se pueden cargar publicaciones: Falta ID del veterinario.");
             return;
         }
-
-        console.log("Consultando publicaciones reales en Firestore para el ID:", vId);
         
         // 1. Quitamos el 'orderBy' de la consulta de Firebase para evitar que se congele por falta de índices.
         const q = query(
@@ -268,8 +255,6 @@ actualizarContadoresSeguros() {
             const fechaB = b.fechaCreacion?.seconds || 0;
             return fechaB - fechaA; // De la más reciente a la más antigua
         });
-
-        console.log("¡Publicaciones cargadas con éxito! Total encontradas:", this.publicaciones.length);
         
         // 3. Mandamos a dibujar las tarjetas en la pantalla
         this.renderizarPublicaciones();
@@ -1137,7 +1122,6 @@ actualizarContadoresSeguros() {
 
     async guardarHorario(e) {
     e.preventDefault();
-    console.log("Procesando actualización de horarios disponibles...");
 
     try {
         const vId = this.veterinarioActual?.id || auth.currentUser?.uid;
@@ -1175,13 +1159,11 @@ actualizarContadoresSeguros() {
                 });
             }
         });
-
-        console.log("Guardando configuración de agenda para el veterinario:", vId, horarioSemanal);
         
         const resultado = await this.vetModel.guardarConfiguracionHorario(vId, horarioSemanal, duracionCita, diasAnticipacion);
 
         if (resultado.success) {
-            // ✨ LA CLAVE: Actualizamos la memoria local del controlador de inmediato
+            //LA CLAVE: Actualizamos la memoria local del controlador de inmediato
             this.veterinarioActual.horarioSemanal = horarioSemanal;
             this.veterinarioActual.duracionCita = duracionCita;
             this.veterinarioActual.diasAnticipacion = diasAnticipacion;
@@ -1198,7 +1180,6 @@ actualizarContadoresSeguros() {
 }
 
     async cargarHorariosDisponibles() {
-        console.log('🕒 Cargando horarios disponibles...');
 
         const veterinarioId = document.getElementById('veterinario')?.value;
         const fecha = document.getElementById('fecha')?.value;
@@ -1227,8 +1208,6 @@ actualizarContadoresSeguros() {
                 horaSelect.disabled = false;
                 return;
             }
-
-            console.log('✅ Horario del veterinario:', vetSeleccionado.horarioSemanal);
 
             if (!vetSeleccionado.horarioSemanal || vetSeleccionado.horarioSemanal.length === 0) {
                 horaSelect.innerHTML = '<option value="">El veterinario no tiene horario configurado</option>';
@@ -1269,7 +1248,6 @@ actualizarContadoresSeguros() {
         const horarioDia = vet.horarioSemanal.find(h => h.dia === diaSemana);
         
         if (!horarioDia || !horarioDia.activo) {
-            console.log(`⚠️ Veterinario no atiende los ${diaSemana}`);
             return [];
         }
 
@@ -1500,7 +1478,6 @@ actualizarContadoresSeguros() {
 
     async guardarPublicacion(e) {
     e.preventDefault();
-    console.log('Iniciando guardado de publicación...');
 
     if (!this.veterinarioActual) {
         Swal.fire('Error', 'No se identificaron datos del veterinario', 'error');
@@ -1550,9 +1527,7 @@ actualizarContadoresSeguros() {
             nuevaPublicacion.fechaEvento = fechaInput.value;
         }
 
-        console.log('Enviando publicación a Firestore:', nuevaPublicacion);
         const docRef = await addDoc(collection(db, 'publicaciones'), nuevaPublicacion);
-        console.log('Publicación guardada con ID:', docRef.id);
 
         Swal.fire({
             icon: 'success',

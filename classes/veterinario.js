@@ -281,11 +281,9 @@ class Veterinario {
         }
     }
 
-    // ====== REEMPLAZA ESTE MÉTODO EN TU ARCHIVO Veterinario.js ======
 async guardarConfiguracionHorario(veterinarioId, horarioSemanal, duracionCita, diasAnticipacion) {
     try {
         // En lugar de forzar un updateDoc que se cae si el perfil no existe en la nube,
-        // usamos setDoc con { merge: true } que lo crea si no existe, o lo actualiza si ya existe.
         const { setDoc } = await import("https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js");
         
         const vetRef = doc(this.db, this.veterinariosCollection, veterinarioId);
@@ -298,7 +296,7 @@ async guardarConfiguracionHorario(veterinarioId, horarioSemanal, duracionCita, d
             // Agregamos estos datos de respaldo por si es la primera vez que se crea el documento en la bd
             nombreCompleto: "Dr. Veterinario Real",
             nombreClinica: "Clínica Veterinaria PawPath Principal"
-        }, { merge: true }); // ✨ MERGE EVITA QUE SE BORREN LOS DEMÁS CAMPOS SI YA EXISTÍA
+        },);
 
         console.log('¡Agenda e información de horarios guardada exitosamente en Firestore!');
         return { success: true, message: 'Horario actualizado correctamente' };

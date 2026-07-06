@@ -167,9 +167,10 @@
                 left: 5px; 
                 width: 45px; 
                 height: 45px;
-                color: black !important; 
+                color: #ffffff; 
                 border: none; 
-                background: none;
+                background-color: #0d1b3d;
+                border-radius: 50%;
                 cursor: pointer; 
                 z-index: 1160; 
                 display: none; 
@@ -179,7 +180,15 @@
                 transition: background-color 0.3s, transform 0.2s;
             }            
             .paw-toggle-btn i {
-                color: black !important;
+                font-size:22px;
+                color:inherit;
+                transition:.3s;
+
+            }
+             .paw-toggle-btn.active{
+              background:#ffffff;
+              color:#0d1b3d;
+              box-shadow:0 5px 15px rgba(0,0,0,.25);
             }
             .sidebar-section { 
                 margin: 10px 15px; 
@@ -216,13 +225,14 @@
             }
             
             .sidebar-link {
-                display: flex; 
-                align-items: center; 
                 padding: 12px 20px; 
                 color: white !important;
                 text-decoration: none; 
                 font-size: 0.9rem; 
                 border-bottom: 1px solid rgba(255,255,255,0.05);
+                display: flex;
+                align-items: center;
+                gap: 12px;
             }
             
             .sidebar-link i,
@@ -458,7 +468,7 @@
                     <i class="fas fa-chevron-down"></i>
                 </button>
                 <div class="sidebar-content active">
-                    <a href="/" class="sidebar-link"><i class="fas fa-home"></i> Inicio</a>
+                    <a href="/" class="sidebar-link"><i class="fas fa-home"></i>Inicio</a>
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
                     <!--<a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>-->
@@ -479,6 +489,8 @@
         overlay.id = 'pawOverlay';
 
         document.body.prepend(navbar, sidebar, toggleBtn, overlay);
+
+
     }
 
     // =============================================
@@ -492,10 +504,16 @@
         if (!toggleBtn || !sidebar || !overlay) return;
 
         const toggleMenu = () => {
+
             const active = sidebar.classList.toggle('active');
+
             overlay.classList.toggle('active');
-            toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-            toggleBtn.classList.toggle('menu-abierto', active);
+
+            toggleBtn.classList.toggle('active', active);
+
+            toggleBtn.innerHTML = active
+                ? '<i class="fas fa-times"></i>'
+                : '<i class="fas fa-bars"></i>';
 
         };
 
@@ -563,13 +581,13 @@
 
         if (nombreUsuario) {
             // Hay usuario logueado
-            const initial = nombreUsuario.charAt(0).toUpperCase(); 
+            const initial = nombreUsuario.charAt(0).toUpperCase();
             let fullName;
-            if(userData && userData.nombre_completo){
+            if (userData && userData.nombre_completo) {
                 fullName = userData.nombre_completo;
-            }else if(localStorage.getItem('userDisplayName')){
+            } else if (localStorage.getItem('userDisplayName')) {
                 fullName.localStorage.getItem('userDisplayName');
-            }else{
+            } else {
                 fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
             }
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
@@ -612,7 +630,9 @@
             if (userAction && userMovilAction) {
                 userAction.innerHTML = `
                  <div style="display:flex; gap:10px;">
-                    <i class="fa-solid fa-user"></i>                    
+                    <a href="/user/visitor/login/login.html" style="text-decoration: none;">
+                        Iniciar sesion
+                    </a>                 
                 </div>
                 `;
                 userMovilAction.innerHTML = ` <div style="padding: 20px;">

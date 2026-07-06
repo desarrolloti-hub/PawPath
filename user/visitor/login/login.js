@@ -26,12 +26,10 @@ import {
 
 class AuthManager {
     constructor() {
-        console.log('🚀 Inicializando AuthManager...');
         this.initializeDOMElements();
         this.attachEventListeners();
         this.setupAuthStateListener();
         //this.setPersistenceToNone(); // Deshabilitar persistencia
-        console.log('✅ AuthManager initialized');
     }
 
     initializeDOMElements() {
@@ -61,8 +59,6 @@ class AuthManager {
         // Register form elements
         this.registerForm = document.getElementById('register-form');
         this.nombres = document.getElementById('nombres');
-        //this.primerNombre = document.getElementById('primer_nombre');
-        //this.segundoNombre = document.getElementById('segundo_nombre');
         this.apellidoPaterno = document.getElementById('apellido_paterno');
         this.apellidoMaterno = document.getElementById('apellido_materno');
         this.registerEmail = document.getElementById('register-email');
@@ -125,7 +121,6 @@ class AuthManager {
 
     setupAuthStateListener() {
         onAuthStateChanged(auth, async (user) => {
-            console.log('🔔 onAuthStateChanged disparado');
             if (user) {
                 console.log('✅ Usuario autenticado en Firebase Auth');
 
@@ -193,7 +188,6 @@ class AuthManager {
                     localStorage.setItem('userFullData', JSON.stringify(userData));
                 }
 
-                console.log('✅ Datos guardados en caché correctamente');
             }
         } catch (error) {
             console.error('Error al guardar en caché:', error);
@@ -201,7 +195,6 @@ class AuthManager {
     }
 
     redirectBasedOnRole(role) {
-        console.log('🔄 Redirigiendo según rol:', role);
 
         const roleRoutes = {
             'administrador': '/user/administrator/dashAdmin/dashboard.html',
@@ -424,7 +417,7 @@ class AuthManager {
 
             console.log('✅ Login exitoso en Firebase Auth');
 
-            if (user.email_verificado==false) {
+            if (user.emailVerified==false) {
                 console.log('Email no verificado');
                 this.showAlert('Por favor, verifica tu correo electrónico antes de iniciar sesión', 'warning');
                 await signOut(auth);
@@ -511,7 +504,7 @@ class AuthManager {
 
             // Configurar persistencia a NONE
             await setPersistence(auth, browserLocalPersistence);
-
+            
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
@@ -521,6 +514,7 @@ class AuthManager {
 
             console.log('✅ Usuario creado en Auth:', user.uid);
 
+            // ==== CÓDIGO ORIGINAL: Preparar datos del usuario ====
             const userData = {
                 primerNombre: primerNombre,
                 segundoNombre: segundoNombre,
@@ -528,12 +522,13 @@ class AuthManager {
                 apellido_materno: this.apellidoMaterno.value.trim(),
                 nombre_completo: this.nombres.value.trim(),
                 email: email,
-                rol: 'usuario',
+                // 👇 CAMBIO: Cambiamos de "usuario" a "visitante" (según tu captura)
+                rol: 'visitante',  // ANTES era: 'usuario'
                 fecha_registro: serverTimestamp(),
                 email_verificado: user.emailVerified,
                 uid: user.uid
             };
-
+            
             await setDoc(doc(db, 'usarios', user.uid), userData);
             console.log('✅ Documento creado en Firestore');
 
@@ -572,6 +567,49 @@ class AuthManager {
             this.setLoading(this.registerBtn, false);
         }
     }
+     
+    /**
+     * Verificar integridad de datos después del login
+     * Puedes llamar a este método después de un login exitoso
+     */
+    async verifyUserDataIntegrity(user) {
+        try {
+            const userRef = doc(db, 'usarios', user.uid);
+            const userSnap = await getDoc(userRef);
+            
+            if (userSnap.exists()) {
+                const userData = userSnap.data();
+                
+                if (userData.security) {
+                    const verification = await DataProtectionSHA256.verifyDataIntegrity(
+                        {
+                            email: user.email,
+                            primer_nombre: userData.primer_nombre,
+                            segundo_nombre: userData.segundo_nombre,
+                            apellido_paterno: userData.apellido_paterno,
+                            apellido_materno: userData.apellido_materno
+                        },
+                        userData.security
+                    );
+                    
+                    console.log(verification.message);
+                    
+                    if (!verification.isIntegrity) {
+                        console.warn('⚠️ Posible modificación de datos detectada');
+                        // Opcional: Mostrar alerta al usuario
+                        this.showAlert('Tus datos muestran inconsistencias de seguridad', 'warning');
+                    }
+                    
+                    return verification;
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Error verificando integridad:', error);
+            return null;
+        }
+    }
+
 
     async handleGoogleAuth() {
         this.setLoading(this.googleAuthBtn, true);
@@ -707,8 +745,6 @@ class AuthManager {
 
     async logout() {
         try {
-            console.log('🚪 Cerrando sesión desde AuthManager...');
-
             // Forzar signOut
             await signOut(auth);
 
@@ -717,8 +753,6 @@ class AuthManager {
 
             // Limpiar sessionStorage
             sessionStorage.clear();
-
-            console.log('✅ Sesión cerrada correctamente');
 
             // Redirigir con timestamp para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
