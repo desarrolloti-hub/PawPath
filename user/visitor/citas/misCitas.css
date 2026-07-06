@@ -545,6 +545,7 @@ body {
 .btn-cerrar:hover {
     background: var(--gray-300);
 }
+/*ESTILOS DEL CHT*/
 
 /* Responsive */
 @media (max-width: 768px) {
