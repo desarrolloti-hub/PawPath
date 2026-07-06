@@ -490,7 +490,7 @@
 
         document.body.prepend(navbar, sidebar, toggleBtn, overlay);
 
-        
+
     }
 
     // =============================================
@@ -504,21 +504,18 @@
         if (!toggleBtn || !sidebar || !overlay) return;
 
         const toggleMenu = () => {
+
             const active = sidebar.classList.toggle('active');
+
             overlay.classList.toggle('active');
-            toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
 
-        const active = sidebar.classList.toggle('active');
+            toggleBtn.classList.toggle('active', active);
 
-        overlay.classList.toggle('active');
+            toggleBtn.innerHTML = active
+                ? '<i class="fas fa-times"></i>'
+                : '<i class="fas fa-bars"></i>';
 
-        toggleBtn.classList.toggle('active', active);
-
-        toggleBtn.innerHTML = active
-        ? '<i class="fas fa-times"></i>'
-        : '<i class="fas fa-bars"></i>';
-
-};
+        };
 
 
         toggleBtn.onclick = toggleMenu;
@@ -584,13 +581,13 @@
 
         if (nombreUsuario) {
             // Hay usuario logueado
-            const initial = nombreUsuario.charAt(0).toUpperCase(); 
+            const initial = nombreUsuario.charAt(0).toUpperCase();
             let fullName;
-            if(userData && userData.nombre_completo){
+            if (userData && userData.nombre_completo) {
                 fullName = userData.nombre_completo;
-            }else if(localStorage.getItem('userDisplayName')){
+            } else if (localStorage.getItem('userDisplayName')) {
                 fullName.localStorage.getItem('userDisplayName');
-            }else{
+            } else {
                 fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
             }
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
@@ -633,7 +630,9 @@
             if (userAction && userMovilAction) {
                 userAction.innerHTML = `
                  <div style="display:flex; gap:10px;">
-                    <i class="fa-solid fa-user"></i>                    
+                    <a href="/user/visitor/login/login.html" style="text-decoration: none;">
+                        Iniciar sesion
+                    </a>                 
                 </div>
                 `;
                 userMovilAction.innerHTML = ` <div style="padding: 20px;">
