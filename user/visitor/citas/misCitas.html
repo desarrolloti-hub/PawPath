@@ -86,11 +86,60 @@
                     </button>
                 </div>
 
-                <div class="items-lista" id="citasLista">
-                    <div class="loading-state">
-                        <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando tus citas...</p>
+                <div class="citas-chat-layout">
+
+                    <!-- Lista de citas -->
+                    <div class="items-lista" id="citasLista">
+                        <div class="loading-state">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Cargando tus citas...</p>
+                        </div>
                     </div>
+
+                    <!-- Panel del chat -->
+                    <div class="chat-panel">
+
+                        <div class="chat-header">
+
+                            <h3 id="chatNombre">
+                                Selecciona una cita
+                            </h3>
+
+                            <small id="chatMascota">
+                                Elige una cita para comenzar la conversación.
+                            </small>
+
+                        </div>
+
+                        <div id="chatMessages" class="chat-messages">
+
+                            <div class="empty-chat">
+
+                                <i class="fas fa-comments"></i>
+
+                                <p>No hay conversación seleccionada.</p>
+
+                            </div>
+
+                        </div>
+
+                        <div class="chat-input">
+
+                            <input
+                                type="text"
+                                id="mensajeInput"
+                                placeholder="Escribe un mensaje...">
+
+                            <button id="btnEnviar">
+
+                                <i class="fas fa-paper-plane"></i>
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
                 </div>
             </div>
 

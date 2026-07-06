@@ -5,6 +5,7 @@ import {
     collection, query, where, getDocs, orderBy, 
     updateDoc, doc, getDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { ChatService } from './chatservice.js';
 
 class MiPanelController {
     constructor() {
@@ -13,6 +14,16 @@ class MiPanelController {
         this.solicitudesAdopcion = [];
         this.reclamos = [];
         this.usuarioActual = null;
+        
+        //chat
+        this.chatActual = null;
+        this.unsubscribeMensajes = null;
+
+        this.chatNombre = document.getElementById("chatNombre");
+        this.chatMascota = document.getElementById("chatMascota");
+        this.chatMessages = document.getElementById("chatMessages");
+        this.inputMensaje = document.getElementById("mensajeInput");
+        this.btnEnviar = document.getElementById("btnEnviar");
         
         // Filtros citas
         this.citasFiltroTab = 'proximas';
@@ -39,6 +50,31 @@ class MiPanelController {
             this.cargarReclamos()
         ]);
         this.setupEventListeners();
+        if (this.btnEnviar) {
+
+            this.btnEnviar.addEventListener(
+                "click",
+                () => this.enviarMensaje()
+            );
+
+        }
+
+        if (this.inputMensaje) {
+
+            this.inputMensaje.addEventListener(
+                "keydown",
+                e => {
+
+                    if (e.key === "Enter") {
+
+                        this.enviarMensaje();
+
+                    }
+
+                }
+            );
+
+        }
     }
     
     checkAuth() {
@@ -53,7 +89,7 @@ class MiPanelController {
             });
         });
     }
-    
+
     // ========== CITAS ==========
     async cargarCitas() {
         if (!this.usuarioActual) return;
@@ -168,7 +204,22 @@ class MiPanelController {
         filtradas.forEach(cita => {
             html += this.generarCardCita(cita);
         });
-        container.innerHTML = html;
+       container.innerHTML = html;
+        container.querySelectorAll  (".btn-chat").forEach(btn=>{
+
+            btn.addEventListener("click",()=>{
+
+                const cita=this.citas.find(
+                    c=>c.id===btn.dataset.citaId
+                );
+
+                if(!cita)return;
+
+                this.abrirChat(cita);
+
+            });
+
+        });
     }
     
     generarCardCita(cita) {
@@ -200,15 +251,36 @@ class MiPanelController {
                         <p><i class="fas fa-hospital-user"></i> ${cita.veterinarioNombre || 'No asignado'}</p>
                     </div>
                 </div>
-                <div class="item-footer">
-                    <button class="btn-ver" onclick="miPanel.verDetalleCita('${cita.id}')">
-                        <i class="fas fa-eye"></i> Ver detalles
+               <div class="item-footer">
+                    <button class="btn-ver"
+                        onclick="miPanel.verDetalleCita('${cita.id}')">
+
+                        <i class="fas fa-eye"></i>
+                        Ver detalles
+
                     </button>
-                    ${puedeCancelar ? `
-                        <button class="btn-ver" style="color: #f56565;" onclick="miPanel.cancelarCita('${cita.id}')">
-                            <i class="fas fa-times"></i> Cancelar
+
+                    ${(cita.estado === 'aceptada' || cita.estado === 'concluida') ? `
+
+                        <button class="btn-chat" data-cita-id="${cita.id}">
+                            <i class="fas fa-comments"></i>
+                            Chat
                         </button>
                     ` : ''}
+
+                    ${puedeCancelar ? `
+
+                        <button class="btn-ver"
+                            style="color:#f56565;"
+                            onclick="miPanel.cancelarCita('${cita.id}')">
+
+                            <i class="fas fa-times"></i>
+                            Cancelar
+
+                        </button>
+
+                    ` : ''}
+
                 </div>
             </div>
         `;
@@ -620,6 +692,134 @@ class MiPanelController {
         document.getElementById('btnRefrescar')?.addEventListener('click', () => this.cargarCitas());
         document.getElementById('btnRefrescarAdopciones')?.addEventListener('click', () => this.cargarSolicitudesAdopcion());
         document.getElementById('btnRefrescarReclamos')?.addEventListener('click', () => this.cargarReclamos());
+    }
+
+    async abrirChat(cita) {
+
+        try {
+
+            const chatId = await ChatService.crearChatSiNoExiste(cita);
+
+            this.chatActual = {
+                id: chatId,
+                ...cita
+            };
+
+            this.chatNombre.textContent = cita.veterinarioNombre || cita.nombreVeterinario || "Veterinario";
+
+            this.chatMascota.textContent =
+                cita.nombreMascota || "Mascota";
+
+            this.chatMessages.innerHTML = "";
+
+            if (this.unsubscribeMensajes) {
+                this.unsubscribeMensajes();
+            }
+
+            this.unsubscribeMensajes =
+                ChatService.escucharMensajes(chatId, (mensajes) => {
+
+                    this.chatMessages.innerHTML = "";
+
+                    if (mensajes.length === 0) {
+
+                        this.chatMessages.innerHTML = `
+                            <div class="empty-chat">
+                                Todavía no hay mensajes.
+                            </div>
+                        `;
+
+                        return;
+                    }
+
+                    mensajes.forEach(msg => {
+
+                        const tipo =
+                            msg.emisorTipo === "cliente"
+                                ? "sent"
+                                : "received";
+
+                        this.agregarMensaje(msg, tipo);
+
+                    });
+
+                });
+
+        } catch (e) {
+
+            console.error(e);
+
+        }
+
+    }
+    agregarMensaje(mensaje, tipo) {
+
+        const div = document.createElement("div");
+
+        div.className = `message ${tipo}`;
+
+        let hora = "";
+
+        if (mensaje.fecha?.toDate) {
+
+            hora = mensaje.fecha
+                .toDate()
+                .toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit"
+                });
+
+        }
+
+        div.innerHTML = `
+
+            <div class="message-text">
+
+                ${mensaje.texto}
+
+            </div>
+
+            <div class="message-time">
+
+                ${hora}
+
+            </div>
+
+        `;
+
+        this.chatMessages.appendChild(div);
+
+        this.chatMessages.scrollTop =
+            this.chatMessages.scrollHeight;
+
+    }
+
+    async enviarMensaje() {
+
+        if (!this.chatActual) return;
+
+        const texto = this.inputMensaje.value.trim();
+
+        if (texto === "") return;
+
+        await ChatService.enviarMensaje(
+
+            this.chatActual.id,
+
+            {
+
+                texto,
+
+                emisorId: this.usuarioActual.uid,
+
+                emisorTipo: "cliente"
+
+            }
+
+        );
+
+        this.inputMensaje.value = "";
+
     }
 }
 
