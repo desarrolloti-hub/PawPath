@@ -471,7 +471,7 @@
                     <a href="/" class="sidebar-link"><i class="fas fa-home"></i>Inicio</a>
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
-                    <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
+                    <!--<a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>-->
                     <a href="/user/visitor/mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
                 </div>
@@ -504,9 +504,12 @@
         if (!toggleBtn || !sidebar || !overlay) return;
 
         const toggleMenu = () => {
+<<<<<<< HEAD
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
+=======
+>>>>>>> fa94e23ae635d9c6cf9e3fa05d742b5713bab9ac
 
         const active = sidebar.classList.toggle('active');
 
@@ -530,7 +533,7 @@
                 overlay.classList.remove('active');
                 toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
 
-
+                toggleBtn.classList.remove('menu-abierto');
             });
         });
         sidebar.addEventListener('click', (e) => {
@@ -584,13 +587,13 @@
 
         if (nombreUsuario) {
             // Hay usuario logueado
-            const initial = nombreUsuario.charAt(0).toUpperCase();
+            const initial = nombreUsuario.charAt(0).toUpperCase(); 
             let fullName;
-            if (userData && userData.nombre_completo) {
+            if(userData && userData.nombre_completo){
                 fullName = userData.nombre_completo;
-            } else if (localStorage.getItem('userDisplayName')) {
+            }else if(localStorage.getItem('userDisplayName')){
                 fullName.localStorage.getItem('userDisplayName');
-            } else {
+            }else{
                 fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
             }
             const userRole = rol ? rol.toUpperCase() : 'USUARIO';
@@ -632,11 +635,9 @@
             // No hay usuario - mostrar botón de login
             if (userAction && userMovilAction) {
                 userAction.innerHTML = `
-                    <div class="paw-nav-links" style="display:flex; gap:10px;">
-                        <a href="/user/visitor/login/login.html" style="text-decoration: none;">
-                            Iniciar sesión
-                        </a>             
-                    </div>
+                 <div style="display:flex; gap:10px;">
+                    <i class="fa-solid fa-user"></i>                    
+                </div>
                 `;
                 userMovilAction.innerHTML = ` <div style="padding: 20px;">
                 <a href="/user/visitor/login/login.html" style="text-decoration: none;">
