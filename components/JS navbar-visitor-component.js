@@ -504,12 +504,9 @@
         if (!toggleBtn || !sidebar || !overlay) return;
 
         const toggleMenu = () => {
-<<<<<<< HEAD
             const active = sidebar.classList.toggle('active');
             overlay.classList.toggle('active');
             toggleBtn.innerHTML = active ? '<i class="fas fa-times"></i>' : '<i class="fas fa-bars"></i>';
-=======
->>>>>>> fa94e23ae635d9c6cf9e3fa05d742b5713bab9ac
 
         const active = sidebar.classList.toggle('active');
 
