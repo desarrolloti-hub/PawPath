@@ -35,8 +35,6 @@ console.log(cita);
 
         const nuevoChat = {
 
-            id: docRef.id,
-            
             usuarioId: cita.usuarioId,
 
             veterinarioId: cita.veterinarioId,

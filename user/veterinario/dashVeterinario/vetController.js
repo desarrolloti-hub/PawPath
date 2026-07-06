@@ -3,7 +3,7 @@ import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.
 import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/Veterinario.js';
 import Citas from '../../../classes/Citas.js';
-import { ChatController } from './chatcontroller.js';
+import { ChatController } from './chatController.js';
 
 
 class VetController {
@@ -135,14 +135,6 @@ class VetController {
                 console.warn('No se pudieron obtener citas reales o el arreglo está vacío.');
                 this.citas = [];
                 this.renderizarCitas();
-            }
-        }
-
-        // 2. CONECTAR CHAT REAL EN TIEMPO REAL
-        if (this.chatController) {
-            this.chatController.veterinarioId = this.veterinarioActual.uid;
-            if (typeof this.chatController.cargarChatsRealtime === 'function') {
-                this.chatController.cargarChatsRealtime();
             }
         }
 
@@ -1296,6 +1288,7 @@ actualizarContadoresSeguros() {
 
         const titulos = {
             dashboard: 'Dashboard',
+            Mensajes: 'Mensajes',
             chats: 'Mensajes',
             citas: 'Gestión de Citas',
             publicaciones: 'Gestionar Publicaciones',
@@ -1486,7 +1479,7 @@ actualizarContadoresSeguros() {
 
     try {
         const tipoInput = document.getElementById('pubTipo').value; // Ej: "En Adopción" o "Mascota Perdida"
-        let tipoEstandar = 'adopcion'; // Valor por defecto seguro
+        let tipoEstandar = 'adopcion || perdido'; // Valor por defecto seguro
         const titulo = document.getElementById('pubTitulo').value;
         const descripcion = document.getElementById('pubDescripcion').value;
         const contacto = document.getElementById('pubContacto').value;
@@ -1839,7 +1832,7 @@ async editarPublicacion(id) {
 
         document.getElementById('estadoForm').addEventListener('submit', (e) => this.guardarCambioEstado(e));
 
-        // document.getElementById('publicacionForm').addEventListener('submit', (e) => this.guardarPublicacion(e));
+        //document.getElementById('publicacionForm').addEventListener('submit', (e) => this.guardarPublicacion(e));
 
         document.getElementById('logoutBtn').addEventListener('click', (e) => {
             e.preventDefault();

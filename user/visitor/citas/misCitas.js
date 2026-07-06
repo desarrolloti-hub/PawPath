@@ -5,7 +5,7 @@ import {
     collection, query, where, getDocs, orderBy, 
     updateDoc, doc, getDoc 
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import { ChatService } from './chatservice.js';
+import { ChatService } from './chatService.js';
 
 class MiPanelController {
     constructor() {
@@ -24,6 +24,7 @@ class MiPanelController {
         this.chatMessages = document.getElementById("chatMessages");
         this.inputMensaje = document.getElementById("mensajeInput");
         this.btnEnviar = document.getElementById("btnEnviar");
+        this.setComposerEnabled(false);
         
         // Filtros citas
         this.citasFiltroTab = 'proximas';
@@ -61,18 +62,12 @@ class MiPanelController {
 
         if (this.inputMensaje) {
 
-            this.inputMensaje.addEventListener(
-                "keydown",
-                e => {
-
-                    if (e.key === "Enter") {
-
-                        this.enviarMensaje();
-
-                    }
-
+            this.inputMensaje.addEventListener("keydown", e => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    this.enviarMensaje();
                 }
-            );
+            });
 
         }
     }
@@ -232,7 +227,7 @@ class MiPanelController {
             new Date(cita.fecha + 'T' + cita.hora) > new Date();
         
         return `
-            <div class="item-card estado-${cita.estado}">
+            <div class="item-card estado-${cita.estado} ${this.chatActual?.citaId === cita.id ? 'chat-selected' : ''}">
                 <div class="item-header">
                     <div class="item-fecha">
                         <i class="fas fa-calendar-alt"></i> ${fechaFormateada} - ${cita.hora}
@@ -701,14 +696,18 @@ class MiPanelController {
             const chatId = await ChatService.crearChatSiNoExiste(cita);
 
             this.chatActual = {
+                ...cita,
                 id: chatId,
-                ...cita
+                chatId,
+                citaId: cita.id
             };
+            this.setComposerEnabled(true);
+            this.marcarCitaChatActiva(cita.id);
 
             this.chatNombre.textContent = cita.veterinarioNombre || cita.nombreVeterinario || "Veterinario";
 
             this.chatMascota.textContent =
-                cita.nombreMascota || "Mascota";
+                `Mascota: ${cita.nombreMascota || "Mascota"}`;
 
             this.chatMessages.innerHTML = "";
 
@@ -772,19 +771,8 @@ class MiPanelController {
         }
 
         div.innerHTML = `
-
-            <div class="message-text">
-
-                ${mensaje.texto}
-
-            </div>
-
-            <div class="message-time">
-
-                ${hora}
-
-            </div>
-
+            <div class="message-text">${this.escapeHTML(mensaje.texto || "")}</div>
+            <div class="message-time">${hora}</div>
         `;
 
         this.chatMessages.appendChild(div);
@@ -796,30 +784,62 @@ class MiPanelController {
 
     async enviarMensaje() {
 
-        if (!this.chatActual) return;
+        if (!this.chatActual || !this.inputMensaje || this.btnEnviar?.disabled) return;
 
         const texto = this.inputMensaje.value.trim();
 
         if (texto === "") return;
 
-        await ChatService.enviarMensaje(
+        this.btnEnviar.disabled = true;
 
-            this.chatActual.id,
+        try {
+            await ChatService.enviarMensaje(
+                this.chatActual.id,
+                {
+                    texto,
+                    emisorId: this.usuarioActual.uid,
+                    emisorTipo: "cliente"
+                }
+            );
 
-            {
+            this.inputMensaje.value = "";
+        } catch (error) {
+            console.error("Error enviando mensaje:", error);
+            Swal.fire("Error", "No se pudo enviar el mensaje", "error");
+        } finally {
+            this.btnEnviar.disabled = false;
+            this.inputMensaje.focus();
+        }
 
-                texto,
+    }
 
-                emisorId: this.usuarioActual.uid,
+    setComposerEnabled(enabled) {
+        if (this.inputMensaje) {
+            this.inputMensaje.disabled = !enabled;
+            this.inputMensaje.placeholder = enabled ? "Escribe un mensaje..." : "Selecciona una cita";
+        }
 
-                emisorTipo: "cliente"
+        if (this.btnEnviar) {
+            this.btnEnviar.disabled = !enabled;
+        }
+    }
 
-            }
+    marcarCitaChatActiva(citaId) {
+        document.querySelectorAll("#citasLista .item-card").forEach(card => {
+            card.classList.remove("chat-selected");
+        });
 
-        );
+        const boton = document.querySelector(`.btn-chat[data-cita-id="${citaId}"]`);
+        boton?.closest(".item-card")?.classList.add("chat-selected");
+    }
 
-        this.inputMensaje.value = "";
-
+    escapeHTML(value) {
+        return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 }
 
