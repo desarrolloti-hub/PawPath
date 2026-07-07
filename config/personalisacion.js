@@ -2,7 +2,7 @@
 (function() {
     'use strict';
 
-    console.log('🎨 Iniciando personalización simple de colores...');
+   
 
     // Función para obtener el valor de una variable CSS
     function getCSSVariable(variableName) {
@@ -23,12 +23,6 @@
         const warningColor = getCSSVariable('--color-warning');
         const errorColor = getCSSVariable('--color-error');
         
-        console.log('📊 Colores detectados:', {
-            primary: primaryColor,
-            secondary: secondaryColor,
-            accent: accentColor,
-            background: backgroundColor
-        });
 
         const styleId = 'personalizacion-simple-styles';
         let styleElement = document.getElementById(styleId);
@@ -291,7 +285,7 @@
             }
         `;
         
-        console.log('✅ Estilos personalizados aplicados correctamente');
+      
         
         // Configurar SweetAlert2 si está disponible
         setupSweetAlert(primaryColor, surfaceColor, textColor, successColor, warningColor, errorColor);
@@ -312,7 +306,7 @@
                 }
             });
             
-            console.log('🎨 SweetAlert2 configurado con colores personalizados');
+        
         }
     }
 
@@ -382,7 +376,6 @@
     // Función para actualizar colores (útil si cambian dinámicamente)
     window.actualizarColoresPersonalizados = function() {
         applyCustomStyles();
-        console.log('🔄 Colores actualizados manualmente');
     };
 
     // Inicializar cuando el DOM esté listo
@@ -398,7 +391,6 @@
             mutations.forEach(function(mutation) {
                 if (mutation.attributeName === 'style' || 
                     (mutation.target === document.documentElement && mutation.type === 'attributes')) {
-                    console.log('🔄 Detectado cambio en variables CSS, actualizando colores...');
                     applyCustomStyles();
                 }
             });
@@ -413,6 +405,5 @@
     // Iniciar
     init();
 
-    console.log('✅ Personalización simple cargada correctamente');
 
 })();
