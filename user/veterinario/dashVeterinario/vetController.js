@@ -359,19 +359,82 @@ actualizarContadoresSeguros() {
     }
 
     renderizarCitas() {
+
         const container = document.getElementById('citasGrid');
 
-        if (this.citas.length === 0) {
-            container.innerHTML = '<p class="loading">No hay citas para mostrar</p>';
+        let citas = [...this.citas];
+
+        switch (this.filtros.citas) {
+
+            case 'pendiente':
+                citas = citas.filter(c => c.estado === 'pendiente');
+                break;
+
+            case 'aceptada':
+                citas = citas.filter(c => c.estado === 'aceptada');
+                break;
+
+            case 'rechazadas':
+                citas = citas.filter(c => c.estado === 'rechazadas');
+                break;
+
+            case 'concluida':
+                citas = citas.filter(c => c.estado === 'concluida');
+                break;
+
+            case 'cancelada':
+                citas = citas.filter(c => c.estado === 'cancelada');
+                break;
+
+            default:
+                break;
+
+        }
+
+        citas.sort((a,b)=>{
+
+            if(a.fecha!==b.fecha){
+                return a.fecha.localeCompare(b.fecha);
+            }
+
+            return a.hora.localeCompare(b.hora);
+
+        });
+
+        if(citas.length===0){
+
+            container.innerHTML=`
+                <div class="empty-state">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No hay citas para este estado.</p>
+                </div>
+            `;
+
             return;
         }
 
-        let html = '';
-        this.citas.forEach(cita => {
-            html += this.generarCardCita(cita);
+        container.innerHTML=citas
+            .map(c=>this.generarCardCita(c))
+            .join('');
+
+    }
+
+    filtrarCitas(estado){
+
+        this.filtros.citas=estado;
+
+        document.querySelectorAll('.btnFiltroCitas').forEach(btn=>{
+
+            btn.classList.remove('active');
+
         });
 
-        container.innerHTML = html;
+        document
+            .querySelector(`[data-estado="${estado}"]`)
+            ?.classList.add('active');
+
+        this.renderizarCitas();
+
     }
 
     generarCardCita(cita) {
@@ -457,11 +520,11 @@ actualizarContadoresSeguros() {
             const tipoPub = (pub.tipo || '').toLowerCase();
 
             if (tipoFiltro === 'adopcion') {
-                return tipoPub.includes('adopc');
-            } else if (tipoFiltro === 'perdidos') {
+                return tipoPub.includes('adopc') && !tipoPub.includes('perd') && !tipoPub.includes('encontr');
+            } else if (tipoFiltro === 'perdido') {
                 // Retorna SÓLO si es perdido, ignorando explícitamente "encontrado"
                 return tipoPub.includes('perd') && !tipoPub.includes('encontr');
-            } else if (tipoFiltro === 'encontrados') {
+            } else if (tipoFiltro === 'encontrado') {
                 // Retorna SÓLO si contiene la palabra encontrado
                 return tipoPub.includes('encontr');
             }
@@ -512,80 +575,54 @@ actualizarContadoresSeguros() {
                         ${pub.ubicacionTexto ? `<div class="pub-info-meta"><i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}</div>` : ''}
                     </div>
                     <div class="pub-footer-actions">
-                        <span style="font-size: 0.85rem; color: var(--gray-500); display: flex; align-items: center; gap: 4px;">
-                            <i class="fas fa-eye"></i> ${pub.vistas || 0} vistas
-                        </span>
-                        <button class="btn-danger-sm" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; display: flex; align-items: center; gap: 5px;" onclick="vetController.eliminarPublicacion('${pub.id}')">
-                            <i class="fas fa-trash-alt"></i> Eliminar
-                        </button>
-                    </div>
+
+    <span style="font-size:0.85rem;color:var(--gray-500);display:flex;align-items:center;gap:4px;">
+        <i class="fas fa-eye"></i>
+        ${pub.vistas || 0} vistas
+    </span>
+
+    <div style="display:flex;gap:8px;">
+
+        <button
+            class="btn-primary-sm"
+            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
+            onclick="vetController.editarPublicacion('${pub.id}')">
+
+            <i class="fas fa-edit"></i>
+            Editar
+
+        </button>
+
+        <button
+            class="btn-danger-sm"
+            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
+            onclick="vetController.eliminarPublicacion('${pub.id}')">
+
+            <i class="fas fa-trash-alt"></i>
+            Eliminar
+
+        </button>
+
+    </div>
+
+</div>
                 </div>
             `;
         });
         
         contenedor.innerHTML = html;
     }
+    editarPublicacion(id) {
 
-    generarCardPublicacion(pub) {
-        const fecha = pub.fechaPublicacion?.toDate?.() || new Date(pub.fechaPublicacion);
-        const fechaFormateada = fecha.toLocaleDateString('es-ES');
-        
-        const fotoPrincipal = pub.fotos?.[0] || 'https://via.placeholder.com/300x200?text=Sin+imagen';
-        
-        // Botones según tipo
-        let botonesAdicionales = '';
-        if (pub.tipo === 'En Adopción') {
-            botonesAdicionales = `
-                <button class="btn-icon" onclick="vetController.verSolicitudesAdopcion('${pub.id}')">
-                    <i class="fas fa-users"></i> Solicitudes (0)
-                </button>
-            `;
-        } else if (pub.tipo === 'Mascota Encontrada') {
-            botonesAdicionales = `
-                <button class="btn-icon" onclick="vetController.verReclamos('${pub.id}')">
-                    <i class="fas fa-clipboard-list"></i> Reclamos (0)
-                </button>
-            `;
-        }
-        
-        return `
-            <div class="publicacion-card">
-                <div class="publicacion-imagen" >
-                    <img src="${fotoPrincipal}" alt="${pub.titulo}">
-                    <span class="publicacion-tipo">${pub.tipo}</span>
-                </div>
-                <div class="publicacion-contenido">
-                    <h3 class="publicacion-titulo">${this.escapeHtml(pub.titulo)}</h3>
-                    <div class="publicacion-metadata">
-                        <span class="publicacion-categoria"><i class="fas fa-tag"></i> ${pub.categoria || 'Sin categoría'}</span>
-                        <span class="publicacion-tiempo"><i class="far fa-clock"></i> ${fechaFormateada}</span>
-                    </div>
-                    <p class="publicacion-descripcion">${this.escapeHtml(pub.descripcion?.substring(0, 100))}${pub.descripcion?.length > 100 ? '...' : ''}</p>
-                    ${pub.ubicacionTexto ? `
-                        <div class="publicacion-ubicacion">
-                            <i class="fas fa-map-marker-alt"></i> ${this.escapeHtml(pub.ubicacionTexto)}
-                        </div>
-                    ` : ''}
-                    <div class="publicacion-footer">
-                        <div class="publicacion-estadisticas">
-                            <span><i class="far fa-eye"></i> ${pub.vistas || 0}</span>
-                            <span><i class="far fa-heart"></i> ${pub.likes || 0}</span>
-                            <span><i class="far fa-comment"></i> ${pub.comentarios || 0}</span>
-                        </div>
-                        <div class="publicacion-acciones">
-                            ${botonesAdicionales}
-                            <button class="btn-icon" onclick="vetController.editarPublicacion('${pub.id}')">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon btn-danger" onclick="vetController.eliminarPublicacion('${pub.id}')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-    }
+    const publicacion = this.publicaciones.find(
+        p => p.id === id
+    );
+
+    if (!publicacion) return;
+
+    this.abrirModalEdicionPublicacion(publicacion);
+
+}
 
     // Método auxiliar para escapar HTML y evitar XSS
     escapeHtml(text) {
@@ -1479,20 +1516,36 @@ actualizarContadoresSeguros() {
 
     try {
         const tipoInput = document.getElementById('pubTipo').value; // Ej: "En Adopción" o "Mascota Perdida"
-        let tipoEstandar = 'adopcion || perdido'; // Valor por defecto seguro
+        let tipoEstandar = "";
+
+switch (tipoInput) {
+
+    case "En Adopción":
+        tipoEstandar = "adopcion";
+        break;
+
+    case "Mascota Perdida":
+        tipoEstandar = "perdido";
+        break;
+
+    case "Mascota Encontrada":
+        tipoEstandar = "encontrado";
+        break;
+
+    default:
+        tipoEstandar = tipoInput;
+
+}
         const titulo = document.getElementById('pubTitulo').value;
         const descripcion = document.getElementById('pubDescripcion').value;
         const contacto = document.getElementById('pubContacto').value;
+        const categoria = document.getElementById("pubCategoria").value;
+        const ubicacionTexto = document.getElementById("pubUbicacion").value;   
 
         // Validaciones básicas de tus campos obligatorios
-        if (!titulo || !descripcion || !contacto) {
+        if (!titulo || !descripcion || !contacto || !categoria || !ubicacionTexto) {
             Swal.fire('Atención', 'Por favor llena los campos obligatorios', 'warning');
             return;
-        }
-        if (tipoInput.toLowerCase().includes('perd') || tipoInput.toLowerCase().includes('encontr')) {
-            tipoEstandar = 'perdido';
-        } else {
-            tipoEstandar = 'adopcion';
         }
 
         // Armamos el objeto final que va a Firebase
@@ -1500,10 +1553,12 @@ actualizarContadoresSeguros() {
             veterinarioId: this.veterinarioActual.id || auth.currentUser?.uid,
             nombreVeterinario: this.veterinarioActual.nombre,
             clinica: this.veterinarioActual.clinica,
-            tipo: tipoEstandar, // ✨ AHORA GUARDA "adopcion" o "perdido" limpiamente
+            tipo: tipoEstandar, //AHORA GUARDA "adopcion" o "perdido" limpiamente
             titulo: titulo,
             descripcion: descripcion,
             contacto: contacto,
+            categoria: categoria,
+            ubicacionTexto: ubicacionTexto,
             estado: 'activo',
             fechaCreacion: serverTimestamp(),
             vistas: 0
@@ -1511,16 +1566,43 @@ actualizarContadoresSeguros() {
 
         // Campos condicionales (mascotas perdidas / adopciones)
         const recompensaInput = document.getElementById('pubRecompensa');
-        if (recompensaInput && tipo === 'perdido') {
-            nuevaPublicacion.recompensa = recompensaInput.value || '';
+        if (recompensaInput && tipoEstandar === 'perdido') {
+            nuevaPublicacion.recompensa = recompensaInput.value.trim();
         }
 
         const fechaInput = document.getElementById('pubFechaEvento');
         if (fechaInput && fechaInput.value) {
             nuevaPublicacion.fechaEvento = fechaInput.value;
         }
+        const publicacionId = document.getElementById("publicacionId").value;
+        if (publicacionId) {
 
-        const docRef = await addDoc(collection(db, 'publicaciones'), nuevaPublicacion);
+        await updateDoc(
+            doc(db, "publicaciones", publicacionId),
+            nuevaPublicacion
+        );
+
+        Swal.fire(
+            "Actualizada",
+            "La publicación fue actualizada correctamente.",
+            "success"
+        );
+
+    } else {
+
+        await addDoc(
+            collection(db, "publicaciones"),
+            nuevaPublicacion
+        );
+
+        Swal.fire(
+            "Publicada",
+            "La publicación fue creada correctamente.",
+            "success"
+        );
+
+
+    }
 
         Swal.fire({
             icon: 'success',
@@ -1594,7 +1676,7 @@ async editarPublicacion(id) {
     }
 
     const publicacion = this.publicaciones.find(p => p.id === id);
-    if (!publicacion) {
+    if (!publicacion){
         this.mostrarNotificacion('Publicación no encontrada', 'error');
         return;
     }
@@ -1658,6 +1740,18 @@ async editarPublicacion(id) {
         
         // Abrir modal
         modal.style.display = 'flex';
+    }
+
+    editarPublicacion(id) {
+
+        const publicacion = this.publicaciones.find(p => p.id === id);
+
+        if (!publicacion) {
+            console.error("No se encontró la publicación");
+            return;
+        }
+
+        this.abrirModalEdicionPublicacion(publicacion);
     }
 
     async eliminarPublicacion(id) {
