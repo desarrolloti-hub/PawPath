@@ -183,7 +183,7 @@ class InicioController {
         }
         
         return `
-            <div class="publicacion-card" onclick="window.location.href='user/visitor/foro/detallesforo.html?id=${pub.id}'" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <div class="publicacion-card" onclick="window.location.href='user/visitor/detalleForo/detallesforo.html?id=${pub.id}'" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; border:1px solid #e2e8f0; margin-bottom:20px;">
                 <div class="publicacion-imagen" style="position:relative; height:200px; overflow:hidden;">
                     <img src="${foto}" alt="${this.escapeHtml(pub.titulo)}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'250\' viewBox=\'0 0 400 250\'%3E%3Crect width=\'400\' height=\'250\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'14\' fill=\'%2394a3b8\'%3EPawPath%3C/text%3E%3C/svg%3E'">
                     <span class="publicacion-tipo" style="position:absolute; top:12px; right:12px; background:${tipoBg}; color:white; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:600; z-index:1;">
