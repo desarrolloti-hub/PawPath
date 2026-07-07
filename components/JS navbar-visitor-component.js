@@ -1,3 +1,6 @@
+import { auth } from '/config/firebase-config.js';
+import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+
 (function () {
     'use strict';
 
@@ -364,26 +367,18 @@
         try {
             console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
 
-            // 1. Deshabilitar persistencia de Firebase
-            if (typeof firebase !== 'undefined' && firebase.auth) {
-                try {
-                    await firebase.auth().setPersistence('none');
-                    console.log('✅ Persistencia deshabilitada');
-                } catch (e) {
-                    console.log('No se pudo cambiar persistencia:', e);
-                }
-
-                // 2. Cerrar sesión
-                await firebase.auth().signOut();
+            // 1. Cerrar sesión con Firebase Modular SDK (v11)
+            if (auth) {
+                await signOut(auth);
                 console.log('✅ Firebase signOut OK');
             }
 
-            // 3. Usar AuthManager si existe
+            // 2. Usar AuthManager si existe
             if (window.authManager && typeof window.authManager.logout === 'function') {
                 await window.authManager.logout();
             }
 
-            // 4. LIMPIAR TODO ABSOLUTAMENTE
+            // 3. LIMPIAR TODO ABSOLUTAMENTE
             console.log('🧹 LIMPIANDO ALMACENAMIENTO');
 
             // LocalStorage - eliminar todo
@@ -397,12 +392,12 @@
                 document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
             });
 
-            // 5. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
+            // 4. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
             sessionStorage.setItem('logout_event', Date.now().toString());
 
             console.log('✅ TODO LIMPIADO - REDIRIGIENDO');
 
-            // 6. Redirigir con parámetro para evitar caché
+            // 5. Redirigir con parámetro para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
 
         } catch (error) {
@@ -471,7 +466,7 @@
                     <a href="/" class="sidebar-link"><i class="fas fa-home"></i>Inicio</a>
                     <a href="/user/visitor/foro/foro.html" class="sidebar-link"><i class="fas fa-comments"></i> Foro</a>
                     <a href="/user/visitor/MapaForo/mapaforo.html" class="sidebar-link"><i class="fas fa-map"></i> Mapa</a>
-                    <!--<a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>-->
+                    <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
                     <a href="/user/visitor/mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
                 </div>
@@ -489,12 +484,10 @@
         overlay.id = 'pawOverlay';
 
         document.body.prepend(navbar, sidebar, toggleBtn, overlay);
-
-
     }
 
     // =============================================
-    // CONFIGURAR NAVBAR
+    // STATS / TOGGLE NAVBAR
     // =============================================
     function setupNavbar() {
         const toggleBtn = document.getElementById('pawToggleBtn');
@@ -504,19 +497,13 @@
         if (!toggleBtn || !sidebar || !overlay) return;
 
         const toggleMenu = () => {
-
             const active = sidebar.classList.toggle('active');
-
             overlay.classList.toggle('active');
-
             toggleBtn.classList.toggle('active', active);
-
             toggleBtn.innerHTML = active
                 ? '<i class="fas fa-times"></i>'
                 : '<i class="fas fa-bars"></i>';
-
         };
-
 
         toggleBtn.onclick = toggleMenu;
         overlay.onclick = toggleMenu;
@@ -526,7 +513,6 @@
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
                 toggleBtn.innerHTML = '<i class="fas fa-bars"></i>';
-
                 toggleBtn.classList.remove('menu-abierto');
             });
         });
@@ -542,7 +528,7 @@
 
                 logout();
             }
-        })
+        });
 
         cargarDatosUsuario();
     }
@@ -586,7 +572,7 @@
             if (userData && userData.nombre_completo) {
                 fullName = userData.nombre_completo;
             } else if (localStorage.getItem('userDisplayName')) {
-                fullName.localStorage.getItem('userDisplayName');
+                fullName = localStorage.getItem('userDisplayName');
             } else {
                 fullName = aPaterno ? `${nombreUsuario} ${aPaterno}` : nombreUsuario;
             }
@@ -608,7 +594,7 @@
                 userMovilAction.innerHTML = ` 
                     <div style="padding: 20px;">
                         <button class="logout-btn" id="sidebarLogoutBtn">
-                            <i class="fas fa-sign-in-alt"></i> Cerrar sesion
+                            <i class="fas fa-sign-out-alt"></i> Cerrar sesion
                         </button>
                     </div>`;
 
@@ -638,7 +624,7 @@
                 userMovilAction.innerHTML = ` <div style="padding: 20px;">
                 <a href="/user/visitor/login/login.html" style="text-decoration: none;">
                     <button class="login-btn">
-                        <i class="fas fa-sign-in-alt"></i> Iniciar sesion
+                        <i class="fas fa-sign-out-alt"></i> Iniciar sesion
                     </button>
                 </a>
             </div>`;
@@ -653,8 +639,8 @@
     // VERIFICAR SESIÓN EN FIREBASE
     // =============================================
     function verificarSesionFirebase() {
-        if (typeof firebase !== 'undefined' && firebase.auth) {
-            firebase.auth().onAuthStateChanged((user) => {
+        if (auth) {
+            onAuthStateChanged(auth, (user) => {
                 console.log('🔔 Estado Firebase:', user ? 'logueado' : 'no logueado');
 
                 // Si Firebase dice que no hay usuario pero hay datos en localStorage, limpiar
