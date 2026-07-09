@@ -400,7 +400,7 @@ class ControladorMapaForo {
         });
 
         marcador.on('click', () => {
-            window.open(`/user/visitor/foro/detallesforo.html?id=${pub.id}`, '_blank');
+            window.open(`/user/visitor/detalleForo/detallesforo.html?id=${pub.id}`, '_blank');
         });
 
         return marcador;
