@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PawPath · Detalles de Publicación</title>
+ 
+    <link rel="stylesheet" href="./detallesforo.css">
+
+    <link rel="icon" href="/assets/images/PawPahtLogo.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <navbar-visitor></navbar-visitor>
+
+    <div class="forum-container full-width-container">
+        <div class="detalle-publicacion">
+            <div class="detalle-header">
+                <button class="btn btn-outline" onclick="window.history.back()">
+                    <i class="fas fa-arrow-left"></i> Volver al foro
+                </button>
+                <h1 id="detalleTitulo">Cargando publicación...</h1>
+            </div>
+
+            <div class="detalle-grid">
+
+                <div class="detalle-principal">
+                    <div id="detalleImagenes" class="detalle-galeria"></div>
+
+                    <div class="detalle-info-card">
+                        <div class="detalle-metadata">
+                            <span id="detalleTipo" class="badge"><i class="fas fa-paw"></i> Tipo</span>
+                            <span id="detalleCategoria" class="badge badge-outline"><i class="fas fa-tag"></i>
+                                Categoría</span>
+                            <span id="detalleTiempo" class="tiempo"><i class="far fa-clock"></i> Calculando...</span>
+                        </div>
+
+                        <div class="detalle-seccion">
+                            <h3><i class="fas fa-align-left"></i> Descripción</h3>
+                            <p id="detalleDescripcion" class="detalle-descripcion"></p>
+                        </div>
+
+                        <div class="detalle-contacto">
+                            <h3><i class="fas fa-phone-alt"></i> Contacto / Reporta</h3>
+                            <p id="detalleContacto"></p>
+                        </div>
+
+                        <div id="detalleRecompensa" class="detalle-recompensa"></div>
+
+                        <div id="detalleUbicacion" class="detalle-ubicacion"></div>
+
+                        <div class="detalle-estadisticas">
+                            <span><i class="far fa-eye"></i> <span id="detalleVistas">0</span> vistas</span>
+                            <span id="btnLike" style="cursor:pointer;" onclick="controladorDetalles.toggleLike()">
+                                <i class="far fa-heart" id="iconLike"></i> <span id="detalleLikes">0</span> likes
+                            </span>
+                            <span><i class="far fa-comment"></i> <span id="detalleComentariosCount">0</span>
+                                comentarios</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="detalle-comentarios-panel">
+                    <div class="comentarios-header">
+                        <h3><i class="far fa-comments"></i> Comentarios de la comunidad</h3>
+                    </div>
+
+                    <div id="comentariosContainer" class="comentarios-lista">
+                        <div class="loading-comentarios"><i class="fas fa-spinner fa-spin"></i> Cargando comentarios...
+                        </div>
+                    </div>
+
+                    <div class="comentario-form">
+                        <textarea id="nuevoComentario" placeholder="Inicia sesión para escribir un comentario..."
+                            rows="3" disabled></textarea>
+                        <button id="btnComentar" class="btn btn-primary"
+                            onclick="controladorDetalles.publicarComentario()" disabled>
+                            <i class="fas fa-paper-plane"></i> Publicar
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div id="modalSolicitudAdopcion" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Solicitar Adopción</h3>
+                <button class="modal-close" onclick="controladorDetalles.cerrarModalSolicitud()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formSolicitudAdopcion">
+                    <div class="form-group">
+                        <label for="solicitanteNombre">Nombre completo *</label>
+                        <input type="text" id="solicitanteNombre" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="solicitanteEmail">Email *</label>
+                        <input type="email" id="solicitanteEmail" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="solicitanteTelefono">Teléfono *</label>
+                        <input type="tel" id="solicitanteTelefono" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="solicitanteDireccion">Dirección *</label>
+                        <input type="text" id="solicitanteDireccion" required placeholder="Calle, colonia, ciudad">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="mensajeAdopcion">¿Por qué quieres adoptar? *</label>
+                        <textarea id="mensajeAdopcion" rows="3" required
+                            placeholder="Cuéntanos por qué deseas adoptar..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experienciaMascotas">Experiencia con mascotas</label>
+                        <textarea id="experienciaMascotas" rows="2"
+                            placeholder="¿Has tenido mascotas antes? ¿Qué experiencia tienes?"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>¿Tienes otras mascotas?</label>
+                        <div class="radio-group">
+                            <label class="radio-option">
+                                <input type="radio" name="tieneOtrasMascotas" value="true"> Sí
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="tieneOtrasMascotas" value="false" checked> No
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="pruebasAdopcion">Fotos de referencia (opcional)</label>
+                        <input type="file" id="pruebasAdopcion" accept="image/*" multiple>
+                        <small>Puedes subir fotos de tu hogar o documentos</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Enviar solicitud</button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="controladorDetalles.cerrarModalSolicitud()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div id="modalReclamoMascota" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Reclamar Mascota</h3>
+                <button class="modal-close" onclick="controladorDetalles.cerrarModalReclamo()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formReclamoMascota">
+                    <div class="form-group">
+                        <label for="reclamanteNombre">Nombre completo *</label>
+                        <input type="text" id="reclamanteNombre" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reclamanteEmail">Email *</label>
+                        <input type="email" id="reclamanteEmail" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="reclamanteTelefono">Teléfono *</label>
+                        <input type="tel" id="reclamanteTelefono" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="descripcionReclamo">¿Cómo reconoces a esta mascota? (señas particulares) *</label>
+                        <textarea id="descripcionReclamo" rows="4" required placeholder="Describe características únicas, cicatrices, comportamiento, etc."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pruebasReclamo">Pruebas (fotos de la mascota, documentos) *</label>
+                        <input type="file" id="pruebasReclamo" accept="image/*" multiple required>
+                        <small>Sube fotos de tu mascota o documentos que acrediten propiedad</small>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Enviar reclamo</button>
+                        <button type="button" class="btn btn-secondary" onclick="controladorDetalles.cerrarModalReclamo()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="/components/JS access control.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script type="module" src="detallesforo.js"></script>
+</body>
+
+</html>
