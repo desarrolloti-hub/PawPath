@@ -2,6 +2,30 @@
 <html lang="es">
 
 <head>
+    <script>
+        (function () {
+            // 1. Obtener la sesión activa
+            const sessionData = sessionStorage.getItem('userSession') || localStorage.getItem('userSession');
+
+            // 2. Obtener el rol del usuario (híbrido)
+            const rolCrudo = sessionStorage.getItem('user_rol') ||
+                sessionStorage.getItem('currentUserRole') ||
+                localStorage.getItem('user_rol') ||
+                localStorage.getItem('currentUserRole') ||
+                (sessionData ? JSON.parse(sessionData).userRole : null) ||
+                'invitado';
+
+            const rol = rolCrudo.toLowerCase().trim();
+
+            // 3. Si el rol NO es "veterinario", bloquear y redirigir
+            if (rol !== 'veterinario') {
+                alert('🚫 Acceso denegado: No tienes permisos de Veterinario para entrar aquí.');
+
+                // Volvemos 3 niveles arriba en las carpetas para regresar a la página de inicio
+                window.location.href = '../../../index.html';
+            }
+        })();
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PawPath · Panel Veterinario</title>
@@ -206,11 +230,7 @@
                             <div class="chat-header">
                                 <h2>Mensajes</h2>
 
-                                <input
-                                    type="text"
-                                    id="buscarChat"
-                                    placeholder="Buscar propietario..."
-                                >
+                                <input type="text" id="buscarChat" placeholder="Buscar propietario...">
                             </div>
 
                             <div id="listaChats" class="lista-chats">
@@ -241,10 +261,7 @@
 
                             </div>
 
-                            <div
-                                id="chatMessages"
-                                class="chat-messages"
-                            >
+                            <div id="chatMessages" class="chat-messages">
 
                                 <div class="empty-chat">
 
@@ -256,11 +273,7 @@
 
                             <div class="chat-input">
 
-                                <input
-                                    type="text"
-                                    id="mensajeInput"
-                                    placeholder="Escribe un mensaje..."
-                                >
+                                <input type="text" id="mensajeInput" placeholder="Escribe un mensaje...">
 
                                 <button id="btnEnviar">
 
@@ -478,7 +491,8 @@
 
                     <div class="form-group">
                         <label for="pubDescripcion">Descripción *</label>
-                        <textarea id="pubDescripcion" rows="4" required placeholder="Describe la situación..."></textarea>
+                        <textarea id="pubDescripcion" rows="4" required
+                            placeholder="Describe la situación..."></textarea>
                     </div>
 
                     <div class="form-group">
@@ -512,7 +526,8 @@
                     <input type="hidden" id="publicacionId">
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">Publicar</button>
-                        <button type="button" class="btn-secondary" onclick="vetController.cerrarPublicacionModal()">Cancelar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="vetController.cerrarPublicacionModal()">Cancelar</button>
                     </div>
                 </form>
             </div>
