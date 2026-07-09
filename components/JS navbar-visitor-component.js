@@ -1,5 +1,6 @@
 import { auth } from '/config/firebase-config.js';
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import '/components/JS chatbot-component.js';
 
 (function () {
     'use strict';
@@ -666,6 +667,12 @@ import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/
         setupNavbar();
         setupCrossTabLogout();
         verificarSesionFirebase();
+
+        // Inyectar chatbot si no existe ya en la página
+        if (!document.querySelector('paw-chatbot')) {
+            const chatbot = document.createElement('paw-chatbot');
+            document.body.appendChild(chatbot);
+        }
 
         // Verificar cada segundo
         setInterval(cargarDatosUsuario, 1000);

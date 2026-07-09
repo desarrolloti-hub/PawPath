@@ -12,6 +12,21 @@ class NavbarAdmin extends HTMLElement {
         this.render();
         this.setupMobileToggle();
         this.highlightCurrentPage();
+        this._injectChatbot();
+    }
+
+    _injectChatbot() {
+        if (document.querySelector('paw-chatbot')) return;
+        // Carga el módulo del chatbot y luego inyecta el elemento
+        const s = document.createElement('script');
+        s.type = 'module';
+        s.textContent = `
+            import '/components/JS chatbot-component.js';
+            if (!document.querySelector('paw-chatbot')) {
+                document.body.appendChild(document.createElement('paw-chatbot'));
+            }
+        `;
+        document.head.appendChild(s);
     }
 
     render() {
