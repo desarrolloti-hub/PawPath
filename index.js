@@ -80,7 +80,7 @@ class InicioController {
                         <i class="fas fa-paw" style="font-size:48px; color:#94a3b8;"></i>
                         <h3 style="margin-top:16px; color:#0f172a;">No hay publicaciones aún</h3>
                         <p style="color:#64748b;">Sé el primero en compartir algo con la comunidad</p>
-                        <a href="/user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary" style="display:inline-block; margin-top:16px; padding:10px 24px; background:#3b82f6; color:white; border-radius:8px; text-decoration:none;">
+                        <a href="user/visitor/FormualrioForo/FormularioForo.html" class="btn btn-primary" style="display:inline-block; margin-top:16px; padding:10px 24px; background:#3b82f6; color:white; border-radius:8px; text-decoration:none;">
                             <i class="fas fa-plus"></i> Crear publicación
                         </a>
                     </div>
@@ -183,7 +183,7 @@ class InicioController {
         }
         
         return `
-            <div class="publicacion-card" onclick="window.location.href='/user/visitor/foro/detallesforo.html?id=${pub.id}'" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; border:1px solid #e2e8f0; margin-bottom:20px;">
+            <div class="publicacion-card" onclick="window.location.href='user/visitor/detalleForo/detallesforo.html?id=${pub.id}'" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; border:1px solid #e2e8f0; margin-bottom:20px;">
                 <div class="publicacion-imagen" style="position:relative; height:200px; overflow:hidden;">
                     <img src="${foto}" alt="${this.escapeHtml(pub.titulo)}" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'250\' viewBox=\'0 0 400 250\'%3E%3Crect width=\'400\' height=\'250\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'14\' fill=\'%2394a3b8\'%3EPawPath%3C/text%3E%3C/svg%3E'">
                     <span class="publicacion-tipo" style="position:absolute; top:12px; right:12px; background:${tipoBg}; color:white; padding:6px 12px; border-radius:20px; font-size:11px; font-weight:600; z-index:1;">
@@ -272,7 +272,7 @@ class InicioController {
 
     contactarVet(vetId) {
         sessionStorage.setItem('vetSeleccionado', vetId);
-        window.location.href = '/user/visitor/citas/citas.html';
+        window.location.href = 'user/visitor/citas/citas.html';
     }
 
     setupEventListeners() {
@@ -280,9 +280,10 @@ class InicioController {
     }
 }
 
-// Función para verificar si el usuario está logueado
+// Función para verificar si el usuario está logueado y aplicar redirecciones automáticas
 function checkUserAuthentication() {
-    const sessionData = localStorage.getItem('userSession');
+    // 🔑 COMPROBACIÓN ROBUSTA: Leemos de sessionStorage con fallback a localStorage
+    const sessionData = sessionStorage.getItem('userSession') || localStorage.getItem('userSession');
     const authButtons = document.getElementById('auth-buttons-container');
     const userProfile = document.getElementById('user-profile-container');
     const userNameDisplay = document.getElementById('user-name-display');
@@ -296,13 +297,37 @@ function checkUserAuthentication() {
             const SESSION_DURATION = 7 * 24 * 60 * 60 * 1000;
 
             if (sessionAge < SESSION_DURATION) {
+                // Obtener el rol del usuario (insensible a mayúsculas/minúsculas y seguro ante ambos storages)
+                const rolCrudo = sessionStorage.getItem('user_rol') || 
+                                 sessionStorage.getItem('currentUserRole') || 
+                                 localStorage.getItem('user_rol') || 
+                                 localStorage.getItem('currentUserRole') || 
+                                 session.userRole || 
+                                 'usuario';
+                const rol = rolCrudo.toLowerCase().trim();
+
+                console.log('🔍 Rol detectado para redirección:', rol);
+
+                // 🚀 REDIRECCIÓN AUTOMÁTICA SEGÚN ROL
+                
+                if (rol === 'veterinario') {
+                    console.log('🚀 Redirigiendo a panel de Veterinario...');
+                    window.location.href = 'user/veterinario/dashVeterinario/veterinario.html';
+                    return true;
+                } else if (rol === 'administrador') {
+                    console.log('🚀 Redirigiendo a panel de Administrador...');
+                    window.location.href = 'user/administrator/dashAdmin/dashboard.html';
+                    return true;
+                }
+
+                // Si es un usuario común:
                 if (authButtons) authButtons.style.display = 'none';
                 if (userProfile) userProfile.style.display = 'block';
 
                 if (userNameDisplay) {
-                    const primerNombre = localStorage.getItem('user_primer_nombre') || '';
-                    const apellidoPaterno = localStorage.getItem('user_apellido_paterno') || '';
-                    const nombreCompleto = localStorage.getItem('user_nombre_completo') || '';
+                    const primerNombre = sessionStorage.getItem('user_primer_nombre') || localStorage.getItem('user_primer_nombre') || '';
+                    const apellidoPaterno = sessionStorage.getItem('user_apellido_paterno') || localStorage.getItem('user_apellido_paterno') || '';
+                    const nombreCompleto = sessionStorage.getItem('user_nombre_completo') || localStorage.getItem('user_nombre_completo') || '';
                     
                     let nombreMostrar = '';
                     
@@ -325,7 +350,7 @@ function checkUserAuthentication() {
                             nombreMostrar = partes[0];
                         }
                     } else {
-                        const email = localStorage.getItem('userEmail') || session.email || '';
+                        const email = sessionStorage.getItem('userEmail') || localStorage.getItem('userEmail') || session.email || '';
                         if (email) {
                             nombreMostrar = email.split('@')[0];
                         } else {
@@ -337,17 +362,17 @@ function checkUserAuthentication() {
                 }
 
                 if (userRoleDisplay) {
-                    const rol = localStorage.getItem('user_rol') || session.userRole || 'usuario';
                     const rolesDisplay = {
                         'administrador': 'Administrador',
                         'veterinario': 'Veterinario',
                         'usuario': 'Usuario'
                     };
-                    userRoleDisplay.textContent = rolesDisplay[rol] || rol;
+                    userRoleDisplay.textContent = rolesDisplay[rol] || rolCrudo;
                 }
 
                 if (userAvatar) {
-                    const primerNombre = localStorage.getItem('user_primer_nombre') || 
+                    const primerNombre = sessionStorage.getItem('user_primer_nombre') || 
+                                        localStorage.getItem('user_primer_nombre') || 
                                         userNameDisplay?.textContent?.split(' ')[0] || 
                                         'U';
                     const inicial = primerNombre.charAt(0).toUpperCase();
@@ -356,10 +381,12 @@ function checkUserAuthentication() {
 
                 return true;
             } else {
+                sessionStorage.clear();
                 localStorage.clear();
             }
         } catch (error) {
             console.error('Error:', error);
+            sessionStorage.clear();
             localStorage.clear();
         }
     }
@@ -381,19 +408,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRegister = document.getElementById('btn-register');
     const btnLogin = document.getElementById('btn-login');
     const btnRegisterCta = document.getElementById('btn-register-cta');
-<<<<<<< HEAD
-=======
 
     // 🚀 Ruta relativa sin barra "/" inicial para producción
->>>>>>> 563cb76648ee05c32205c9bb4ce56f8c5b9db7ca
     const urlRedireccionLogin = '/user/visitor/login/login.html';
 
     if (btnRegister) btnRegister.addEventListener('click', () => window.location.href = urlRedireccionLogin);
     if (btnLogin) btnLogin.addEventListener('click', () => window.location.href = urlRedireccionLogin);
     if (btnRegisterCta) btnRegisterCta.addEventListener('click', () => window.location.href = urlRedireccionLogin);
 
+    // Escuchar el evento de cierre de sesión en otras pestañas
     window.addEventListener('storage', (e) => {
-        if (e.key === 'userSession') checkUserAuthentication();
+        if (e.key === 'userSession' || e.key === 'logout_event' || e.key === null) {
+            checkUserAuthentication();
+        }
     });
 });
 
