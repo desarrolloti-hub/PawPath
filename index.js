@@ -1,7 +1,7 @@
 // index.js - Lógica principal de la página de inicio
 import { db, auth } from '/config/firebase-config.js';
 import { collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
-import Veterinario from '/classes/Veterinario.js';
+import Veterinario from '/classes/veterinario.js';
 
 class InicioController {
     constructor() {
