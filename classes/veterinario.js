@@ -28,6 +28,7 @@ class Veterinario {
                     ...data
                 }
             };
+            
         } catch (error) {
             console.error('Error al obtener veterinario por ID:', error);
             return { success: false, error: error.message };
