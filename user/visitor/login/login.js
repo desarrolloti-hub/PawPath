@@ -127,12 +127,6 @@ class AuthManager {
                 const userData = await this.getUserData(user.uid);
                 this.saveUserDataToCache(user, userData);
 
-                if(userData){
-                    const userRole=userData.rol || 'usuario';
-                    console.log('🔄 Sesión activa detectada. Redirigiendo según rol:', userRole);
-                    this.redirectBasedOnRole(userRole);
-                }
-
             } else {
                 console.log('❌ Usuario no autenticado en Firebase Auth');
                 this.clearSessionFromStorage();
