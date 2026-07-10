@@ -1,7 +1,7 @@
 // index.js - Lógica principal de la página de inicio
 import { db, auth } from '/config/firebase-config.js';
 import { collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
-import Veterinario from '/classes/veterinario.js';
+import Veterinario from '/classes/Veterinario.js';
 
 class InicioController {
     constructor() {
@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRegisterCta = document.getElementById('btn-register-cta');
 
     // 🚀 Ruta relativa sin barra "/" inicial para producción
-    const urlRedireccionLogin = '/user/visitor/login/login.html';
+    const urlRedireccionLogin = 'user/visitor/login/login.html';
 
     if (btnRegister) btnRegister.addEventListener('click', () => window.location.href = urlRedireccionLogin);
     if (btnLogin) btnLogin.addEventListener('click', () => window.location.href = urlRedireccionLogin);
