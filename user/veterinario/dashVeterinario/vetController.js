@@ -1,7 +1,7 @@
 import { auth, db  } from '/config/firebase-config.js';
 import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
-import Veterinario from '/classes/Veterinario.js';
+import Veterinario from '/classes/veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from './chatController.js';
 

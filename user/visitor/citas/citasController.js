@@ -1,7 +1,7 @@
 import { auth } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import Citas from '/classes/Citas.js';
-import Veterinario from '/classes/Veterinario.js';
+import Veterinario from '/classes/veterinario.js';
 import Mascota from '/classes/mascotas.js';
 import { obtenerRecomendacionIA } from '/config/gemini-service.js';
 
