@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnRegisterCta = document.getElementById('btn-register-cta');
 
     // 🚀 Ruta relativa sin barra "/" inicial para producción
-    const urlRedireccionLogin = '/user/visitor/login/login.html';
+    const urlRedireccionLogin = 'user/visitor/login/login.html';
 
     if (btnRegister) btnRegister.addEventListener('click', () => window.location.href = urlRedireccionLogin);
     if (btnLogin) btnLogin.addEventListener('click', () => window.location.href = urlRedireccionLogin);
