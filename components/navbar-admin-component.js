@@ -13,6 +13,7 @@ class NavbarAdmin extends HTMLElement {
         this.setupMobileToggle();
         this.highlightCurrentPage();
         this._injectChatbot();
+        this.setupLogout(); // ✅ Ahora el logout funciona
     }
 
     _injectChatbot() {
@@ -125,7 +126,6 @@ class NavbarAdmin extends HTMLElement {
         `;
 
         // Añadir estilos específicos del componente (opcional, pero los estilos globales ya los tienes en dashboard.css)
-        // Si quieres asegurarte de que se vea bien incluso sin dashboard.css, puedes inyectar estilos.
         this.injectStyles();
     }
 
@@ -401,17 +401,49 @@ class NavbarAdmin extends HTMLElement {
             }
         });
     }
+
+    // ✅ NUEVO MÉTODO: Configura el cierre de sesión
+    setupLogout() {
+        const logoutBtn = this.querySelector('#logoutBtn');
+        if (!logoutBtn) {
+            console.warn('No se encontró el botón de cerrar sesión');
+            return;
+        }
+
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+
+            // 1. Limpiar todo el localStorage y sessionStorage
+            localStorage.clear();
+            sessionStorage.clear();
+
+            // 2. Eliminar cookies de sesión (si existen)
+            document.cookie.split(';').forEach(cookie => {
+                document.cookie = cookie
+                    .replace(/^ +/, '')
+                    .replace(/=.*/, '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/');
+            });
+
+            // 3. Redirigir al login (ajusta la ruta según tu proyecto)
+            window.location.href = '/user/visitor/login/login.html';
+        });
+    }
 }
 
 // Registrar el componente
 customElements.define('navbar-admin', NavbarAdmin);
 
-// Definir logout global si no existe
+// Definir logout global por si se necesita desde otros scripts
 if (typeof window.logout !== 'function') {
     window.logout = function() {
         localStorage.clear();
         sessionStorage.clear();
-        window.location.href = "/user/visitor/login/login.html";
+        document.cookie.split(';').forEach(cookie => {
+            document.cookie = cookie
+                .replace(/^ +/, '')
+                .replace(/=.*/, '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/');
+        });
+        window.location.href = '/user/visitor/login/login.html';
     };
 }
 
