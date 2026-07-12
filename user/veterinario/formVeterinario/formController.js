@@ -3,7 +3,6 @@ import { auth, db } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
     collection,
-    addDoc,
     setDoc,
     serverTimestamp,
     doc,
@@ -33,7 +32,6 @@ class FormVeterinarioController {
                 this.setupEventListeners();
                 this.generarHorariosPorDefecto();
                 this.mostrarDatosUsuario();
-                this.setupImagePreview();
             }, 200);
 
         } catch (error) {
@@ -149,11 +147,6 @@ class FormVeterinarioController {
         } catch (error) {
             console.error(error);
         }
-    }
-
-    capitalizarPrimeraLetra(texto) {
-        if (!texto) return '';
-        return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
     }
 
     generarHorariosPorDefecto() {

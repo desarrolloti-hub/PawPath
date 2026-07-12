@@ -1,5 +1,5 @@
 import { db, auth } from '/config/firebase-config.js';
-import { collection, addDoc, getDocs, doc, getDoc, updateDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { collection, getDocs, doc, getDoc, updateDoc, query, where, orderBy, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 class Veterinario {
     constructor() {
@@ -84,21 +84,6 @@ class Veterinario {
         }
     }
 
-    formatearEspecialidad(esp) {
-        const especialidades = {
-            'perros': '🐕 Especialista en Perros',
-            'gatos': '🐈 Especialista en Gatos',
-            'aves': '🦜 Especialista en Aves',
-            'roedores': '🐹 Especialista en Roedores',
-            'reptiles': '🦎 Especialista en Reptiles',
-            'emergencias': '🚑 Emergencias 24/7',
-            'cirugias': '🔬 Cirugía Veterinaria',
-            'hospitalizacion': '🏥 Hospitalización'
-        };
-        return especialidades[esp] || esp;
-    }
-
-
     verificarDisponibilidad(horarioSemanal) {
         if (!horarioSemanal || !Array.isArray(horarioSemanal)) {
             return false;
@@ -116,8 +101,6 @@ class Veterinario {
 
         const horaActual = hoy.getHours();
         const minutosActual = hoy.getMinutes();
-        const horaActualStr = `${horaActual.toString().padStart(2, '0')}:${minutosActual.toString().padStart(2, '0')}`;
-
         const [horaApertura, minApertura] = horarioHoy.apertura.split(':');
         const [horaCierre, minCierre] = horarioHoy.cierre.split(':');
 
@@ -125,7 +108,7 @@ class Veterinario {
         const cierreMinutos = parseInt(horaCierre) * 60 + parseInt(minCierre);
         const actualMinutos = horaActual * 60 + minutosActual;
 
-        return actualMinutos < cierreMinutos;
+        return actualMinutos >= aperturaMinutos && actualMinutos < cierreMinutos;
     }
 
     formatearEspecialidad(esp) {

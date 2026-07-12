@@ -1,6 +1,6 @@
 import { auth, db  } from '/config/firebase-config.js';
-import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from '../../../classes/chatController.js';
@@ -76,21 +76,14 @@ class VetController {
                             ...data
                         };
                     } else {
-                       if (docSnap.exists()) {
-
-                        const data = docSnap.data();
-
                         this.veterinarioActual = {
                             id: user.uid,
                             uid: user.uid,
-                            nombre: data.nombreCompleto || data.nombre || "Veterinario",
-                            especialidad: data.especialidad || "Medicina General",
-                            clinica: data.nombreClinica || data.clinica || "Mi Clínica",
-                            ...data
+                            nombre: "Veterinario",
+                            especialidad: "Medicina General",
+                            clinica: "Mi Clínica"
                         };
-
                     }
-                }
 
                     // Pintamos los datos en la UI de forma segura
                     const txtName = document.getElementById('vetName');
@@ -618,18 +611,6 @@ actualizarContadoresSeguros() {
         
         contenedor.innerHTML = html;
     }
-    editarPublicacion(id) {
-
-    const publicacion = this.publicaciones.find(
-        p => p.id === id
-    );
-
-    if (!publicacion) return;
-
-    this.abrirModalEdicionPublicacion(publicacion);
-
-}
-
     // Método auxiliar para escapar HTML y evitar XSS
     escapeHtml(text) {
         if (!text) return '';
@@ -710,35 +691,6 @@ actualizarContadoresSeguros() {
         this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
     }
 
-
-     renderizarSolicitudesAdopcion() {
-        const container = document.getElementById('solicitudesGrid');
-         if (!container) {
-             return;
-         }
-         let filtradas = this.solicitudesAdopcion;
-        
-         if (this.filtros.adopciones === 'pendientes') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
-
-         } else if (this.filtros.adopciones === 'aprobadas') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
-         } else if (this.filtros.adopciones === 'rechazadas') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
-         }
-        
-         if (filtradas.length === 0) {
-             container.innerHTML = '<p class="loading">No hay solicitudes de adopción</p>';
-             return;
-         }
-        
-         let html = '';
-         filtradas.forEach(sol => {
-             html += this.generarCardSolicitudAdopcion(sol);
-         });
-        
-         container.innerHTML = html;
-    }
 
     renderizarSolicitudesAdopcion() {
         const container = document.getElementById('solicitudesGrid');
@@ -1059,31 +1011,6 @@ actualizarContadoresSeguros() {
         
         document.getElementById('estadoModal').style.display = 'flex';
     }
-
-     async guardarCambioEstado(e) {
-         e.preventDefault();
-
-         const id = document.getElementById('itemIdActual').value;
-         const tipo = document.getElementById('itemTipoActual').value;
-         const nuevoEstado = document.getElementById('nuevoEstado').value;
-         const notas = document.getElementById('notasEstado').value;
-
-         if (tipo === 'cita') {
-             const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
-             if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
-         } 
-         else if (tipo === 'adopcion') {
-             await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
-         } 
-         else if (tipo === 'reclamo') {
-             await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
-         }
-
-         this.cerrarEstadoModal();
-         await this.cargarTodo();
-     }
-
-
 
     renderizarSolicitudesRecientes() {
         const container = document.getElementById('solicitudesRecientes');
@@ -1767,21 +1694,6 @@ switch (tipoInput) {
             fotosInput.value = '';
         });
     }
-
-async editarPublicacion(id) {
-    if (!id) {
-        this.mostrarNotificacion('ID de publicación no válido', 'error');
-        return;
-    }
-
-    const publicacion = this.publicaciones.find(p => p.id === id);
-    if (!publicacion){
-        this.mostrarNotificacion('Publicación no encontrada', 'error');
-        return;
-    }
-
-    this.abrirModalEdicionPublicacion(publicacion);
-}
 
     abrirModalEdicionPublicacion(publicacion) {
         const modal = document.getElementById('publicacionModal');
