@@ -116,13 +116,17 @@ class ControladorDetalles {
     mostrarPublicacion(pub) {
         console.log('🎨 Mostrando publicación:', pub);
 
+        const tipoNormalizado = this.normalizarTipoPublicacion(pub.tipo);
+        const tipoVisible = this.obtenerTipoVisible(pub.tipo);
+
         document.title = `${pub.titulo} - PawPath`;
         this.detalleTitulo.textContent = pub.titulo;
-        this.detalleTipo.innerHTML = `<i class="fas fa-paw"></i> ${pub.tipo}`;
+        this.detalleTipo.innerHTML = `<i class="fas fa-paw"></i> ${tipoVisible}`;
 
         let claseTipo = 'badge';
-        if (pub.tipo === 'Mascota Perdida') claseTipo += ' badge-danger';
+        if (tipoNormalizado === 'perdido') claseTipo += ' badge-danger';
         if (pub.tipo === 'En Adopción') claseTipo += ' badge-success';
+        if (tipoNormalizado === 'adopcion' && !claseTipo.includes('badge-success')) claseTipo += ' badge-success';
         this.detalleTipo.className = claseTipo;
 
         this.detalleCategoria.innerHTML = `<i class="fas fa-tag"></i> ${pub.categoria || 'Sin categoría'}`;
@@ -136,8 +140,9 @@ class ControladorDetalles {
         this.actualizarEstadoLikeUI();
 
         // Galería de imágenes (AQUÍ ESTÁ LA MAGIA DEL MODAL)
-        if (pub.fotos && pub.fotos.length > 0) {
-            this.detalleImagenes.innerHTML = pub.fotos.map(foto => `
+        const fotosPublicacion = this.obtenerFotosPublicacion(pub);
+        if (fotosPublicacion.length > 0) {
+            this.detalleImagenes.innerHTML = fotosPublicacion.map(foto => `
                 <img src="${foto}" alt="Foto" onclick="controladorDetalles.abrirImagenModal('${foto}')" title="Clic para ampliar" style="cursor: zoom-in;">
             `).join('');
         } else {
@@ -178,6 +183,54 @@ class ControladorDetalles {
                 detalleSeccion.insertAdjacentElement('afterend', newContainer);
                 container = newContainer;
             }
+        }
+
+        if (container && tipoNormalizado === 'adopcion') {
+            container.innerHTML = `
+                <button id="btnSolicitarAdopcion" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
+                    <i class="fas fa-paw"></i> Solicitar Adopcion
+                </button>
+                <br>
+                <br>
+            `;
+
+            const btnSolicitar = document.getElementById('btnSolicitarAdopcion');
+            if (btnSolicitar) {
+                btnSolicitar.onclick = () => this.abrirModalSolicitudAdopcion(pub);
+                if (this.usuarioActual) {
+                    const solicitudesRef = collection(db, 'solicitudesAdopcion');
+                    const q = query(
+                        solicitudesRef,
+                        where('publicacionId', '==', pub.id),
+                        where('usuarioId', '==', this.usuarioActual.uid)
+                    );
+                    getDocs(q).then(querySnapshot => {
+                        if (!querySnapshot.empty) {
+                            btnSolicitar.disabled = true;
+                            btnSolicitar.innerHTML = '<i class="fas fa-check"></i> Solicitado';
+                            btnSolicitar.style.backgroundColor = '#00FF00';
+                            btnSolicitar.style.cursor = 'not-allowed';
+                        }
+                    }).catch(err => console.error("Error al buscar solicitud previa:", err));
+                }
+            }
+            return;
+        }
+
+        if (container && tipoNormalizado === 'encontrado') {
+            container.innerHTML = `
+                <button id="btnReclamarMascota" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
+                    <i class="fas fa-clipboard-list"></i> Reclamar esta mascota
+                </button>
+                <br>
+                <br>
+            `;
+
+            const btnReclamar = document.getElementById('btnReclamarMascota');
+            if (btnReclamar) {
+                btnReclamar.onclick = () => this.abrirModalReclamo(pub);
+            }
+            return;
         }
 
         if (container) {
@@ -237,9 +290,44 @@ class ControladorDetalles {
     }
 
 
+    normalizarTipoPublicacion(tipo) {
+        const valor = (tipo || '').toLowerCase();
+        if (valor.includes('adopc')) return 'adopcion';
+        if (valor.includes('encontr')) return 'encontrado';
+        if (valor.includes('perd')) return 'perdido';
+        return valor;
+    }
+
+    obtenerTipoVisible(tipo) {
+        const normalizado = this.normalizarTipoPublicacion(tipo);
+        if (normalizado === 'adopcion') return 'En Adopcion';
+        if (normalizado === 'encontrado') return 'Mascota Encontrada';
+        if (normalizado === 'perdido') return 'Mascota Perdida';
+        return tipo || 'General';
+    }
+
+    obtenerFotosPublicacion(pub) {
+        const fotos = [];
+        if (Array.isArray(pub?.fotos)) fotos.push(...pub.fotos);
+        if (Array.isArray(pub?.foto)) fotos.push(...pub.foto);
+        else if (typeof pub?.foto === 'string') fotos.push(pub.foto);
+        if (typeof pub?.imagenUrl === 'string') fotos.push(pub.imagenUrl);
+        return fotos.filter((foto, index, arr) =>
+            typeof foto === 'string' &&
+            foto.trim() !== '' &&
+            arr.indexOf(foto) === index
+        );
+    }
+
+
     async abrirModalSolicitudAdopcion(pub) {
         if (!this.usuarioActual) {
             Swal.fire('Inicia sesión', 'Debes iniciar sesión para solicitar una adopción', 'warning');
+            return;
+        }
+
+        if (!pub.veterinarioId) {
+            Swal.fire('No disponible', 'Esta publicacion no tiene un veterinario asignado para recibir solicitudes.', 'warning');
             return;
         }
 
@@ -333,6 +421,7 @@ class ControladorDetalles {
 
         const solicitud = {
             publicacionId: pub.id,
+            publicacionTitulo: pub.titulo || 'Publicacion sin titulo',
             veterinarioId: pub.veterinarioId,
             usuarioId: this.usuarioActual.uid,
             usuarioNombre: document.getElementById('solicitanteNombre').value,
@@ -396,6 +485,11 @@ class ControladorDetalles {
     async abrirModalReclamo(pub) {
         if (!this.usuarioActual) {
             Swal.fire('Inicia sesión', 'Debes iniciar sesión para reclamar una mascota', 'warning');
+            return;
+        }
+
+        if (!pub.veterinarioId) {
+            Swal.fire('No disponible', 'Esta publicacion no tiene un veterinario asignado para recibir reclamos.', 'warning');
             return;
         }
 
@@ -473,6 +567,7 @@ class ControladorDetalles {
 
         const reclamo = {
             publicacionId: pub.id,
+            publicacionTitulo: pub.titulo || 'Publicacion sin titulo',
             veterinarioId: pub.veterinarioId,
             usuarioId: this.usuarioActual.uid,
             usuarioNombre: document.getElementById('reclamanteNombre').value,

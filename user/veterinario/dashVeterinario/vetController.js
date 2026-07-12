@@ -3,7 +3,7 @@ import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.
 import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/veterinario.js';
 import Citas from '../../../classes/Citas.js';
-import { ChatController } from './chatController.js';
+import { ChatController } from '../../../classes/chatController.js';
 
 
 class VetController {
@@ -278,8 +278,7 @@ actualizarContadoresSeguros() {
             const solicitudesRef = collection(db, 'solicitudesAdopcion');
             const q = query(
                 solicitudesRef,
-                where('veterinarioId', '==', this.veterinarioActual.id),
-                orderBy('fechaSolicitud', 'desc')
+                where('veterinarioId', '==', this.veterinarioActual.id)
             );
             
             const querySnapshot = await getDocs(q);
@@ -287,11 +286,15 @@ actualizarContadoresSeguros() {
             
             querySnapshot.forEach(doc => {
                 const data = doc.data();
-                this.solicitudesAdopcion.push({
+                const solicitud = {
                     id: doc.id,
                     ...doc.data()
-                });
+                };
+                this.solicitudesAdopcion.push(solicitud);
             });
+            this.solicitudesAdopcion.sort((a, b) =>
+                this.obtenerFechaMs(b.fechaSolicitud) - this.obtenerFechaMs(a.fechaSolicitud)
+            );
             this.renderizarSolicitudesAdopcion();
             this.renderizarSolicitudesRecientes();
             this.actualizarBadges();
@@ -310,8 +313,7 @@ actualizarContadoresSeguros() {
             const reclamosRef = collection(db, 'reclamosMascotas');
             const q = query(
                 reclamosRef,
-                where('veterinarioId', '==', this.veterinarioActual.id),
-                orderBy('fechaReclamo', 'desc')
+                where('veterinarioId', '==', this.veterinarioActual.id)
             );
             
             const querySnapshot = await getDocs(q);
@@ -323,6 +325,9 @@ actualizarContadoresSeguros() {
                     ...doc.data()
                 });
             });
+            this.reclamos.sort((a, b) =>
+                this.obtenerFechaMs(b.fechaReclamo) - this.obtenerFechaMs(a.fechaReclamo)
+            );
                         
             this.renderizarReclamos();
             this.renderizarReclamosRecientes();
@@ -352,10 +357,10 @@ actualizarContadoresSeguros() {
         document.getElementById('citasPendientesBadge').textContent =
             this.citas.filter(c => c.estado === 'pendiente').length;
         document.getElementById('adopcionesBadge').textContent =
-            this.solicitudesAdopcion.filter(s => s.estado === 'pendiente').length;
+            this.solicitudesAdopcion.filter(s => this.normalizarEstadoAdopcion(s.estado) === 'pendiente').length;
         document.getElementById('notificaciones').textContent =
             this.citas.filter(c => c.estado === 'pendiente').length +
-            this.solicitudesAdopcion.filter(s => s.estado === 'pendiente').length;
+            this.solicitudesAdopcion.filter(s => this.normalizarEstadoAdopcion(s.estado) === 'pendiente').length;
     }
 
     renderizarCitas() {
@@ -558,7 +563,8 @@ actualizarContadoresSeguros() {
                 claseBadge = 'badge-perdido';
             }
             
-            const urlImagen = (pub.fotos && pub.fotos.length > 0) ? pub.fotos[0] : (pub.imagenUrl || pub.foto || 'https://via.placeholder.com/300x180?text=Sin+Foto');
+            const fotosPublicacion = this.normalizarFotosPublicacion(pub);
+            const urlImagen = fotosPublicacion[0] || 'https://via.placeholder.com/300x180?text=Sin+Foto';
 
             html += `
                 <div class="pub-card">
@@ -632,6 +638,70 @@ actualizarContadoresSeguros() {
         return div.innerHTML;
     }
 
+    normalizarFotosPublicacion(publicacion) {
+        const fotos = [];
+
+        if (Array.isArray(publicacion?.fotos)) {
+            fotos.push(...publicacion.fotos);
+        }
+
+        if (Array.isArray(publicacion?.foto)) {
+            fotos.push(...publicacion.foto);
+        } else if (typeof publicacion?.foto === 'string') {
+            fotos.push(publicacion.foto);
+        }
+
+        if (typeof publicacion?.imagenUrl === 'string') {
+            fotos.push(publicacion.imagenUrl);
+        }
+
+        return fotos.filter((foto, index, arr) =>
+            typeof foto === 'string' &&
+            foto.trim() !== '' &&
+            arr.indexOf(foto) === index
+        );
+    }
+
+    obtenerFechaMs(fecha) {
+        if (!fecha) return 0;
+        if (fecha.toDate) return fecha.toDate().getTime();
+        if (fecha.seconds) return fecha.seconds * 1000;
+        return new Date(fecha).getTime() || 0;
+    }
+
+    formatearFecha(fecha) {
+        const ms = this.obtenerFechaMs(fecha);
+        return ms ? new Date(ms).toLocaleDateString('es-ES') : 'Reciente';
+    }
+
+    normalizarEstadoAdopcion(estado) {
+        const valor = (estado || 'pendiente').toLowerCase();
+        if (valor.includes('aprob')) return 'aprobada';
+        if (valor.includes('rechaz')) return 'rechazada';
+        return 'pendiente';
+    }
+
+    normalizarEstadoReclamo(estado) {
+        const valor = (estado || 'pendiente').toLowerCase();
+        if (valor.includes('verific')) return 'verificados';
+        if (valor.includes('aprob')) return 'aprobados';
+        if (valor.includes('rechaz')) return 'rechazados';
+        return 'pendiente';
+    }
+
+    filtroAdopcionAEstado(filtro) {
+        if (filtro === 'aprobadas') return 'aprobada';
+        if (filtro === 'rechazadas') return 'rechazada';
+        return 'pendiente';
+    }
+
+    filtroReclamoAEstado(filtro) {
+        if (filtro === 'verificados') return 'verificados';
+        if (filtro === 'aprobados') return 'aprobados';
+        if (filtro === 'rechazados') return 'rechazados';
+        return 'pendiente';
+    }
+
     async verSolicitudesAdopcion(publicacionId) {
         this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
     }
@@ -674,15 +744,10 @@ actualizarContadoresSeguros() {
         const container = document.getElementById('solicitudesGrid');
         if (!container) return;
         
-        let filtradas = this.solicitudesAdopcion;
-        
-        if (this.filtros.adopciones === 'pendientes') {
-            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
-        } else if (this.filtros.adopciones === 'aprobadas') {
-            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
-        } else if (this.filtros.adopciones === 'rechazadas') {
-            filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
-        }
+        const estadoFiltro = this.filtroAdopcionAEstado(this.filtros.adopciones);
+        let filtradas = this.solicitudesAdopcion.filter(s =>
+            this.normalizarEstadoAdopcion(s.estado) === estadoFiltro
+        );
         
         if (filtradas.length === 0) {
             container.innerHTML = '<p class="loading">No hay solicitudes de adopción en este estado</p>';
@@ -698,13 +763,13 @@ actualizarContadoresSeguros() {
     }
 
     generarCardSolicitudAdopcion(sol) {
-        const fecha = new Date(sol.fechaSolicitud);
-        const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        const fechaFormateada = this.formatearFecha(sol.fechaSolicitud);
+        const estado = this.normalizarEstadoAdopcion(sol.estado);
         
         return `
             <div class="solicitud-card">
                 <div class="cita-header">
-                    <span class="cita-estado estado-${sol.estado}">${sol.estado}</span>
+                    <span class="cita-estado estado-${estado}">${estado}</span>
                     <span class="cita-fecha">${fechaFormateada}</span>
                 </div>
                 <div class="cita-body">
@@ -732,7 +797,7 @@ actualizarContadoresSeguros() {
                     <button class="btn-icon btn-ver" onclick="vetController.verDetalleSolicitudAdopcion('${sol.id}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoAdopcion('${sol.id}', '${sol.estado}')">
+                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoAdopcion('${sol.id}', '${estado}')">
                         <i class="fas fa-check-circle"></i> Estado
                     </button>
                 </div>
@@ -746,15 +811,16 @@ actualizarContadoresSeguros() {
             this.mostrarNotificacion('Solicitud no encontrada', 'error');
             return;
         }
+        const estado = this.normalizarEstadoAdopcion(solicitud.estado);
         
-        const fecha = new Date(solicitud.fechaSolicitud);
-        const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+        const fechaMs = this.obtenerFechaMs(solicitud.fechaSolicitud);
+        const fechaFormateada = fechaMs ? new Date(fechaMs).toLocaleDateString('es-ES', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit'
-        });
+        }) : 'Reciente';
         
         let pruebasHtml = '';
         if (solicitud.pruebas && solicitud.pruebas.length > 0) {
@@ -774,7 +840,7 @@ actualizarContadoresSeguros() {
             <div class="detalle-solicitud">
                 <div class="detalle-campo">
                     <strong>🐾 Publicación:</strong>
-                    <p>${solicitud.publicacionId}</p>
+                    <p>${solicitud.publicacionTitulo || solicitud.publicacionId}</p>
                 </div>
                 <div class="detalle-campo">
                     <strong>👤 Solicitante:</strong>
@@ -810,7 +876,7 @@ actualizarContadoresSeguros() {
                 </div>
                 <div class="detalle-campo">
                     <strong>🏷️ Estado:</strong>
-                    <p><span class="estado-badge estado-${solicitud.estado}">${solicitud.estado}</span></p>
+                    <p><span class="estado-badge estado-${estado}">${estado}</span></p>
                 </div>
                 ${solicitud.notasVeterinario ? `
                     <div class="detalle-campo">
@@ -862,17 +928,10 @@ actualizarContadoresSeguros() {
         }
         
         
-        let filtradas = this.reclamos;
-        
-        if (this.filtros.reclamos === 'pendientes') {
-            filtradas = this.reclamos.filter(r => r.estado === 'pendiente');
-        } else if (this.filtros.reclamos === 'verificados') {
-            filtradas = this.reclamos.filter(r => r.estado === 'verificados');
-        } else if (this.filtros.reclamos === 'aprobados') {
-            filtradas = this.reclamos.filter(r => r.estado === 'aprobados');
-        } else if (this.filtros.reclamos === 'rechazados') {
-            filtradas = this.reclamos.filter(r => r.estado === 'rechazados');
-        }
+        const estadoFiltro = this.filtroReclamoAEstado(this.filtros.reclamos);
+        let filtradas = this.reclamos.filter(r =>
+            this.normalizarEstadoReclamo(r.estado) === estadoFiltro
+        );
         
         
         if (filtradas.length === 0) {
@@ -889,14 +948,14 @@ actualizarContadoresSeguros() {
     }
 
     generarCardReclamo(rec) {
-        const fecha = rec.fechaReclamo?.toDate ? rec.fechaReclamo.toDate() : new Date(rec.fechaReclamo);
-        const fechaFormateada = fecha.toLocaleDateString('es-ES');
+        const fechaFormateada = this.formatearFecha(rec.fechaReclamo);
+        const estado = this.normalizarEstadoReclamo(rec.estado);
         
         // Determinar clase de estado
         let estadoClass = 'estado-pendiente';
-        if (rec.estado === 'verificados') estadoClass = 'estado-verificacion';
-        if (rec.estado === 'aprobados') estadoClass = 'estado-aprobada';
-        if (rec.estado === 'rechazados') estadoClass = 'estado-rechazada';
+        if (estado === 'verificados') estadoClass = 'estado-verificacion';
+        if (estado === 'aprobados') estadoClass = 'estado-aprobada';
+        if (estado === 'rechazados') estadoClass = 'estado-rechazada';
         
         // Mostrar primeras pruebas como miniaturas
         let pruebasHtml = '';
@@ -917,7 +976,7 @@ actualizarContadoresSeguros() {
         return `
             <div class="reclamo-card">
                 <div class="cita-header">
-                    <span class="cita-estado ${estadoClass}">${rec.estado}</span>
+                    <span class="cita-estado ${estadoClass}">${estado}</span>
                     <span class="cita-fecha">${fechaFormateada}</span>
                 </div>
                 <div class="cita-body">
@@ -935,7 +994,7 @@ actualizarContadoresSeguros() {
                     <button class="btn-icon btn-ver" onclick="vetController.verDetalleReclamo('${rec.id}')">
                         <i class="fas fa-eye"></i> Ver
                     </button>
-                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoReclamo('${rec.id}', '${rec.estado}')">
+                    <button class="btn-icon btn-estado" onclick="vetController.abrirModalEstadoReclamo('${rec.id}', '${estado}')">
                         <i class="fas fa-check-circle"></i> Estado
                     </button>
                 </div>
@@ -946,11 +1005,12 @@ actualizarContadoresSeguros() {
     verDetalleReclamo(reclamoId) {
         const reclamo = this.reclamos.find(r => r.id === reclamoId);
         if (!reclamo) return;
+        const estado = this.normalizarEstadoReclamo(reclamo.estado);
         
-        const fecha = reclamo.fechaReclamo?.toDate ? reclamo.fechaReclamo.toDate() : new Date(reclamo.fechaReclamo);
-        const fechaFormateada = fecha.toLocaleDateString('es-ES', {
+        const fechaMs = this.obtenerFechaMs(reclamo.fechaReclamo);
+        const fechaFormateada = fechaMs ? new Date(fechaMs).toLocaleDateString('es-ES', {
             year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-        });
+        }) : 'Reciente';
         
         let pruebasHtml = '';
         if (reclamo.pruebas && reclamo.pruebas.length > 0) {
@@ -1031,7 +1091,7 @@ actualizarContadoresSeguros() {
             return;
         }
 
-        const pendientes = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
+        const pendientes = this.solicitudesAdopcion.filter(s => this.normalizarEstadoAdopcion(s.estado) === 'pendiente');
 
         if (pendientes.length === 0) {
             container.innerHTML = '<p class="loading">No hay solicitudes pendientes</p>';
@@ -1042,8 +1102,7 @@ actualizarContadoresSeguros() {
 
         let html = '';
         recientes.forEach(sol => {
-            const fecha = new Date(sol.fechaSolicitud);
-            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            const fechaFormateada = this.formatearFecha(sol.fechaSolicitud);
             
             html += `
                 <div class="cita-card" style="margin-bottom: 10px; cursor: pointer;" onclick="vetController.verDetalleSolicitudAdopcion('${sol.id}')">
@@ -1066,7 +1125,7 @@ actualizarContadoresSeguros() {
         const container = document.getElementById('reclamosRecientes');
         if (!container) return;
         
-        const pendientes = this.reclamos.filter(r => r.estado === 'pendiente');
+        const pendientes = this.reclamos.filter(r => this.normalizarEstadoReclamo(r.estado) === 'pendiente');
         
         if (pendientes.length === 0) {
             container.innerHTML = '<p class="loading">No hay reclamos pendientes</p>';
@@ -1077,8 +1136,7 @@ actualizarContadoresSeguros() {
         
         let html = '';
         recientes.forEach(rec => {
-            const fecha = rec.fechaReclamo?.toDate ? rec.fechaReclamo.toDate() : new Date(rec.fechaReclamo);
-            const fechaFormateada = fecha.toLocaleDateString('es-ES');
+            const fechaFormateada = this.formatearFecha(rec.fechaReclamo);
             
             html += `
                 <div class="cita-card" style="margin-bottom: 10px; cursor: pointer;" onclick="vetController.verDetalleReclamo('${rec.id}')">
@@ -1503,6 +1561,17 @@ actualizarContadoresSeguros() {
     }
 
     nuevaPublicacion() {
+        document.getElementById('publicacionForm')?.reset();
+        document.getElementById("pubFotosPreview").innerHTML = "";
+        document.getElementById("pubFotos").value = "";
+        document.getElementById("publicacionId").value = "";
+
+        const modalTitulo = document.querySelector('#publicacionModal .modal-header h3');
+        if (modalTitulo) modalTitulo.textContent = 'Nueva publicacion';
+
+        const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
+        if (btnGuardar) btnGuardar.innerHTML = '<i class="fas fa-paper-plane"></i> Publicar';
+
         document.getElementById('publicacionModal').style.display = 'flex';
     }
 
@@ -1541,6 +1610,9 @@ switch (tipoInput) {
         const contacto = document.getElementById('pubContacto').value;
         const categoria = document.getElementById("pubCategoria").value;
         const ubicacionTexto = document.getElementById("pubUbicacion").value;   
+        const fotos = Array.from(document.querySelectorAll('#pubFotosPreview img'))
+            .map(img => img.src)
+            .filter(src => src && src.trim() !== '');
 
         // Validaciones básicas de tus campos obligatorios
         if (!titulo || !descripcion || !contacto || !categoria || !ubicacionTexto) {
@@ -1560,8 +1632,8 @@ switch (tipoInput) {
             categoria: categoria,
             ubicacionTexto: ubicacionTexto,
             estado: 'activo',
-            fechaCreacion: serverTimestamp(),
-            vistas: 0
+            fotos: fotos,
+            foto: fotos[0] || ''
         };
 
         // Campos condicionales (mascotas perdidas / adopciones)
@@ -1579,7 +1651,10 @@ switch (tipoInput) {
 
         await updateDoc(
             doc(db, "publicaciones", publicacionId),
-            nuevaPublicacion
+            {
+                ...nuevaPublicacion,
+                fechaActualizacion: serverTimestamp()
+            }
         );
 
         Swal.fire(
@@ -1592,7 +1667,15 @@ switch (tipoInput) {
 
         await addDoc(
             collection(db, "publicaciones"),
-            nuevaPublicacion
+            {
+                ...nuevaPublicacion,
+                fechaCreacion: serverTimestamp(),
+                fechaPublicacion: serverTimestamp(),
+                vistas: 0,
+                likes: 0,
+                comentarios: 0,
+                usuariosLike: []
+            }
         );
 
         Swal.fire(
@@ -1633,15 +1716,16 @@ switch (tipoInput) {
         const tipoSelect = document.getElementById('pubTipo');
         const recompensaGroup = document.getElementById('pubRecompensaGroup');
         const fechaEventoGroup = document.getElementById('pubFechaEventoGroup');
+        const fotosInput = document.getElementById('pubFotos');
+        const fotosPreview = document.getElementById('pubFotosPreview');
+
+        if (!tipoSelect || !fotosInput || !fotosPreview) return;
         
         tipoSelect.addEventListener('change', () => {
             const tipo = tipoSelect.value;
-            recompensaGroup.style.display = tipo === 'Mascota Perdida' ? 'block' : 'none';
-            fechaEventoGroup.style.display = tipo === 'Mascota Perdida' ? 'block' : 'none';
+            if (recompensaGroup) recompensaGroup.style.display = tipo === 'perdido' ? 'block' : 'none';
+            if (fechaEventoGroup) fechaEventoGroup.style.display = tipo === 'perdido' ? 'block' : 'none';
         });
-        
-        const fotosInput = document.getElementById('pubFotos');
-        const fotosPreview = document.getElementById('pubFotosPreview');
         
         fotosInput.addEventListener('change', (e) => {
             fotosPreview.innerHTML = '';
@@ -1649,6 +1733,13 @@ switch (tipoInput) {
             
             if (files.length > 5) {
                 this.mostrarNotificacion('Máximo 5 fotos', 'warning');
+                fotosInput.value = '';
+                return;
+            }
+
+            const archivoGrande = files.find(file => file.size > 2 * 1024 * 1024);
+            if (archivoGrande) {
+                this.mostrarNotificacion('Cada foto debe pesar maximo 2MB', 'warning');
                 fotosInput.value = '';
                 return;
             }
@@ -1666,6 +1757,14 @@ switch (tipoInput) {
                 };
                 reader.readAsDataURL(file);
             });
+        });
+
+        fotosPreview.addEventListener('click', (e) => {
+            const btn = e.target.closest('.remove-foto');
+            if (!btn) return;
+
+            btn.closest('.foto-preview')?.remove();
+            fotosInput.value = '';
         });
     }
 
@@ -1688,11 +1787,17 @@ async editarPublicacion(id) {
         const modal = document.getElementById('publicacionModal');
         if (!modal) return;
 
+        const tipoNormalizado = (publicacion.tipo || '').toLowerCase();
+
         document.getElementById('publicacionId').value = publicacion.id;
-        document.getElementById('pubTipo').value = publicacion.tipo;
-        document.getElementById('pubTitulo').value = publicacion.titulo;
+        document.getElementById('pubTipo').value = tipoNormalizado.includes('perd')
+            ? 'perdido'
+            : tipoNormalizado.includes('encontr')
+                ? 'encontrado'
+                : 'adopcion';
+        document.getElementById('pubTitulo').value = publicacion.titulo || '';
         document.getElementById('pubCategoria').value = publicacion.categoria || '';
-        document.getElementById('pubDescripcion').value = publicacion.descripcion;
+        document.getElementById('pubDescripcion').value = publicacion.descripcion || '';
         document.getElementById('pubContacto').value = publicacion.contacto || '';
         document.getElementById('pubUbicacion').value = publicacion.ubicacionTexto || '';
         
@@ -1706,9 +1811,10 @@ async editarPublicacion(id) {
         
         // Mostrar fotos existentes
         const fotosPreview = document.getElementById('pubFotosPreview');
-        if (fotosPreview && publicacion.fotos) {
+        const fotos = this.normalizarFotosPublicacion(publicacion);
+        if (fotosPreview) {
             fotosPreview.innerHTML = '';
-            publicacion.fotos.forEach((foto, index) => {
+            fotos.forEach((foto, index) => {
                 const preview = document.createElement('div');
                 preview.className = 'foto-preview';
                 preview.innerHTML = `
@@ -1724,7 +1830,7 @@ async editarPublicacion(id) {
         // Mostrar campos condicionales según tipo
         const recompensaGroup = document.getElementById('pubRecompensaGroup');
         const fechaEventoGroup = document.getElementById('pubFechaEventoGroup');
-        if (publicacion.tipo === 'Mascota Perdida') {
+        if (tipoNormalizado.includes('perd')) {
             if (recompensaGroup) recompensaGroup.style.display = 'block';
             if (fechaEventoGroup) fechaEventoGroup.style.display = 'block';
         } else {
@@ -1733,10 +1839,11 @@ async editarPublicacion(id) {
         }
         
         // Cambiar texto del botón
+        const modalTitulo = document.querySelector('#publicacionModal .modal-header h3');
+        if (modalTitulo) modalTitulo.textContent = 'Editar publicacion';
+
         const btnGuardar = document.querySelector('#publicacionForm button[type="submit"]');
-        if (btnGuardar) {
-            btnGuardar.innerHTML = '<i class="fas fa-save"></i> Actualizar';
-        }
+        if (btnGuardar) btnGuardar.innerHTML = '<i class="fas fa-save"></i> Guardar';
         
         // Abrir modal
         modal.style.display = 'flex';
@@ -1859,6 +1966,9 @@ async editarPublicacion(id) {
     cerrarPublicacionModal() {
         document.getElementById('publicacionModal').style.display = 'none';
         document.getElementById('publicacionForm').reset();
+        document.getElementById('pubFotosPreview').innerHTML = '';
+        document.getElementById('pubFotos').value = '';
+        document.getElementById('publicacionId').value = '';
     }
 
     mostrarNotificacion(mensaje, tipo = 'info') {

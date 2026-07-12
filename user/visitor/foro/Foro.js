@@ -214,7 +214,7 @@ class ControladorForo {
             querySnapshot.forEach((doc) => {
                 const pub = doc.data();
                 tendenciasContainer.innerHTML += `
-                    <div class="trending-item" onclick="window.location.href='detallesforo.html?id=${doc.id}'">
+                    <div class="trending-item" onclick="window.location.href='/user/visitor/detalleForo/detallesforo.html?id=${doc.id}'">
                         <div class="trending-icon"><i class="fas fa-fire"></i></div>
                         <div class="trending-info">
                             <div class="trending-title">${this.escapeHtml(pub.titulo || 'Sin título')}</div>
@@ -386,7 +386,7 @@ class ControladorForo {
         
         try {
             const pubsRef = collection(db, 'publicaciones');
-            let q = query(pubsRef, orderBy('fechaPublicacion', 'desc'));
+            let q = query(pubsRef);
             
             const querySnapshot = await getDocs(q);
             let todasPublicaciones = [];
@@ -398,8 +398,8 @@ class ControladorForo {
             
             // Filtro por tipo
             if (this.filtrosActivos.tipo) {
-                publicacionesFiltradas = publicacionesFiltradas.filter(pub => 
-                    pub.tipo === this.filtrosActivos.tipo
+                publicacionesFiltradas = publicacionesFiltradas.filter(pub =>
+                    this.normalizarTipo(pub.tipo) === this.normalizarTipo(this.filtrosActivos.tipo)
                 );
             }
             
@@ -422,9 +422,8 @@ class ControladorForo {
                 const hace24h = new Date();
                 hace24h.setHours(hace24h.getHours() - 24);
                 publicacionesFiltradas = publicacionesFiltradas.filter(pub => {
-                    if (!pub.fechaPublicacion) return false;
-                    const fechaPub = pub.fechaPublicacion.toDate ? pub.fechaPublicacion.toDate() : new Date(pub.fechaPublicacion);
-                    return fechaPub >= hace24h;
+                    const fechaPub = this.obtenerFechaPublicacion(pub);
+                    return fechaPub && fechaPub >= hace24h;
                 });
             }
             
@@ -447,8 +446,8 @@ class ControladorForo {
             switch(this.filtrosActivos.orden) {
                 case 'antiguo':
                     publicacionesFiltradas.sort((a, b) => {
-                        const fechaA = a.fechaPublicacion?.toDate ? a.fechaPublicacion.toDate() : new Date(a.fechaPublicacion);
-                        const fechaB = b.fechaPublicacion?.toDate ? b.fechaPublicacion.toDate() : new Date(b.fechaPublicacion);
+                        const fechaA = this.obtenerFechaPublicacion(a);
+                        const fechaB = this.obtenerFechaPublicacion(b);
                         return fechaA - fechaB;
                     });
                     break;
@@ -460,8 +459,8 @@ class ControladorForo {
                     break;
                 default:
                     publicacionesFiltradas.sort((a, b) => {
-                        const fechaA = a.fechaPublicacion?.toDate ? a.fechaPublicacion.toDate() : new Date(a.fechaPublicacion);
-                        const fechaB = b.fechaPublicacion?.toDate ? b.fechaPublicacion.toDate() : new Date(b.fechaPublicacion);
+                        const fechaA = this.obtenerFechaPublicacion(a);
+                        const fechaB = this.obtenerFechaPublicacion(b);
                         return fechaB - fechaA;
                     });
             }
@@ -501,6 +500,40 @@ class ControladorForo {
                   Math.sin(dLon/2) * Math.sin(dLon/2);
         const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         return R * c;
+    }
+
+    normalizarTipo(tipo) {
+        const valor = (tipo || '').toLowerCase();
+        if (valor.includes('adopc')) return 'adopcion';
+        if (valor.includes('encontr')) return 'encontrado';
+        if (valor.includes('perd')) return 'perdido';
+        return valor;
+    }
+
+    obtenerTipoVisible(tipo) {
+        const normalizado = this.normalizarTipo(tipo);
+        if (normalizado === 'adopcion') return 'En Adopcion';
+        if (normalizado === 'encontrado') return 'Mascota Encontrada';
+        if (normalizado === 'perdido') return 'Mascota Perdida';
+        return tipo || 'General';
+    }
+
+    obtenerFechaPublicacion(pub) {
+        const fecha = pub.fechaPublicacion || pub.fechaCreacion || pub.fechaActualizacion;
+        if (!fecha) return null;
+        if (fecha.toDate) return fecha.toDate();
+        if (fecha.seconds) return new Date(fecha.seconds * 1000);
+        const parsed = new Date(fecha);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+    }
+
+    obtenerFotosPublicacion(pub) {
+        const fotos = [];
+        if (Array.isArray(pub.fotos)) fotos.push(...pub.fotos);
+        if (Array.isArray(pub.foto)) fotos.push(...pub.foto);
+        else if (typeof pub.foto === 'string') fotos.push(pub.foto);
+        if (typeof pub.imagenUrl === 'string') fotos.push(pub.imagenUrl);
+        return fotos.filter((foto, index, arr) => foto && arr.indexOf(foto) === index);
     }
     
     renderizarPublicaciones() {
@@ -559,7 +592,7 @@ class ControladorForo {
     }
     
     async compartirPublicacion(pub) {
-        const url = `${window.location.origin}/user/visitor/foro/detallesforo.html?id=${pub.id}`;
+        const url = `${window.location.origin}/user/visitor/detalleForo/detallesforo.html?id=${pub.id}`;
         const texto = `🐾 ${pub.titulo} - ${pub.descripcion?.substring(0, 100)}...`;
         
         if (navigator.share) {
@@ -615,11 +648,11 @@ class ControladorForo {
         card.setAttribute('data-id', pub.id);
         
         const isLiked = this.usuarioActual && pub.usuariosLike?.includes(this.usuarioActual.uid);
-        const foto = pub.fotos?.[0] || 'https://via.placeholder.com/300x200?text=PawPath';
+        const foto = this.obtenerFotosPublicacion(pub)[0] || 'https://via.placeholder.com/300x200?text=PawPath';
         
         let fechaTexto = 'Reciente';
-        if (pub.fechaPublicacion) {
-            const fecha = pub.fechaPublicacion.toDate ? pub.fechaPublicacion.toDate() : new Date(pub.fechaPublicacion);
+        const fecha = this.obtenerFechaPublicacion(pub);
+        if (fecha) {
             const ahora = new Date();
             const diffHoras = Math.floor((ahora - fecha) / (1000 * 60 * 60));
             
@@ -639,9 +672,9 @@ class ControladorForo {
         ` : '';
         
         card.innerHTML = `
-            <div class="publicacion-imagen" onclick="window.location.href='detallesforo.html?id=${pub.id}'">
+            <div class="publicacion-imagen" onclick="window.location.href='/user/visitor/detalleForo/detallesforo.html?id=${pub.id}'">
                 <img src="${foto}" alt="${this.escapeHtml(pub.titulo)}">
-                <span class="publicacion-tipo">${this.escapeHtml(pub.tipo || 'General')}</span>
+                <span class="publicacion-tipo">${this.escapeHtml(this.obtenerTipoVisible(pub.tipo))}</span>
             </div>
             <div class="publicacion-contenido">
                 <div class="publicacion-metadata">
@@ -666,7 +699,7 @@ class ControladorForo {
                               style="cursor:pointer; color: ${isLiked ? '#ef4444' : 'inherit'}">
                             <i class="${isLiked ? 'fas' : 'far'} fa-heart"></i> ${pub.likes || 0}
                         </span>
-                        <span onclick="event.stopPropagation(); window.location.href='detallesforo.html?id=${pub.id}'" title="Comentarios">
+                        <span onclick="event.stopPropagation(); window.location.href='/user/visitor/detalleForo/detallesforo.html?id=${pub.id}'" title="Comentarios">
                             <i class="far fa-comment"></i> ${pub.comentarios || 0}
                         </span>
                         <span onclick="event.stopPropagation(); window.controlador.compartirPublicacion(${JSON.stringify(pub).replace(/"/g, '&quot;')})" title="Compartir">
