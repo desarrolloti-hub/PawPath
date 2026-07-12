@@ -1,8 +1,8 @@
 # Archivo de configuración con API key de Gemini — NO compartir
-config/gemini-config.js
+#config/gemini-config.js
 
 # Archivo de configuración de Mercado Pago — NO compartir
-config/mercadopago-config.js
+#config/mercadopago-config.js
 
 # Archivos de sistema
 .DS_Store
