@@ -444,6 +444,7 @@ import '/components/JS chatbot-component.js';
                 <li><a href="/user/visitor/MapaForo/mapaforo.html">Mapa</a></li>
                 <li><a href="/user/visitor/citas/misCitas.html">Mis citas</a></li>
                 <li><a href="/user/visitor/mascotas/mascotas.html">Mis Mascotas</a></li>
+                <li><a href="#planes">Planes</a></li>
             </ul> 
             <div id="userActionDesktop"></div>
         `;
@@ -470,6 +471,7 @@ import '/components/JS chatbot-component.js';
                     <a href="/user/visitor/citas/citas.html" class="sidebar-link"><i class="fas fa-user-md"></i> Agendar Cita</a>
                     <a href="/user/visitor/mascotas/mascotas.html" class="sidebar-link"><i class="fas fa-paw"></i> Mis Mascotas</a>
                     <a href="#planes" class="sidebar-link"><i class="fas fa-tags"></i> Planes</a>
+
                 </div>
             </div>
             <div id="userActionMovil"></div>
@@ -581,6 +583,7 @@ import '/components/JS chatbot-component.js';
 
             if (userAction && userMovilAction) {
                 userAction.innerHTML = `
+                <a href="/user/visitor/perfilUser/perfil.html" style="text-decoration:none;">
                     <div class="user-card-desktop">
                         <div class="avatar-mini">${initial}</div>
                         <div style="display:flex; flex-direction:column">
@@ -591,6 +594,7 @@ import '/components/JS chatbot-component.js';
                             <i class="fas fa-sign-out-alt"></i> Salir
                         </button>
                     </div>
+                </a>
                 `;
                 userMovilAction.innerHTML = ` 
                     <div style="padding: 20px;">
