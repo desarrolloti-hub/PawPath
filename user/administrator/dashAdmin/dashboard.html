@@ -197,7 +197,7 @@
             <!-- Top especies -->
             <div class="card">
                 <div class="card-header">
-                    <h3><i class="fas fa-paw"></i> Especies más registradas</h3>
+                    <h3><i class="fas fa-paw"></i> Especies más comunes</h3>
                     <span class="badge-date">Top 5</span>
                 </div>
                 <div class="top-pets-list" id="topPetsList">
@@ -206,7 +206,7 @@
             </div>
         </section>
 
-        <!-- ===== ACCESO RÁPIDO (quick access) ===== -->
+        <!-- ===== ACCESO RÁPIDO (cards que estaban sueltas) ===== -->
         <section class="quick-access" style="margin-top: 2rem;">
             <h2>⚡ Acceso rápido</h2>
             <div class="quick-grid">
@@ -223,24 +223,27 @@
                     <span>Veterinarios</span>
                 </a>
                 <a href="#" class="quick-card">
-                    <i class="fas fa-chart-line"></i>
+                    <i class="fas fa-chart-pie"></i>
                     <span>Reportes</span>
                 </a>
                 <a href="#" class="quick-card">
                     <i class="fas fa-credit-card"></i>
                     <span>Suscripciones</span>
                 </a>
-                <a href="#" onclick="logout()" class="quick-card">
+                <a href="#" class="quick-card" id="logoutQuick">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Cerrar sesión</span>
                 </a>
             </div>
         </section>
 
-    </main>
+    </main> <!-- FIN main-content -->
 
     <!-- ===== SCRIPTS ===== -->
-    <!-- Importar el módulo principal (contiene la definición del componente) -->
+    <!-- 1. Importar el componente del sidebar -->
+    <script type="module" src="/components/navbar-admin-component.js"></script>
+    <!-- 2. Importar el dashboard JS (con datos reales) -->
     <script type="module" src="dashboard.js"></script>
+
 </body>
 </html>

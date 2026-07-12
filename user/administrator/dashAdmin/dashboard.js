@@ -2,37 +2,7 @@
 // dashboard.js - Panel de Administrador con datos REALES
 // ============================================================
 
-// ===== 1. DEFINIR EL COMPONENTE SIDEBAR =====
-class NavbarAdmin extends HTMLElement {
-    connectedCallback() {
-        // Contenido del sidebar (con los enlaces a tus páginas)
-        this.innerHTML = `
-            <aside class="sidebar" id="sidebarNav">
-                <div class="logo">
-                    <h2>🐾 PawPath</h2>
-                </div>
-                <nav>
-                    <ul>
-                        <li><a href="/dashboard.html" class="active"><i class="fas fa-home"></i> Dashboard</a></li>
-                        <li><a href="/user/administrator/GestionUsuarios/admin_usuarios.html"><i class="fas fa-users"></i> Usuarios</a></li>
-                        <li><a href="../GestionMascotas/admin_mascotas.html"><i class="fas fa-dog"></i> Mascotas</a></li>
-                        <li><a href="../GestionVeterinarios/admin_veterinarios.html"><i class="fas fa-user-md"></i> Veterinarios</a></li>
-                        <li><a href="#"><i class="fas fa-chart-line"></i> Reportes</a></li>
-                        <li><a href="#"><i class="fas fa-credit-card"></i> Suscripciones</a></li>
-                        <li><a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</a></li>
-                    </ul>
-                </nav>
-            </aside>
-        `;
-    }
-}
-
-// Registrar el componente personalizado
-customElements.define('navbar-admin', NavbarAdmin);
-
-// ============================================================
-// 2. IMPORTS PARA FIREBASE Y CLASES
-// ============================================================
+// Importar las clases existentes
 import Admin_usuarios from '/classes/admin_usuarios.js';
 import Mascota from '/classes/mascotas.js';
 import Veterinario from '/classes/veterinario.js';
@@ -47,7 +17,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 
 // ============================================================
-// 3. RELOJ EN TIEMPO REAL
+// RELOJ EN TIEMPO REAL
 // ============================================================
 function actualizarReloj() {
     const clockElement = document.getElementById('clock');
@@ -60,25 +30,16 @@ setInterval(actualizarReloj, 1000);
 actualizarReloj();
 
 // ============================================================
-// 4. DOMContentLoaded
+// DOMContentLoaded
 // ============================================================
 document.addEventListener('DOMContentLoaded', async function() {
-    // --- Toggle del menú hamburguesa ---
+    // El sidebar se carga como componente, pero el toggle lo manejamos desde el componente mismo
+    // Solo necesitamos asegurarnos de que el botón existe
     const menuToggle = document.getElementById('menuToggle');
-    const sidebar = document.getElementById('sidebarNav');
-    if (menuToggle && sidebar) {
-        menuToggle.addEventListener('click', function(e) {
-            e.stopPropagation();
-            sidebar.classList.toggle('open');
-        });
-        // Cerrar sidebar al hacer clic fuera (en móvil)
-        document.addEventListener('click', function(e) {
-            if (window.innerWidth <= 768) {
-                if (!sidebar.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
-                    sidebar.classList.remove('open');
-                }
-            }
-        });
+    if (menuToggle) {
+        console.log('✅ Botón hamburguesa encontrado');
+    } else {
+        console.warn('⚠️ No se encontró #menuToggle');
     }
 
     // Cargar datos reales
@@ -86,7 +47,7 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 
 // ============================================================
-// 5. FUNCIÓN PRINCIPAL
+// FUNCIÓN PRINCIPAL
 // ============================================================
 async function cargarDatosReales() {
     try {
@@ -118,12 +79,12 @@ async function cargarDatosReales() {
         const publicacionesSnapshot = await getDocs(collection(db, 'publicaciones'));
         const totalPublicaciones = publicacionesSnapshot.size;
 
-        // 6. Mascotas perdidas
+        // 6. Mascotas perdidas (suponiendo campo 'estado' = 'perdida')
         const perdidasQuery = query(collection(db, 'mascotas'), where('estado', '==', 'perdida'));
         const perdidasSnapshot = await getDocs(perdidasQuery);
         const totalPerdidas = perdidasSnapshot.size;
 
-        // ===== ACTUALIZAR ESTADÍSTICAS =====
+        // ===== ACTUALIZAR ESTADÍSTICAS (con verificación de existencia) =====
         setTextContent('totalUsers', totalUsuarios);
         setTextContent('totalPets', totalMascotas);
         setTextContent('totalVets', totalVets);
@@ -147,7 +108,7 @@ async function cargarDatosReales() {
         const especies = contarEspecies(mascotas);
         renderDonut(especies);
 
-        // ===== TABLA DE ÚLTIMOS USUARIOS =====
+        // ===== TABLA DE ÚLTIMOS USUARIOS (ordenados por fecha) =====
         const usuariosOrdenados = [...usuarios].sort((a, b) => {
             const fechaA = a.fecha_registro ? new Date(a.fecha_registro) : new Date(0);
             const fechaB = b.fecha_registro ? new Date(b.fecha_registro) : new Date(0);
@@ -166,6 +127,7 @@ async function cargarDatosReales() {
         console.log('✅ Dashboard actualizado con datos reales');
     } catch (error) {
         console.error('❌ Error al cargar datos reales:', error);
+        // Mostrar mensaje en la interfaz
         const statsGrid = document.querySelector('.stats-grid');
         if (statsGrid) {
             statsGrid.innerHTML += `
@@ -177,7 +139,7 @@ async function cargarDatosReales() {
     }
 }
 
-// ===== UTILIDAD PARA SETEAR TEXTO =====
+// ===== UTILIDAD PARA SETEAR TEXTO DE FORMA SEGURA =====
 function setTextContent(id, value) {
     const element = document.getElementById(id);
     if (element) {
@@ -188,7 +150,7 @@ function setTextContent(id, value) {
 }
 
 // ============================================================
-// 6. GRÁFICO DE BARRAS
+// GRÁFICO DE BARRAS
 // ============================================================
 function obtenerUltimos6Meses() {
     const meses = [];
@@ -248,7 +210,7 @@ function getColor(index) {
 }
 
 // ============================================================
-// 7. GRÁFICO DE DONA
+// GRÁFICO DE DONA (Especies)
 // ============================================================
 function contarEspecies(mascotas) {
     const conteo = {};
@@ -301,7 +263,7 @@ function renderDonut(especies) {
 }
 
 // ============================================================
-// 8. TABLA DE USUARIOS
+// TABLA DE USUARIOS
 // ============================================================
 function renderTablaUsuarios(usuarios) {
     const tbody = document.getElementById('lastUsersBody');
@@ -338,7 +300,7 @@ function renderTablaUsuarios(usuarios) {
 }
 
 // ============================================================
-// 9. ACTIVIDAD RECIENTE
+// ACTIVIDAD RECIENTE
 // ============================================================
 async function obtenerActividadReciente(usuarios, citas, publicacionesSnapshot) {
     const eventos = [];
@@ -433,7 +395,7 @@ function tiempoDesde(fecha) {
 }
 
 // ============================================================
-// 10. TOP ESPECIES
+// TOP ESPECIES
 // ============================================================
 function renderTopEspecies(especies) {
     const container = document.getElementById('topPetsList');
@@ -481,7 +443,7 @@ function getColorForName(nombre) {
 }
 
 // ============================================================
-// 11. LOGOUT (global)
+// LOGOUT (se mantiene global)
 // ============================================================
 window.logout = function() {
     localStorage.clear();
