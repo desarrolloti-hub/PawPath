@@ -18,10 +18,8 @@ body {
 }
 
 /* ============================================================
-   SIDEBAR (estilos para el componente)
+   SIDEBAR (componente)
    ============================================================ */
-/* Estos estilos también se aplican al componente porque usa Shadow DOM,
-   pero dejamos algunos por si el componente no usa Shadow DOM */
 .sidebar {
     width: 280px;
     background: #ffffff;
@@ -37,6 +35,50 @@ body {
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 1000;
     box-shadow: 2px 0 12px rgba(0, 0, 0, 0.02);
+}
+
+/* Estilos internos del sidebar (logo, navegación) */
+.sidebar .logo h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 2rem;
+}
+
+.sidebar nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.sidebar nav ul li a {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.7rem 1rem;
+    border-radius: 12px;
+    color: #475569;
+    font-weight: 500;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+    font-size: 0.95rem;
+}
+
+.sidebar nav ul li a i {
+    width: 1.4rem;
+    text-align: center;
+}
+
+.sidebar nav ul li a:hover,
+.sidebar nav ul li a.active {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.sidebar nav ul li a.active {
+    background: #eef2ff;
+    color: #3b82f6;
 }
 
 /* ============================================================
@@ -645,10 +687,29 @@ body {
 /* Móviles y tablets pequeñas */
 @media (max-width: 768px) {
     body {
-        flex-direction: column; /* Para que el sidebar no afecte el flujo */
+        flex-direction: column;
     }
 
-    /* El sidebar se maneja desde el componente, pero aquí aseguramos que el contenido no se superponga */
+    /* Sidebar: oculto por defecto, se muestra con clase .open */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translateX(-100%);
+        width: 280px;
+        height: 100vh;
+        border-right: 1px solid #e9edf2;
+        box-shadow: 4px 0 20px rgba(0,0,0,0.1);
+        z-index: 2000;
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        background: #ffffff;
+        padding: 2rem 1.2rem 1.5rem;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
     .main-content {
         padding: 1rem 1.2rem 2rem;
         margin-left: 0;
@@ -748,7 +809,7 @@ body {
         padding: 0.4rem 0.3rem;
     }
 
-    /* Ajustes para la tabla en móvil: ocultar algunas columnas si es necesario */
+    /* ocultar columna email en móvil */
     .user-table th:nth-child(3),
     .user-table td:nth-child(3) {
         display: none;
