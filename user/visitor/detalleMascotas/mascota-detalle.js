@@ -18,6 +18,7 @@ class MascotaDetalleController {
     cacheDom() {
         this.btnVolver = document.getElementById('btnVolver');
         this.btnEditarMascota = document.getElementById('btnEditarMascota');
+        this.btnDescargarPDF = document.getElementById('btnDescargarPDF');
         this.btnCerrarModal = document.getElementById('btnCerrarModal');
         this.btnCancelar = document.getElementById('btnCancelar');
         this.btnGuardar = document.getElementById('btnGuardar');
@@ -57,6 +58,7 @@ class MascotaDetalleController {
         };
 
         this.btnEditarMascota.onclick = () => this.abrirModal();
+        this.btnDescargarPDF.onclick = () => this.generarPDF();
         this.btnCerrarModal.onclick = () => this.cerrarModal();
         this.btnCancelar.onclick = () => this.cerrarModal();
         this.btnGuardar.onclick = () => this.guardarCambios();
@@ -258,6 +260,133 @@ class MascotaDetalleController {
         this.mascotaActual = mascotaActualizada;
         this.renderDetalle();
     }
+
+    async convertirImagenABase64(url) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+
+    return await new Promise((resolve) => {
+        const reader = new FileReader();
+
+        reader.onloadend = () => {
+            resolve(reader.result);
+        };
+
+        reader.readAsDataURL(blob);
+    });
+}
+
+    async generarPDF() {
+    const logoPath = "/assets/images/PawPahtLogo.png";
+
+    const { jsPDF } = window.jspdf;
+
+    const doc = new jsPDF();
+
+    const m = this.mascotaActual;
+
+    const fechaGeneracion = new Date().toLocaleString();
+
+    const expedienteId = `PP-${m.id.substring(0,8).toUpperCase()}`;
+
+    let qrText = `
+PawPath Expediente
+ID:${expedienteId}
+Mascota:${m.nombre}
+Especie:${m.especie}
+Fecha:${fechaGeneracion}
+    `;
+
+    let qrDiv = document.createElement("div");
+
+    new QRCode(qrDiv,{
+        text: qrText,
+        width:100,
+        height:100
+    });
+
+    await new Promise(resolve=>setTimeout(resolve,500));
+
+    let qrImg = qrDiv.querySelector("img");
+
+    doc.setFontSize(20);
+    doc.text("PAWPATH",105,20,{align:"center"});
+
+    doc.setFontSize(12);
+    doc.text("Expediente Digital Veterinario",105,28,{align:"center"});
+
+    doc.line(20,35,190,35);
+
+    doc.setFontSize(10);
+    doc.text(`Expediente: ${expedienteId}`,20,45);
+    doc.text(`Fecha de generacion: ${fechaGeneracion}`,20,52);
+    
+
+    if(m.foto){
+
+        let fotoMascota = Array.isArray(m.foto)
+            ? m.foto[0]
+            : m.foto;
+
+        doc.addImage(
+            fotoMascota,
+            'JPEG',
+            140,
+            40,
+            50,
+            50
+        );
+    }
+    let y = 70;
+    doc.setFontSize(14);
+    doc.text("Informacion General",20,y);
+    y += 10;
+    doc.setFontSize(11);
+    doc.text(`Nombre: ${m.nombre || '-'}`,20,y); y += 8;
+    doc.text(`Especie: ${m.especie || '-'}`,20,y); y += 8;
+    doc.text(`Genero: ${m.genero || '-'}`,20,y); y += 8;
+    doc.text(`Raza: ${m.raza || '-'}`,20,y); y += 8;
+    doc.text(`Color: ${m.colores || '-'}`,20,y); y += 8;
+    doc.text(`Edad: ${m.edad || '-'} años`,20,y); y += 8;
+    doc.text(`Peso: ${m.peso || '-'} Kg`,20,y); y += 8;
+    doc.text(`Microchip: ${m.microchip || 'No registrado'}`,20,y); y += 8;
+    doc.text(`Esterilizado: ${m.esterilizado || '-'}`,20,y); y += 15;
+
+    doc.setFontSize(14);
+    doc.text("Historial Medico",20,y);
+    y += 10;
+    const historialTexto =
+        doc.splitTextToSize(
+            m.historialMedico || 'Sin informacion registrada',
+            170
+        );
+    doc.setFontSize(11);
+    doc.text(historialTexto,20,y);
+    if(qrImg){
+        doc.addImage(
+            qrImg.src,
+            'PNG',
+            150,
+            230,
+            40,
+            40
+        );
+    }
+    doc.setFontSize(9);
+    doc.text(
+        "Documento generado automaticamente por PawPath",
+        20,
+        280
+    );
+    doc.text(
+        "https://pawpath.com",
+        20,
+        286
+    );
+    doc.save(
+        `Expediente_${m.nombre}_${expedienteId}.pdf`
+    );
+}
 
     mostrarAlerta(titulo, mensaje, tipo) {
         Swal.fire({

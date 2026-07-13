@@ -9,10 +9,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="./mascota-detalle.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Librerias Ale -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script> 
 </head>
 
 <body class="pet-detail-page" style="margin: 0;">
@@ -23,6 +25,10 @@
             <div class="detail-actions-top">
                 <button id="btnVolver" class="btn-back">
                     <i class="fas fa-arrow-left"></i> Volver
+                </button>
+                <button id="btnDescargarPDF" class="btn-edit">
+                <i class="fa-solid fa-file-arrow-down"></i>
+                Expediente 
                 </button>
                 <button id="btnEditarMascota" class="btn-edit">
                     <i class="fas fa-pen"></i> Editar informacion
