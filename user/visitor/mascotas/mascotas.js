@@ -1,5 +1,6 @@
 // /user/visitor/mascotas/mascotas.js
 import Mascota from '/classes/mascotas.js';
+import { planValidator } from '/classes/PlanValidator.js';
 
 // const UID_USUARIO_ESTATICO = 'MmAkbYF2gdeXGJaX41bEI8ZeCEw1'; // Solo para pruebas. Reemplazar con sesión real en producción.
 
@@ -123,20 +124,32 @@ class MascotasController {
         });
     }
 
-    abrirModal(id = null) {
-    if (id) {
-        this.modoEdicion = true;
-        this.modalTitle.innerText = "Editar Mascota";
-        this.cargarDatosMascota(id); // Esta función debe existir en tu clase
-    } else {
-        this.modoEdicion = false;
-        this.modalTitle.innerText = "Registrar Mascota";
-        this.limpiarFormulario();
+    async abrirModal(id = null) {
+        if (id) {
+            this.modoEdicion = true;
+            this.modalTitle.innerText = "Editar Mascota";
+            this.cargarDatosMascota(id);
+        } else {
+            // VALIDACIÓN DE LÍMITE DE MASCOTAS
+            // 1. Obtenemos las mascotas que el usuario ya tiene registradas
+            const { success, mascotas } = await Mascota.obtenerPorUsuario(this.uidUsuarioActual);
+            const totalMascotas = success && mascotas ? mascotas.length : 0;
+
+            // 2. Comprobamos con el validador si tiene permiso para añadir una nueva
+            const puedeAgregar = planValidator.puedeRegistrarMascota(totalMascotas);
+
+            if (!puedeAgregar) {
+                return; // Detiene la apertura del modal si se excedió el límite
+            }
+
+            this.modoEdicion = false;
+            this.modalTitle.innerText = "Registrar Mascota";
+            this.limpiarFormulario();
+        }
+
+        // Abre el formulario modal
+        this.modalMascota.style.display = 'flex';
     }
-    
-    // ESTA ES LA LÍNEA CLAVE:
-    this.modalMascota.style.display = 'flex'; 
-}
     cerrarModal() {
         this.modalMascota.style.display = 'none';
         this.limpiarFormulario();
@@ -209,7 +222,7 @@ class MascotasController {
         try {
             const m = new Mascota();
             const resultado = await m.cargar(id);
-            
+
             if (resultado.success) {
                 this.mascotaId.value = m.id;
                 this.nombreMascota.value = m.nombre;
@@ -221,7 +234,7 @@ class MascotasController {
                 this.pesoMascota.value = m.peso;
                 this.microchipMascota.value = m.microchip || '';
                 this.historialMedico.value = m.historialMedico;
-                
+
                 // Setear radio de esterilizado
                 this.esterilizadoRadios.forEach(r => {
                     if (r.value === m.esterilizado) r.checked = true;
@@ -317,7 +330,7 @@ class MascotasController {
                 // Crear instancia de mascota solo con el ID
                 const mascota = new Mascota();
                 mascota.id = id;
-                
+
                 const resultado = await mascota.eliminar();
                 if (resultado.success) {
                     this.mostrarAlerta('Eliminado', 'La mascota ha sido eliminada', 'success');
@@ -346,7 +359,7 @@ class MascotasController {
         this.fotoPreviewImg.src = '';
         this.fotoPreviewImg.style.display = 'none';
         if (this.placeholderIcon) this.placeholderIcon.style.display = 'block';
-        
+
         this.esterilizadoRadios.forEach(r => {
             if (r.value === 'No') r.checked = true;
         });

@@ -16,12 +16,12 @@ import { db } from "../config/firebase-config.js";
 export class ChatService {
 
     static async crearChatSiNoExiste(cita) {
-console.log(cita);
+        console.log(cita);
         const chatsRef = collection(db, "chats");
 
         const q = query(
             chatsRef,
-            where("citaId","==", cita.id)
+            where("citaId", "==", cita.id)
         );
 
         const resultado = await getDocs(q);
@@ -31,7 +31,7 @@ console.log(cita);
             return resultado.docs[0].id;
 
         }
-        
+
 
         const nuevoChat = {
 
@@ -56,69 +56,69 @@ console.log(cita);
             activo: true
 
         };
-        
+
 
         const chatCreado = await addDoc(chatsRef, nuevoChat);
 
         return chatCreado.id;
 
     }
-    static async enviarMensaje(chatId, mensaje){
+    static async enviarMensaje(chatId, mensaje) {
 
-    const mensajesRef = collection(
-        db,
-        "chats",
-        chatId,
-        "mensajes"
-    );
+        const mensajesRef = collection(
+            db,
+            "chats",
+            chatId,
+            "mensajes"
+        );
 
-    await addDoc(mensajesRef,{
-        texto: mensaje.texto,
-        emisorId: mensaje.emisorId,
-        emisorTipo: mensaje.emisorTipo,
-        fecha: serverTimestamp()
-    });
+        await addDoc(mensajesRef, {
+            texto: mensaje.texto,
+            emisorId: mensaje.emisorId,
+            emisorTipo: mensaje.emisorTipo,
+            fecha: serverTimestamp()
+        });
 
-    await updateDoc(
-        doc(db,"chats",chatId),
-        {
-            ultimoMensaje: mensaje.texto,
-            ultimaActualizacion: serverTimestamp()
-        }
-    );
+        await updateDoc(
+            doc(db, "chats", chatId),
+            {
+                ultimoMensaje: mensaje.texto,
+                ultimaActualizacion: serverTimestamp()
+            }
+        );
 
-}
-static escucharMensajes(chatId, callback){
+    }
+    static escucharMensajes(chatId, callback) {
 
-    const mensajesRef = collection(
-        db,
-        "chats",
-        chatId,
-        "mensajes"
-    );
+        const mensajesRef = collection(
+            db,
+            "chats",
+            chatId,
+            "mensajes"
+        );
 
-    const q = query(
-        mensajesRef,
-        orderBy("fecha","asc")
-    );
+        const q = query(
+            mensajesRef,
+            orderBy("fecha", "asc")
+        );
 
-    return onSnapshot(q,(snapshot)=>{
+        return onSnapshot(q, (snapshot) => {
 
-        const mensajes=[];
+            const mensajes = [];
 
-        snapshot.forEach(doc=>{
+            snapshot.forEach(doc => {
 
-            mensajes.push({
-                id:doc.id,
-                ...doc.data()
+                mensajes.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+
             });
+
+            callback(mensajes);
 
         });
 
-        callback(mensajes);
-
-    });
-
-}
+    }
 
 }

@@ -24,16 +24,16 @@ let db;
 try {
     const app = initializeApp(firebaseConfig);
     db = getFirestore(app);
-    console.log('✅ Firebase inicializado correctamente');
+    console.log('Firebase inicializado correctamente');
 } catch (error) {
-    console.error('❌ Error inicializando Firebase:', error);
+    console.error('Error inicializando Firebase:', error);
 }
 
 class ControladorMapaForo {
     constructor() {
         // Verificar que Firebase esté inicializado
         if (!db) {
-            console.error('❌ Firebase no está inicializado');
+            console.error('Firebase no está inicializado');
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'error',
@@ -46,7 +46,7 @@ class ControladorMapaForo {
 
         // Verificar que Leaflet esté cargado
         if (typeof L === 'undefined') {
-            console.error('❌ Leaflet no está cargado');
+            console.error('Leaflet no está cargado');
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
                     icon: 'error',
@@ -89,12 +89,12 @@ class ControladorMapaForo {
     }
 
     async inicializar() {
-        console.log('🚀 Inicializando ControladorMapaForo...');
+        console.log('Inicializando ControladorMapaForo...');
         
         // Esperar a que el elemento del mapa exista
         const mapElement = document.getElementById('map');
         if (!mapElement) {
-            console.error('❌ Elemento #map no encontrado en el DOM');
+            console.error('Elemento #map no encontrado en el DOM');
             return;
         }
         
@@ -102,7 +102,7 @@ class ControladorMapaForo {
         this.configurarEventos();
         await this.cargarPublicaciones();
         
-        console.log('✅ Mapa inicializado correctamente');
+        console.log('Mapa inicializado correctamente');
     }
 
     inicializarMapa() {
@@ -560,10 +560,10 @@ class ControladorMapaForo {
 // Inicializar cuando el DOM esté listo
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
-        console.log('📱 DOM cargado, inicializando mapa...');
+        console.log('DOM cargado, inicializando mapa...');
         new ControladorMapaForo();
     });
 } else {
-    console.log('📱 DOM ya cargado, inicializando mapa...');
+    console.log('DOM ya cargado, inicializando mapa...');
     new ControladorMapaForo();
 }

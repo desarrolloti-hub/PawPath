@@ -6,6 +6,7 @@ import {
     updateDoc, doc, getDoc
 } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import { ChatService } from './chatService.js';
+import { planValidator } from '/classes/PlanValidator.js';
 
 class MiPanelController {
     constructor() {
@@ -25,7 +26,7 @@ class MiPanelController {
         this.inputMensaje = document.getElementById("mensajeInput");
         this.btnEnviar = document.getElementById("btnEnviar");
         this.setComposerEnabled(false);
-        
+
         // Filtros citas
         this.citasFiltroTab = 'proximas';
         this.citasFiltroEstado = 'todos';
@@ -115,12 +116,16 @@ class MiPanelController {
 
     actualizarContadores() {
         const ahora = new Date();
-        const hoy = ahora.toISOString().split('T')[0];
+        // 🚀 Calculamos la fecha de hoy usando la hora local de tu computadora
+        const año = ahora.getFullYear();
+        const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+        const dia = String(ahora.getDate()).padStart(2, '0');
+        const hoy = `${año}-${mes}-${dia}`;
 
         const proximas = this.citas.filter(c => {
             if (c.estado === 'rechazada' || c.estado === 'concluida') return false;
             if (c.fecha > hoy) return true;
-            if (c.fecha === hoy) return c.hora > `${ahora.getHours()}:${ahora.getMinutes()}`;
+            if (c.fecha === hoy) return c.hora > `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
             return false;
         });
 
@@ -132,17 +137,20 @@ class MiPanelController {
         document.getElementById('historialCount').textContent = historial.length;
         document.getElementById('citasBadge').textContent = proximas.length;
     }
-
     filtrarCitas() {
         let filtradas = [...this.citas];
 
         if (this.citasFiltroTab === 'proximas') {
             const ahora = new Date();
-            const hoy = ahora.toISOString().split('T')[0];
+            const año = ahora.getFullYear();
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const dia = String(ahora.getDate()).padStart(2, '0');
+            const hoy = `${año}-${mes}-${dia}`;
+
             filtradas = filtradas.filter(c => {
                 if (c.estado === 'rechazada' || c.estado === 'concluida') return false;
                 if (c.fecha > hoy) return true;
-                if (c.fecha === hoy) return c.hora > `${ahora.getHours()}:${ahora.getMinutes()}`;
+                if (c.fecha === hoy) return c.hora > `${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
                 return false;
             });
         } else if (this.citasFiltroTab === 'historial') {
@@ -178,7 +186,6 @@ class MiPanelController {
 
         return filtradas;
     }
-
     renderizarCitas() {
         const container = document.getElementById('citasLista');
         const filtradas = this.filtrarCitas();
@@ -703,7 +710,9 @@ class MiPanelController {
     }
 
     async abrirChat(cita) {
-
+        if (!planValidator.accederAlChat()) {
+            return;
+        }
         try {
 
             const chatId = await ChatService.crearChatSiNoExiste(cita);

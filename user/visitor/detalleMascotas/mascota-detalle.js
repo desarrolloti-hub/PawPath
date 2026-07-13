@@ -1,5 +1,5 @@
 import Mascota from '/classes/mascotas.js';
-
+import { planValidator } from '/classes/PlanValidator.js';
 class MascotaDetalleController {
     constructor() {
         this.uidUsuarioActual = localStorage.getItem('currentUserId') || null;
@@ -134,6 +134,11 @@ class MascotaDetalleController {
             setTimeout(() => {
                 window.location.href = '/user/visitor/mascotas/mascotas.html';
             }, 1200);
+            return;
+        }
+        if(!planValidator.accederAexpediente()){
+            alert('No puedes acceder al expediente de tu mascota');
+            window.location.href='/user/visitor/mascotas/mascotas.html';
             return;
         }
 
