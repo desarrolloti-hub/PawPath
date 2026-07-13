@@ -205,6 +205,7 @@ class PerfilController {
 
                 // Intentar guardar en ambas colecciones por seguridad
                 const docRefTypo = doc(db, 'usarios', user.uid);
+                const docRefNormal = doc(db, 'usuarios', user.uid);
 
                 let guardado = false;
 
@@ -219,7 +220,7 @@ class PerfilController {
                 }
 
                 if (!guardado) {
-                    await updateDoc(docRefTypo, {
+                    await updateDoc(docRefNormal, {
                         plan: planAdquirido,
                         fechaActualizacionPlan: serverTimestamp()
                     });
