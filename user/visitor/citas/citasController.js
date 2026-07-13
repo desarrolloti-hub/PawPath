@@ -60,6 +60,7 @@ class CitasController {
                 const select = document.getElementById('veterinario');
                 if (select) {
                     select.value = this.vetSeleccionado;
+                    this.actualizarAdvertenciaEmergencia();
                 }
                 await this.cargarHorariosDisponibles();
             }
@@ -452,6 +453,7 @@ class CitasController {
 
         if (veterinarioSelect) {
             veterinarioSelect.addEventListener('change', () => {
+                this.actualizarAdvertenciaEmergencia();
                 if (document.getElementById('fecha')?.value) {
                     this.cargarHorariosDisponibles();
                 }
@@ -539,6 +541,7 @@ class CitasController {
             });
 
             select.innerHTML = options;
+            this.actualizarAdvertenciaEmergencia();
 
             if (this.vetSeleccionado) {
                 sessionStorage.removeItem('vetSeleccionado');
@@ -547,6 +550,16 @@ class CitasController {
         } catch (error) {
             select.innerHTML = '<option value="">Error al cargar</option>';
         }
+    }
+
+    actualizarAdvertenciaEmergencia() {
+        const veterinarioId = document.getElementById('veterinario')?.value;
+        const advertencia = document.getElementById('emergenciaVetWarning');
+        if (!advertencia) return;
+
+        const veterinario = this.veterinarios.find(vet => vet.id === veterinarioId);
+        const atiendeEmergencias = veterinario?.especialidades?.includes('emergencias') || false;
+        advertencia.hidden = !atiendeEmergencias;
     }
 
 
@@ -1076,7 +1089,7 @@ class CitasController {
         }
 
         vetsList.innerHTML = vetsFiltrados.map(vet => `
-            <div class="ai-vet-card" onclick="document.getElementById('veterinario').value='${vet.id}'; document.querySelectorAll('.ai-vet-card').forEach(c=>c.classList.remove('selected')); this.classList.add('selected')">
+            <div class="ai-vet-card" onclick="document.getElementById('veterinario').value='${vet.id}'; document.getElementById('veterinario').dispatchEvent(new Event('change')); document.querySelectorAll('.ai-vet-card').forEach(c=>c.classList.remove('selected')); this.classList.add('selected')">
                 <div class="ai-vet-foto">
                     ${vet.foto ? `<img src="${vet.foto}" alt="${vet.nombre}">` : '<i class="fas fa-user-md"></i>'}
                 </div>

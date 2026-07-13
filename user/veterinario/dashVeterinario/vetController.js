@@ -67,13 +67,18 @@ class VetController {
 
                     if (docSnap.exists()) {
                         const data = docSnap.data();
+                        const especialidades = Array.isArray(data.especialidades)
+                            ? data.especialidades
+                            : data.especialidad ? [data.especialidad] : [];
                         this.veterinarioActual = {
                             id: user.uid, //AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DEL CÓDIGO
                             uid: user.uid,
+                            ...data,
                             nombre: data.nombreCompleto || data.nombre || 'Veterinario Registrado',
-                            especialidad: data.especialidad || 'Medicina General',
-                            clinica: data.nombreClinica || data.clinica || 'Mi Clínica',
-                            ...data
+                            especialidad: especialidades.length
+                                ? especialidades.map(esp => this.vetModel.formatearEspecialidad(esp)).join(' • ')
+                                : 'Medicina General',
+                            clinica: data.nombreClinica || data.clinica || 'Mi Clínica'
                         };
                     } else {
                         this.veterinarioActual = {
@@ -92,7 +97,17 @@ class VetController {
 
                     if (txtName) txtName.textContent = this.veterinarioActual.nombre;
                     if (txtSpecialty) txtSpecialty.textContent = this.veterinarioActual.especialidad;
-                    if (divFoto) divFoto.innerHTML = `<i class="fas fa-user-md"></i>`;
+                    if (divFoto) {
+                        divFoto.replaceChildren();
+                        if (this.veterinarioActual.fotoPerfil) {
+                            const foto = document.createElement('img');
+                            foto.src = this.veterinarioActual.fotoPerfil;
+                            foto.alt = `Foto de ${this.veterinarioActual.nombre}`;
+                            divFoto.appendChild(foto);
+                        } else {
+                            divFoto.innerHTML = '<i class="fas fa-user-md"></i>';
+                        }
+                    }
 
                     resolve();
                 } catch (error) {
