@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Perfil · PawPath</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="./perfil.css">
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="profile-page" style="margin: 0;">
+
+    <!-- Navbar Component -->
+    <navbar-visitor></navbar-visitor>
+
+    <main class="profile-main">
+        <div class="container">
+            <!-- Header -->
+            <div class="profile-header">
+                <div class="profile-avatar-large" id="avatarLarge">U</div>
+                <h1 id="userNameTitle">Cargando...</h1>
+                <p id="userEmailSub">Cargando...</p>
+                <div class="badge-role" id="userRoleBadge">Cargando...</div>
+            </div>
+
+            <!-- Profile Grid -->
+            <div class="profile-grid">
+                <!-- User Data Card -->
+                <div class="profile-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-user-circle"></i> Datos Personales</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-group">
+                            <span class="info-label">Nombre Completo:</span>
+                            <span class="info-value" id="profileFullName">Cargando...</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Correo Electrónico:</span>
+                            <span class="info-value" id="profileEmail">Cargando...</span>
+                        </div>
+                        <div class="info-group">
+                            <span class="info-label">Fecha de Registro:</span>
+                            <span class="info-value" id="profileRegisterDate">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Subscription Card -->
+                <div class="profile-card premium-card">
+                    <div class="card-header">
+                        <h2><i class="fas fa-gem"></i> Tu Membresía</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="plan-status-container">
+                            <div class="plan-badge-large" id="planBadge">PLAN BASE</div>
+                            <p class="plan-description" id="planDescription">Acceso básico de 1 mascota y foro.</p>
+                        </div>
+                        <div class="plan-actions" id="planActionsContainer">
+                            <!-- Los botones se insertarán dinámicamente según el plan -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Plan Comparison Section -->
+            <div class="pricing-comparison">
+                <h2>Compara los Planes Disponibles</h2>
+                <p>Mejora tu plan para obtener más beneficios y conectar con profesionales.</p>
+                
+                <div class="comparison-grid">
+                    <!-- Card Base -->
+                    <div class="comp-card" id="comp-card-free">
+                        <h3>Nivel Base</h3>
+                        <div class="price">$0<span>/ siempre gratis</span></div>
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success"></i> 1 Mascota registrada</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Acceso al foro</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Alertas básicas</li>
+                        </ul>
+                    </div>
+
+                    <!-- Card Plus -->
+                    <div class="comp-card popular" id="comp-card-plus">
+                        <div class="popular-badge">Más Popular</div>
+                        <h3>Nivel Plus</h3>
+                        <div class="price">$5<span>/ mascota / mes</span></div>
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success"></i> Hasta 2 Mascotas</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Expediente digital</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Chat con veterinarios</li>
+                        </ul>
+                        <a href="/index.html#planes" class="btn-upgrade">Cambiar Plan</a>
+                    </div>
+
+                    <!-- Card Multi -->
+                    <div class="comp-card" id="comp-card-multi">
+                        <h3>Nivel Multi</h3>
+                        <div class="price">$12<span>/ familia / mes</span></div>
+                        <ul>
+                            <li><i class="fas fa-check-circle text-success"></i> 3+ Mascotas (Ilimitadas)</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Recetas electrónicas</li>
+                            <li><i class="fas fa-check-circle text-success"></i> Agenda premium</li>
+                        </ul>
+                        <a href="/index.html#planes" class="btn-upgrade">Cambiar Plan</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer Component -->
+    <main-footer></main-footer>
+
+    <!-- Scripts -->
+    <script type="module" src="/components/JS access control.js"></script>
+    <script type="module" src="/components/JS navbar-visitor-component.js"></script>
+    <script type="module" src="/components/JS FooterVisitor.js"></script>
+    <script type="module" src="./perfil.js"></script>
+</body>
+</html>

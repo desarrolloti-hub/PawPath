@@ -17,31 +17,7 @@ body {
     min-height: 100vh;
 }
 
-/* ============================================================
-   SIDEBAR (estilos para el componente)
-   ============================================================ */
-/* Estos estilos también se aplican al componente porque usa Shadow DOM,
-   pero dejamos algunos por si el componente no usa Shadow DOM */
-.sidebar {
-    width: 280px;
-    background: #ffffff;
-    border-right: 1px solid #e9edf2;
-    display: flex;
-    flex-direction: column;
-    padding: 2rem 1.2rem 1.5rem;
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    overflow-y: auto;
-    flex-shrink: 0;
-    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 1000;
-    box-shadow: 2px 0 12px rgba(0, 0, 0, 0.02);
-}
-
-/* ============================================================
-   MAIN CONTENT
-   ============================================================ */
+/* ===== MAIN CONTENT ===== */
 .main-content {
     flex: 1;
     padding: 1.8rem 2.2rem 2.5rem;
@@ -589,7 +565,7 @@ body {
 
 .quick-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 1.2rem;
 }
 
@@ -626,7 +602,7 @@ body {
 }
 
 /* ============================================================
-   RESPONSIVE - PUNTO CLAVE PARA TODOS LOS DISPOSITIVOS
+   RESPONSIVE
    ============================================================ */
 
 /* Tablets y pantallas medianas */
@@ -645,10 +621,9 @@ body {
 /* Móviles y tablets pequeñas */
 @media (max-width: 768px) {
     body {
-        flex-direction: column; /* Para que el sidebar no afecte el flujo */
+        flex-direction: column;
     }
 
-    /* El sidebar se maneja desde el componente, pero aquí aseguramos que el contenido no se superponga */
     .main-content {
         padding: 1rem 1.2rem 2rem;
         margin-left: 0;
@@ -748,7 +723,7 @@ body {
         padding: 0.4rem 0.3rem;
     }
 
-    /* Ajustes para la tabla en móvil: ocultar algunas columnas si es necesario */
+    /* Ocultar email en móvil */
     .user-table th:nth-child(3),
     .user-table td:nth-child(3) {
         display: none;
@@ -881,13 +856,14 @@ body {
     .user-table td {
         padding: 0.3rem 0.2rem;
     }
+    /* ocultar email en móvil muy pequeño */
     .user-table th:nth-child(2),
     .user-table td:nth-child(2) {
-        display: none; /* ocultar email en móvil muy pequeño */
+        display: none;
     }
 }
 
-/* Ajuste extra para pantallas muy grandes (opcional) */
+/* ===== Ajuste extra para pantallas grandes ===== */
 @media (min-width: 1400px) {
     .main-content {
         padding: 2rem 3rem 3rem;

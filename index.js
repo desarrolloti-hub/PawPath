@@ -1,7 +1,8 @@
 // index.js - Lógica principal de la página de inicio
 import { db, auth } from '/config/firebase-config.js';
-import { collection, query, getDocs, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
+import { collection, query, getDocs, orderBy, limit, doc, getDoc } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js';
 import Veterinario from '/classes/veterinario.js';
+import { suscripcionesController } from '/classes/SuscripcionesController.js';
 
 class InicioController {
     constructor() {
@@ -14,7 +15,6 @@ class InicioController {
         await this.cargarUltimasPublicaciones();
         this.setupEventListeners();
     }
-
     async cargarVeterinariosDestacados() {
         const container = document.getElementById('vets-container');
         if (!container) return;
@@ -58,18 +58,18 @@ class InicioController {
             const pubsRef = collection(db, 'publicaciones');
             const q = query(pubsRef, orderBy('fechaPublicacion', 'desc'), limit(3));
             const querySnapshot = await getDocs(q);
-            
+
             const publicaciones = [];
             querySnapshot.forEach((doc) => {
                 const data = doc.data();
-                publicaciones.push({ 
-                    id: doc.id, 
-                    ...data 
+                publicaciones.push({
+                    id: doc.id,
+                    ...data
                 });
             });
 
             console.log('📊 Publicaciones encontradas:', publicaciones.length);
-            
+
             if (publicaciones.length > 0) {
                 console.log('📝 Primera publicación:', publicaciones[0].titulo);
             }
@@ -90,7 +90,7 @@ class InicioController {
 
             // Renderizar las publicaciones manualmente (sin usar el componente)
             container.innerHTML = '';
-            
+
             for (let i = 0; i < publicaciones.length; i++) {
                 const pub = publicaciones[i];
                 const cardHtml = this.crearCardManual(pub);
@@ -125,24 +125,24 @@ class InicioController {
             } else {
                 fechaObj = new Date(pub.fechaPublicacion);
             }
-            
+
             const ahora = new Date();
             const diffHoras = Math.floor((ahora - fechaObj) / (1000 * 60 * 60));
-            
+
             if (diffHoras < 1) fechaTexto = 'Hace unos minutos';
             else if (diffHoras < 24) fechaTexto = `Hace ${diffHoras} horas`;
             else if (diffHoras < 48) fechaTexto = 'Ayer';
             else fechaTexto = `Hace ${Math.floor(diffHoras / 24)} días`;
         }
-        
+
         // Obtener imagen
         const foto = (pub.fotos && pub.fotos[0]) ? pub.fotos[0] : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'400\' height=\'250\' viewBox=\'0 0 400 250\'%3E%3Crect width=\'400\' height=\'250\' fill=\'%23f1f5f9\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' font-family=\'Arial\' font-size=\'14\' fill=\'%2394a3b8\'%3EPawPath%3C/text%3E%3C/svg%3E';
-        
+
         // Tipo y colores
         let tipoLabel = 'Publicación';
         let tipoBg = '#64748b';
         let tipoIcon = 'fa-paw';
-        
+
         if (pub.tipo === 'Mascota Perdida') {
             tipoLabel = 'Perdido';
             tipoBg = '#ef4444';
@@ -164,7 +164,7 @@ class InicioController {
             tipoBg = '#8b5cf6';
             tipoIcon = 'fa-images';
         }
-        
+
         // Categoría icono
         let categoriaIcon = 'fa-paw';
         if (pub.categoria === 'Perros') categoriaIcon = 'fa-dog';
@@ -172,16 +172,16 @@ class InicioController {
         else if (pub.categoria === 'Aves') categoriaIcon = 'fa-dove';
         else if (pub.categoria === 'Roedores') categoriaIcon = 'fa-mouse';
         else if (pub.categoria === 'Reptiles') categoriaIcon = 'fa-lizard';
-        
+
         // Nombre del usuario
         let nombreUsuario = pub.usuarioNombre || 'Anónimo';
-        
+
         // Descripción corta
         let descripcion = pub.descripcion || '';
         if (descripcion.length > 120) {
             descripcion = descripcion.substring(0, 120) + '...';
         }
-        
+
         return `
             <div class="publicacion-card" onclick="window.location.href='user/visitor/detalleForo/detallesforo.html?id=${pub.id}'" style="background:white; border-radius:16px; overflow:hidden; box-shadow:0 4px 6px -1px rgba(0,0,0,0.1); transition:all 0.3s ease; cursor:pointer; border:1px solid #e2e8f0; margin-bottom:20px;">
                 <div class="publicacion-imagen" style="position:relative; height:200px; overflow:hidden;">
@@ -218,7 +218,7 @@ class InicioController {
 
     escapeHtml(text) {
         if (!text) return '';
-        return String(text).replace(/[&<>]/g, function(m) {
+        return String(text).replace(/[&<>]/g, function (m) {
             if (m === '&') return '&amp;';
             if (m === '<') return '&lt;';
             if (m === '>') return '&gt;';
@@ -270,6 +270,7 @@ class InicioController {
         return card;
     }
 
+
     contactarVet(vetId) {
         sessionStorage.setItem('vetSeleccionado', vetId);
         window.location.href = 'user/visitor/citas/citas.html';
@@ -298,18 +299,18 @@ function checkUserAuthentication() {
 
             if (sessionAge < SESSION_DURATION) {
                 // Obtener el rol del usuario (insensible a mayúsculas/minúsculas y seguro ante ambos storages)
-                const rolCrudo = sessionStorage.getItem('user_rol') || 
-                                 sessionStorage.getItem('currentUserRole') || 
-                                 localStorage.getItem('user_rol') || 
-                                 localStorage.getItem('currentUserRole') || 
-                                 session.userRole || 
-                                 'usuario';
+                const rolCrudo = sessionStorage.getItem('user_rol') ||
+                    sessionStorage.getItem('currentUserRole') ||
+                    localStorage.getItem('user_rol') ||
+                    localStorage.getItem('currentUserRole') ||
+                    session.userRole ||
+                    'usuario';
                 const rol = rolCrudo.toLowerCase().trim();
 
                 console.log('🔍 Rol detectado para redirección:', rol);
 
                 // 🚀 REDIRECCIÓN AUTOMÁTICA SEGÚN ROL
-                
+
                 if (rol === 'veterinario') {
                     console.log('🚀 Redirigiendo a panel de Veterinario...');
                     window.location.href = 'user/veterinario/dashVeterinario/veterinario.html';
@@ -328,9 +329,9 @@ function checkUserAuthentication() {
                     const primerNombre = sessionStorage.getItem('user_primer_nombre') || localStorage.getItem('user_primer_nombre') || '';
                     const apellidoPaterno = sessionStorage.getItem('user_apellido_paterno') || localStorage.getItem('user_apellido_paterno') || '';
                     const nombreCompleto = sessionStorage.getItem('user_nombre_completo') || localStorage.getItem('user_nombre_completo') || '';
-                    
+
                     let nombreMostrar = '';
-                    
+
                     if (primerNombre && apellidoPaterno) {
                         nombreMostrar = `${primerNombre} ${apellidoPaterno}`;
                     } else if (primerNombre) {
@@ -357,7 +358,7 @@ function checkUserAuthentication() {
                             nombreMostrar = 'Usuario';
                         }
                     }
-                    
+
                     userNameDisplay.textContent = nombreMostrar;
                 }
 
@@ -371,13 +372,15 @@ function checkUserAuthentication() {
                 }
 
                 if (userAvatar) {
-                    const primerNombre = sessionStorage.getItem('user_primer_nombre') || 
-                                        localStorage.getItem('user_primer_nombre') || 
-                                        userNameDisplay?.textContent?.split(' ')[0] || 
-                                        'U';
+                    const primerNombre = sessionStorage.getItem('user_primer_nombre') ||
+                        localStorage.getItem('user_primer_nombre') ||
+                        userNameDisplay?.textContent?.split(' ')[0] ||
+                        'U';
                     const inicial = primerNombre.charAt(0).toUpperCase();
                     userAvatar.textContent = inicial;
                 }
+
+                actualizarBotonesSuscripcion();
 
                 return true;
             } else {
@@ -404,6 +407,7 @@ window.inicioController = inicioController;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('📄 DOM cargado');
     checkUserAuthentication();
+    actualizarBotonesSuscripcion();
 
     const btnRegister = document.getElementById('btn-register');
     const btnLogin = document.getElementById('btn-login');
@@ -425,9 +429,79 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 window.selectPlan = function (plan) {
-    alert(`Has seleccionado el plan ${plan.toUpperCase()}`);
+    suscripcionesController.seleccionarPlan(plan);
 };
 
 window.contactVet = function (vetName) {
     alert(`Iniciando chat con ${vetName}...`);
 };
+
+/**
+ * Consulta Firebase y actualiza los botones de suscripción en tiempo real usando la sesión guardada.
+ */
+async function actualizarBotonesSuscripcion() {
+    try {
+        const sessionData = sessionStorage.getItem('userSession') || localStorage.getItem('userSession');
+        if (!sessionData) return;
+        
+        const session = JSON.parse(sessionData);
+        const uid = session.uid;
+        if (!uid) return;
+
+        // 1. Consultar el plan directamente de Firestore (revisando ambas colecciones por seguridad)
+        let userData = null;
+        let userDoc = await getDoc(doc(db, 'usarios', uid));
+
+        if (userDoc.exists()) {
+            userData = userDoc.data();
+        } else {
+            userDoc = await getDoc(doc(db, 'usuarios', uid));
+            if (userDoc.exists()) {
+                userData = userDoc.data();
+            }
+        }
+
+        const plan = userData && userData.plan ? userData.plan : 'free';
+
+        // 2. Buscar los botones en el HTML y actualizarlos
+        const botones = document.querySelectorAll('button[onclick^="selectPlan"]');
+
+        botones.forEach(btn => {
+            const onclickAttr = btn.getAttribute('onclick');
+
+            if (onclickAttr.includes("'free'") || onclickAttr.includes('"free"')) {
+                if (plan === 'free') {
+                    btn.textContent = 'Suscrito';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-success';
+                } else {
+                    btn.textContent = 'Suscribirme';
+                    btn.disabled = false;
+                    btn.className = 'btn btn-outline';
+                }
+            } else if (onclickAttr.includes("'plus'") || onclickAttr.includes('"plus"')) {
+                if (plan === 'plus') {
+                    btn.textContent = 'Suscrito';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-success';
+                } else {
+                    btn.textContent = 'Suscribirme';
+                    btn.disabled = false;
+                    btn.className = 'btn btn-primary';
+                }
+            } else if (onclickAttr.includes("'multi'") || onclickAttr.includes('"multi"')) {
+                if (plan === 'multi') {
+                    btn.textContent = 'Suscrito';
+                    btn.disabled = true;
+                    btn.className = 'btn btn-success';
+                } else {
+                    btn.textContent = 'Suscribirme';
+                    btn.disabled = false;
+                    btn.className = 'btn btn-outline';
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Error al sincronizar botones con Firestore:", error);
+    }
+}

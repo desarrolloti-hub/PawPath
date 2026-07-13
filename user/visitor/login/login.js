@@ -1,5 +1,5 @@
 // Import ONLY the initialized services from config
-import { auth, db } from '/config/firebase-config.js';
+import { auth, db } from '../../../config/firebase-config.js';
 
 // Import additional functions directly from Firebase
 import {

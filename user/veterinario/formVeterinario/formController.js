@@ -3,7 +3,6 @@ import { auth, db } from '/config/firebase-config.js';
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 import {
     collection,
-    addDoc,
     setDoc,
     serverTimestamp,
     doc,
@@ -33,7 +32,6 @@ class FormVeterinarioController {
                 this.setupEventListeners();
                 this.generarHorariosPorDefecto();
                 this.mostrarDatosUsuario();
-                this.setupImagePreview();
             }, 200);
 
         } catch (error) {
@@ -149,11 +147,6 @@ class FormVeterinarioController {
         } catch (error) {
             console.error(error);
         }
-    }
-
-    capitalizarPrimeraLetra(texto) {
-        if (!texto) return '';
-        return texto.charAt(0).toUpperCase() + texto.slice(1).toLowerCase();
     }
 
     generarHorariosPorDefecto() {
@@ -296,9 +289,39 @@ class FormVeterinarioController {
     convertirImagenABase64(file) {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
+            reader.onload = () => {
+                const imagen = new Image();
+                imagen.onload = () => {
+                    const maxDimension = 900;
+                    const escala = Math.min(1, maxDimension / Math.max(imagen.width, imagen.height));
+                    const canvas = document.createElement('canvas');
+                    canvas.width = Math.max(1, Math.round(imagen.width * escala));
+                    canvas.height = Math.max(1, Math.round(imagen.height * escala));
+
+                    const contexto = canvas.getContext('2d');
+                    contexto.drawImage(imagen, 0, 0, canvas.width, canvas.height);
+
+                    let calidad = 0.82;
+                    let resultado = canvas.toDataURL('image/jpeg', calidad);
+                    const maxBytes = 350 * 1024;
+
+                    while (resultado.length * 0.75 > maxBytes && calidad > 0.42) {
+                        calidad -= 0.08;
+                        resultado = canvas.toDataURL('image/jpeg', calidad);
+                    }
+
+                    if (resultado.length * 0.75 > maxBytes) {
+                        reject(new Error('No fue posible reducir suficientemente la imagen'));
+                        return;
+                    }
+
+                    resolve(resultado);
+                };
+                imagen.onerror = () => reject(new Error('El archivo seleccionado no es una imagen válida'));
+                imagen.src = reader.result;
+            };
             reader.onerror = error => reject(error);
+            reader.readAsDataURL(file);
         });
     }
 

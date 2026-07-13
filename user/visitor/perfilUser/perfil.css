@@ -1,0 +1,356 @@
+/* /user/visitor/perfil.css */
+body {
+    background-color: #f8fafc;
+    color: #1e293b;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.profile-main {
+    padding: 3rem 1.5rem;
+    min-height: 80vh;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Header */
+.profile-header {
+    text-align: center;
+    background: linear-gradient(135deg, #33105c 0%, #090979 50%, #008cff 100%);
+    padding: 3rem 2rem;
+    border-radius: 24px;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    margin-bottom: 3rem;
+}
+
+.profile-avatar-large {
+    width: 90px;
+    height: 90px;
+    background: #ff6b6b;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 800;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.5rem;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.profile-header h1 {
+    margin: 0 0 0.5rem;
+    font-size: 2.2rem;
+    font-weight: 700;
+}
+
+.profile-header p {
+    margin: 0 0 1.5rem;
+    opacity: 0.85;
+    font-size: 1.1rem;
+}
+
+.badge-role {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.4rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Grid layout */
+.profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+@media (max-width: 768px) {
+    .profile-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+}
+
+.card-header h2 {
+    margin: 0 0 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.card-header h2 i {
+    color: #3b82f6;
+}
+
+/* Info list */
+.info-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.info-group:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    font-weight: 600;
+}
+
+.info-value {
+    font-size: 1.05rem;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+/* Subscription status card */
+.premium-card {
+    border: 2px solid #e2e8f0;
+}
+
+.plan-status-container {
+    text-align: center;
+    padding: 1rem 0 2rem;
+}
+
+.plan-badge-large {
+    display: inline-block;
+    padding: 0.6rem 2rem;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+.plan-free {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+}
+
+.plan-plus {
+    background: #fffbeb;
+    color: #d97706;
+    border: 1px solid #fde68a;
+}
+
+.plan-multi {
+    background: #f3e8ff;
+    color: #7c3aed;
+    border: 1px solid #e9d5ff;
+}
+
+.plan-description {
+    font-size: 0.95rem;
+    color: #475569;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.plan-actions {
+    margin-top: 1rem;
+    text-align: center;
+}
+
+.btn-upgrade-plan {
+    display: inline-block;
+    background: #3b82f6;
+    color: white;
+    text-decoration: none;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-upgrade-plan:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+.btn-cancel-plan {
+    background: none;
+    border: 1px dashed #ef4444;
+    color: #ef4444;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 100%;
+}
+
+.btn-cancel-plan:hover {
+    background: #fef2f2;
+    border-style: solid;
+}
+
+/* Pricing comparison */
+.pricing-comparison {
+    margin-top: 5rem;
+    text-align: center;
+}
+
+.pricing-comparison h2 {
+    font-size: 1.8rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-comparison > p {
+    color: #64748b;
+    margin-bottom: 3rem;
+}
+
+.comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+}
+
+@media (max-width: 900px) {
+    .comparison-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.comp-card {
+    background: white;
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+    border: 1px solid #e2e8f0;
+    position: relative;
+    transition: 0.3s;
+}
+
+.comp-card.popular {
+    border: 2px solid #3b82f6;
+}
+
+.popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #3b82f6;
+    color: white;
+    padding: 0.25rem 1rem;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.comp-card h3 {
+    margin: 0 0 1rem;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+.price {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin-bottom: 1.5rem;
+}
+
+.price span {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+.comp-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.comp-card ul li {
+    font-size: 0.9rem;
+    color: #475569;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.text-success {
+    color: #10b981;
+}
+
+.btn-upgrade {
+    display: block;
+    background: #f1f5f9;
+    color: #0f172a;
+    text-decoration: none;
+    padding: 0.8rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.btn-upgrade:hover {
+    background: #e2e8f0;
+}
+
+.comp-card.popular .btn-upgrade {
+    background: #3b82f6;
+    color: white;
+}
+
+.comp-card.popular .btn-upgrade:hover {
+    background: #2563eb;
+}
+
+/* Active plan highlight */
+.active-plan {
+    border: 3px solid #10b981 !important;
+    background: #f0fdf4 !important;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(16, 185, 129, 0.15) !important;
+}
+
+.active-plan::after {
+    content: "PLAN ACTIVO";
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: #10b981;
+    color: white;
+    padding: 0.25rem 0.8rem;
+    border-radius: 50px;
+    font-size: 0.7rem;
+    font-weight: 800;
+}

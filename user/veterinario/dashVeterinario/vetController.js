@@ -1,6 +1,6 @@
 import { auth, db  } from '/config/firebase-config.js';
-import {onAuthStateChanged,signOut} from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
-import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, orderBy, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { collection, query, where, getDocs, getDoc, addDoc, updateDoc, doc, serverTimestamp, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import Veterinario from '/classes/veterinario.js';
 import Citas from '../../../classes/Citas.js';
 import { ChatController } from '../../../classes/chatController.js';
@@ -67,30 +67,28 @@ class VetController {
 
                     if (docSnap.exists()) {
                         const data = docSnap.data();
+                        const especialidades = Array.isArray(data.especialidades)
+                            ? data.especialidades
+                            : data.especialidad ? [data.especialidad] : [];
                         this.veterinarioActual = {
                             id: user.uid, //AGREGAMOS EL .id PARA QUE COMPATIBILICE CON EL RESTO DEL CÓDIGO
                             uid: user.uid,
+                            ...data,
                             nombre: data.nombreCompleto || data.nombre || 'Veterinario Registrado',
-                            especialidad: data.especialidad || 'Medicina General',
-                            clinica: data.nombreClinica || data.clinica || 'Mi Clínica',
-                            ...data
+                            especialidad: especialidades.length
+                                ? especialidades.map(esp => this.vetModel.formatearEspecialidad(esp)).join(' • ')
+                                : 'Medicina General',
+                            clinica: data.nombreClinica || data.clinica || 'Mi Clínica'
                         };
                     } else {
-                       if (docSnap.exists()) {
-
-                        const data = docSnap.data();
-
                         this.veterinarioActual = {
                             id: user.uid,
                             uid: user.uid,
-                            nombre: data.nombreCompleto || data.nombre || "Veterinario",
-                            especialidad: data.especialidad || "Medicina General",
-                            clinica: data.nombreClinica || data.clinica || "Mi Clínica",
-                            ...data
+                            nombre: "Veterinario",
+                            especialidad: "Medicina General",
+                            clinica: "Mi Clínica"
                         };
-
                     }
-                }
 
                     // Pintamos los datos en la UI de forma segura
                     const txtName = document.getElementById('vetName');
@@ -99,7 +97,17 @@ class VetController {
 
                     if (txtName) txtName.textContent = this.veterinarioActual.nombre;
                     if (txtSpecialty) txtSpecialty.textContent = this.veterinarioActual.especialidad;
-                    if (divFoto) divFoto.innerHTML = `<i class="fas fa-user-md"></i>`;
+                    if (divFoto) {
+                        divFoto.replaceChildren();
+                        if (this.veterinarioActual.fotoPerfil) {
+                            const foto = document.createElement('img');
+                            foto.src = this.veterinarioActual.fotoPerfil;
+                            foto.alt = `Foto de ${this.veterinarioActual.nombre}`;
+                            divFoto.appendChild(foto);
+                        } else {
+                            divFoto.innerHTML = '<i class="fas fa-user-md"></i>';
+                        }
+                    }
 
                     resolve();
                 } catch (error) {
@@ -138,14 +146,11 @@ class VetController {
             }
         }
 
-        // 3. CARGAR PUBLICACIONES REALES
-        await this.cargarPublicaciones();
-
-        // 4. TRAER DATOS REALES DE ADOPCIONES DESDE FIRESTORE
+        // Cargar interacciones antes de las publicaciones para mostrar contadores reales.
         await this.cargarSolicitudesAdopcion();
-
-        // 5. TRAER DATOS REALES DE RECLAMOS DESDE FIRESTORE
         await this.cargarReclamos();
+
+        await this.cargarPublicaciones();
 
         // 6. ACTUALIZAR LOS CONTADORES DEL DASHBOARD (Adiós al "Cargando...")
         this.actualizarContadoresSeguros();
@@ -261,14 +266,16 @@ actualizarContadoresSeguros() {
 }
 
     contarSolicitudesAdopcion(publicacionId) {
-        // Temporal: retorna 0 hasta que implementemos las solicitudes
-        return 0;
+        return this.solicitudesAdopcion.filter(
+            solicitud => solicitud.publicacionId === publicacionId
+        ).length;
     }
 
     // Método para contar reclamos de una publicación
     contarReclamos(publicacionId) {
-        // Temporal: retorna 0 hasta que implementemos los reclamos
-        return 0;
+        return this.reclamos.filter(
+            reclamo => reclamo.publicacionId === publicacionId
+        ).length;
     }
 
     async cargarSolicitudesAdopcion() {
@@ -565,6 +572,8 @@ actualizarContadoresSeguros() {
             
             const fotosPublicacion = this.normalizarFotosPublicacion(pub);
             const urlImagen = fotosPublicacion[0] || 'https://via.placeholder.com/300x180?text=Sin+Foto';
+            const totalSolicitudes = this.contarSolicitudesAdopcion(pub.id);
+            const totalReclamos = this.contarReclamos(pub.id);
 
             html += `
                 <div class="pub-card">
@@ -574,62 +583,52 @@ actualizarContadoresSeguros() {
                     </div>
                     <div class="pub-body">
                         <div class="pub-info-meta">
-                            <i class="far = calendar-alt"></i> ${fecha}
+                            <i class="far fa-calendar-alt"></i> ${fecha}
                         </div>
                         <h3>${pub.titulo || 'Sin Título'}</h3>
                         <p>${pub.descripcion || 'Sin descripción disponible.'}</p>
                         ${pub.ubicacionTexto ? `<div class="pub-info-meta"><i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}</div>` : ''}
                     </div>
+                    <div class="pub-stats" aria-label="Estadísticas de la publicación">
+                        <span class="pub-stat">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                            <strong>${pub.vistas || 0}</strong> vistas
+                        </span>
+                        ${tipoPubBajo.includes('adopc') ? `
+                            <span class="pub-stat">
+                                <i class="fas fa-paw" aria-hidden="true"></i>
+                                <strong>${totalSolicitudes}</strong> solicitudes
+                            </span>
+                        ` : ''}
+                        ${tipoPubBajo.includes('encontr') ? `
+                            <span class="pub-stat">
+                                <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                                <strong>${totalReclamos}</strong> reclamos
+                            </span>
+                        ` : ''}
+                    </div>
                     <div class="pub-footer-actions">
-
-    <span style="font-size:0.85rem;color:var(--gray-500);display:flex;align-items:center;gap:4px;">
-        <i class="fas fa-eye"></i>
-        ${pub.vistas || 0} vistas
-    </span>
-
-    <div style="display:flex;gap:8px;">
-
-        <button
-            class="btn-primary-sm"
-            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
-            onclick="vetController.editarPublicacion('${pub.id}')">
-
-            <i class="fas fa-edit"></i>
-            Editar
-
-        </button>
-
-        <button
-            class="btn-danger-sm"
-            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
-            onclick="vetController.eliminarPublicacion('${pub.id}')">
-
-            <i class="fas fa-trash-alt"></i>
-            Eliminar
-
-        </button>
-
-    </div>
-
-</div>
+                        <button
+                            type="button"
+                            class="pub-action-btn pub-action-edit"
+                            onclick="vetController.editarPublicacion('${pub.id}')">
+                            <i class="fas fa-pen" aria-hidden="true"></i>
+                            <span>Editar publicación</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="pub-action-btn pub-action-delete"
+                            onclick="vetController.eliminarPublicacion('${pub.id}')">
+                            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                            <span>Eliminar</span>
+                        </button>
+                    </div>
                 </div>
             `;
         });
         
         contenedor.innerHTML = html;
     }
-    editarPublicacion(id) {
-
-    const publicacion = this.publicaciones.find(
-        p => p.id === id
-    );
-
-    if (!publicacion) return;
-
-    this.abrirModalEdicionPublicacion(publicacion);
-
-}
-
     // Método auxiliar para escapar HTML y evitar XSS
     escapeHtml(text) {
         if (!text) return '';
@@ -710,35 +709,6 @@ actualizarContadoresSeguros() {
         this.mostrarNotificacion('Funcionalidad en desarrollo', 'info');
     }
 
-
-     renderizarSolicitudesAdopcion() {
-        const container = document.getElementById('solicitudesGrid');
-         if (!container) {
-             return;
-         }
-         let filtradas = this.solicitudesAdopcion;
-        
-         if (this.filtros.adopciones === 'pendientes') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'pendiente');
-
-         } else if (this.filtros.adopciones === 'aprobadas') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'aprobada');
-         } else if (this.filtros.adopciones === 'rechazadas') {
-             filtradas = this.solicitudesAdopcion.filter(s => s.estado === 'rechazada');
-         }
-        
-         if (filtradas.length === 0) {
-             container.innerHTML = '<p class="loading">No hay solicitudes de adopción</p>';
-             return;
-         }
-        
-         let html = '';
-         filtradas.forEach(sol => {
-             html += this.generarCardSolicitudAdopcion(sol);
-         });
-        
-         container.innerHTML = html;
-    }
 
     renderizarSolicitudesAdopcion() {
         const container = document.getElementById('solicitudesGrid');
@@ -1059,31 +1029,6 @@ actualizarContadoresSeguros() {
         
         document.getElementById('estadoModal').style.display = 'flex';
     }
-
-     async guardarCambioEstado(e) {
-         e.preventDefault();
-
-         const id = document.getElementById('itemIdActual').value;
-         const tipo = document.getElementById('itemTipoActual').value;
-         const nuevoEstado = document.getElementById('nuevoEstado').value;
-         const notas = document.getElementById('notasEstado').value;
-
-         if (tipo === 'cita') {
-             const result = await this.vetModel.actualizarEstadoCita(id, nuevoEstado, notas);
-             if (result.success) this.mostrarNotificacion(`Cita ${result.message}`, 'success');
-         } 
-         else if (tipo === 'adopcion') {
-             await this.actualizarEstadoSolicitudAdopcion(id, nuevoEstado, notas);
-         } 
-         else if (tipo === 'reclamo') {
-             await this.actualizarEstadoReclamo(id, nuevoEstado, notas);
-         }
-
-         this.cerrarEstadoModal();
-         await this.cargarTodo();
-     }
-
-
 
     renderizarSolicitudesRecientes() {
         const container = document.getElementById('solicitudesRecientes');
@@ -1767,21 +1712,6 @@ switch (tipoInput) {
             fotosInput.value = '';
         });
     }
-
-async editarPublicacion(id) {
-    if (!id) {
-        this.mostrarNotificacion('ID de publicación no válido', 'error');
-        return;
-    }
-
-    const publicacion = this.publicaciones.find(p => p.id === id);
-    if (!publicacion){
-        this.mostrarNotificacion('Publicación no encontrada', 'error');
-        return;
-    }
-
-    this.abrirModalEdicionPublicacion(publicacion);
-}
 
     abrirModalEdicionPublicacion(publicacion) {
         const modal = document.getElementById('publicacionModal');
