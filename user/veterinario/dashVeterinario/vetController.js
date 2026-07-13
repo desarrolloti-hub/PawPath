@@ -131,14 +131,11 @@ class VetController {
             }
         }
 
-        // 3. CARGAR PUBLICACIONES REALES
-        await this.cargarPublicaciones();
-
-        // 4. TRAER DATOS REALES DE ADOPCIONES DESDE FIRESTORE
+        // Cargar interacciones antes de las publicaciones para mostrar contadores reales.
         await this.cargarSolicitudesAdopcion();
-
-        // 5. TRAER DATOS REALES DE RECLAMOS DESDE FIRESTORE
         await this.cargarReclamos();
+
+        await this.cargarPublicaciones();
 
         // 6. ACTUALIZAR LOS CONTADORES DEL DASHBOARD (Adiós al "Cargando...")
         this.actualizarContadoresSeguros();
@@ -254,14 +251,16 @@ actualizarContadoresSeguros() {
 }
 
     contarSolicitudesAdopcion(publicacionId) {
-        // Temporal: retorna 0 hasta que implementemos las solicitudes
-        return 0;
+        return this.solicitudesAdopcion.filter(
+            solicitud => solicitud.publicacionId === publicacionId
+        ).length;
     }
 
     // Método para contar reclamos de una publicación
     contarReclamos(publicacionId) {
-        // Temporal: retorna 0 hasta que implementemos los reclamos
-        return 0;
+        return this.reclamos.filter(
+            reclamo => reclamo.publicacionId === publicacionId
+        ).length;
     }
 
     async cargarSolicitudesAdopcion() {
@@ -558,6 +557,8 @@ actualizarContadoresSeguros() {
             
             const fotosPublicacion = this.normalizarFotosPublicacion(pub);
             const urlImagen = fotosPublicacion[0] || 'https://via.placeholder.com/300x180?text=Sin+Foto';
+            const totalSolicitudes = this.contarSolicitudesAdopcion(pub.id);
+            const totalReclamos = this.contarReclamos(pub.id);
 
             html += `
                 <div class="pub-card">
@@ -567,44 +568,46 @@ actualizarContadoresSeguros() {
                     </div>
                     <div class="pub-body">
                         <div class="pub-info-meta">
-                            <i class="far = calendar-alt"></i> ${fecha}
+                            <i class="far fa-calendar-alt"></i> ${fecha}
                         </div>
                         <h3>${pub.titulo || 'Sin Título'}</h3>
                         <p>${pub.descripcion || 'Sin descripción disponible.'}</p>
                         ${pub.ubicacionTexto ? `<div class="pub-info-meta"><i class="fas fa-map-marker-alt"></i> ${pub.ubicacionTexto}</div>` : ''}
                     </div>
+                    <div class="pub-stats" aria-label="Estadísticas de la publicación">
+                        <span class="pub-stat">
+                            <i class="fas fa-eye" aria-hidden="true"></i>
+                            <strong>${pub.vistas || 0}</strong> vistas
+                        </span>
+                        ${tipoPubBajo.includes('adopc') ? `
+                            <span class="pub-stat">
+                                <i class="fas fa-paw" aria-hidden="true"></i>
+                                <strong>${totalSolicitudes}</strong> solicitudes
+                            </span>
+                        ` : ''}
+                        ${tipoPubBajo.includes('encontr') ? `
+                            <span class="pub-stat">
+                                <i class="fas fa-clipboard-check" aria-hidden="true"></i>
+                                <strong>${totalReclamos}</strong> reclamos
+                            </span>
+                        ` : ''}
+                    </div>
                     <div class="pub-footer-actions">
-
-    <span style="font-size:0.85rem;color:var(--gray-500);display:flex;align-items:center;gap:4px;">
-        <i class="fas fa-eye"></i>
-        ${pub.vistas || 0} vistas
-    </span>
-
-    <div style="display:flex;gap:8px;">
-
-        <button
-            class="btn-primary-sm"
-            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
-            onclick="vetController.editarPublicacion('${pub.id}')">
-
-            <i class="fas fa-edit"></i>
-            Editar
-
-        </button>
-
-        <button
-            class="btn-danger-sm"
-            style="padding:.4rem .8rem;font-size:.8rem;display:flex;align-items:center;gap:5px;"
-            onclick="vetController.eliminarPublicacion('${pub.id}')">
-
-            <i class="fas fa-trash-alt"></i>
-            Eliminar
-
-        </button>
-
-    </div>
-
-</div>
+                        <button
+                            type="button"
+                            class="pub-action-btn pub-action-edit"
+                            onclick="vetController.editarPublicacion('${pub.id}')">
+                            <i class="fas fa-pen" aria-hidden="true"></i>
+                            <span>Editar publicación</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="pub-action-btn pub-action-delete"
+                            onclick="vetController.eliminarPublicacion('${pub.id}')">
+                            <i class="fas fa-trash-alt" aria-hidden="true"></i>
+                            <span>Eliminar</span>
+                        </button>
+                    </div>
                 </div>
             `;
         });

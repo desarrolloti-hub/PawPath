@@ -1829,12 +1829,97 @@ body {
     gap: 6px;
 }
 
-.pub-footer-actions {
-    padding: 12px 20px;
+.pub-stats {
+    padding: 11px 20px;
     border-top: 1px solid var(--gray-200);
     background: var(--gray-50);
     display: flex;
-    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+}
+
+.pub-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray-500);
+    font-size: 0.82rem;
+}
+
+.pub-stat i {
+    color: var(--primary-color);
+}
+
+.pub-stat strong {
+    color: var(--gray-700);
+    font-weight: 700;
+}
+
+.pub-footer-actions {
+    padding: 14px 20px 18px;
+    border-top: 1px solid var(--gray-200);
+    background: white;
+    display: flex;
+    gap: 10px;
+}
+
+.pub-action-btn {
+    min-height: 40px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    padding: 9px 14px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.pub-action-btn:hover {
+    transform: translateY(-1px);
+}
+
+.pub-action-btn:focus-visible {
+    outline: 3px solid rgba(79, 124, 172, 0.22);
+    outline-offset: 2px;
+}
+
+.pub-action-edit {
+    flex: 1;
+    color: white;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.pub-action-edit:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.pub-action-delete {
+    color: var(--danger-color);
+    background: #fff;
+    border-color: #fecaca;
+}
+
+.pub-action-delete:hover {
+    color: #b91c1c;
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
+@media (max-width: 420px) {
+    .pub-footer-actions {
+        flex-direction: column;
+    }
+
+    .pub-action-btn {
+        width: 100%;
+    }
 }
 
 /* ===== CHAT PROFESIONAL ===== */

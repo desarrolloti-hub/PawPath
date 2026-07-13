@@ -9,6 +9,7 @@ import {
     getDocs,
     getDoc,
     doc,
+    setDoc,
     updateDoc,
     addDoc,
     increment,
@@ -206,10 +207,7 @@ class ControladorDetalles {
                     );
                     getDocs(q).then(querySnapshot => {
                         if (!querySnapshot.empty) {
-                            btnSolicitar.disabled = true;
-                            btnSolicitar.innerHTML = '<i class="fas fa-check"></i> Solicitado';
-                            btnSolicitar.style.backgroundColor = '#00FF00';
-                            btnSolicitar.style.cursor = 'not-allowed';
+                            this.marcarBotonCompletado(btnSolicitar, 'Solicitud enviada');
                         }
                     }).catch(err => console.error("Error al buscar solicitud previa:", err));
                 }
@@ -229,64 +227,18 @@ class ControladorDetalles {
             const btnReclamar = document.getElementById('btnReclamarMascota');
             if (btnReclamar) {
                 btnReclamar.onclick = () => this.abrirModalReclamo(pub);
+                if (this.usuarioActual) {
+                    this.existeInteraccion('reclamosMascotas', pub.id)
+                        .then(existe => {
+                            if (existe) this.marcarBotonCompletado(btnReclamar, 'Reclamo enviado');
+                        })
+                        .catch(error => console.error('Error al buscar reclamo previo:', error));
+                }
             }
             return;
         }
 
-        if (container) {
-            if (pub.tipo === 'En Adopción') {
-                container.innerHTML = `
-                    <button id="btnSolicitarAdopcion" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
-                        <i class="fas fa-paw"></i> Solicitar Adopción
-                    </button>
-                    <br>
-                    <br>
-                `;
-
-                const btnSolicitar = document.getElementById('btnSolicitarAdopcion');
-                if (btnSolicitar) {
-                    btnSolicitar.onclick = () => this.abrirModalSolicitudAdopcion(pub);
-                    // ========================================================
-                    // NUEVO: Verificar si el usuario ya envió solicitud antes
-                    // ========================================================
-                    if (this.usuarioActual) {
-                        const solicitudesRef = collection(db, 'solicitudesAdopcion');
-                        const q = query(
-                            solicitudesRef,
-                            where('publicacionId', '==', pub.id),
-                            where('usuarioId', '==', this.usuarioActual.uid)
-                        );
-                        getDocs(q).then(querySnapshot => {
-                            if (!querySnapshot.empty) {
-                                btnSolicitar.disabled = true;
-                                btnSolicitar.innerHTML = '<i class="fas fa-check"></i> Solicitado';
-                                btnSolicitar.style.backgroundColor = '#00FF00';
-                                btnSolicitar.style.cursor = 'not-allowed';
-                            }
-                        }).catch(err => console.error("Error al buscar solicitud previa:", err));
-                    }
-                    // ========================================================
-                }
-            }
-            else if (pub.tipo === 'Mascota Encontrada') {
-                container.innerHTML = `
-                    <button id="btnReclamarMascota" style="background-color: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 5px; font-size: 1rem; cursor: pointer;">
-                        
-                        <i class="fas fa-clipboard-list"></i> Reclamar esta mascota
-                    </button>
-                    <br>
-                    <br>
-                `;
-
-                const btnReclamar = document.getElementById('btnReclamarMascota');
-                if (btnReclamar) {
-                    btnReclamar.onclick = () => this.abrirModalReclamo(pub);
-                }
-            }
-            else {
-                container.innerHTML = '';
-            }
-        }
+        if (container) container.innerHTML = '';
     }
 
 
@@ -404,6 +356,11 @@ class ControladorDetalles {
     async enviarSolicitudAdopcion(e, pub) {
         e.preventDefault();
 
+        if (await this.existeInteraccion('solicitudesAdopcion', pub.id)) {
+            Swal.fire('Solicitud existente', 'Ya enviaste una solicitud para esta publicación.', 'info');
+            return;
+        }
+
         // Procesar pruebas (fotos)
         const pruebasInput = document.getElementById('pruebasAdopcion');
         const pruebas = [];
@@ -443,7 +400,8 @@ class ControladorDetalles {
                 didOpen: () => Swal.showLoading()
             });
 
-            await addDoc(collection(db, 'solicitudesAdopcion'), solicitud);
+            const solicitudId = `${pub.id}_${this.usuarioActual.uid}`;
+            await setDoc(doc(db, 'solicitudesAdopcion', solicitudId), solicitud);
 
             Swal.fire({
                 icon: 'success',
@@ -459,10 +417,7 @@ class ControladorDetalles {
             // ========================================================
             const btnSolicitar = document.getElementById('btnSolicitarAdopcion');
             if (btnSolicitar) {
-                btnSolicitar.disabled = true;
-                btnSolicitar.innerHTML = '<i class="fas fa-check"></i> Solicitado';
-                btnSolicitar.style.backgroundColor = '#00FF00';
-                btnSolicitar.style.cursor = 'not-allowed';
+                this.marcarBotonCompletado(btnSolicitar, 'Solicitud enviada');
             }
             // ========================================================
 
@@ -547,6 +502,11 @@ class ControladorDetalles {
     async enviarReclamo(e, pub) {
         e.preventDefault();
 
+        if (await this.existeInteraccion('reclamosMascotas', pub.id)) {
+            Swal.fire('Reclamo existente', 'Ya enviaste un reclamo para esta publicación.', 'info');
+            return;
+        }
+
         // Procesar pruebas
         const pruebasInput = document.getElementById('pruebasReclamo');
         const pruebas = [];
@@ -591,7 +551,8 @@ class ControladorDetalles {
                 didOpen: () => Swal.showLoading()
             });
 
-            await addDoc(collection(db, 'reclamosMascotas'), reclamo);
+            const reclamoId = `${pub.id}_${this.usuarioActual.uid}`;
+            await setDoc(doc(db, 'reclamosMascotas', reclamoId), reclamo);
 
             Swal.fire({
                 icon: 'success',
@@ -602,10 +563,30 @@ class ControladorDetalles {
 
             this.cerrarModalReclamo();
 
+            const btnReclamar = document.getElementById('btnReclamarMascota');
+            if (btnReclamar) this.marcarBotonCompletado(btnReclamar, 'Reclamo enviado');
+
         } catch (error) {
             console.error('Error:', error);
             Swal.fire('Error', 'No se pudo enviar el reclamo', 'error');
         }
+    }
+
+    async existeInteraccion(nombreColeccion, publicacionId) {
+        const q = query(
+            collection(db, nombreColeccion),
+            where('publicacionId', '==', publicacionId),
+            where('usuarioId', '==', this.usuarioActual.uid)
+        );
+        const resultado = await getDocs(q);
+        return !resultado.empty;
+    }
+
+    marcarBotonCompletado(boton, texto) {
+        boton.disabled = true;
+        boton.innerHTML = `<i class="fas fa-check"></i> ${texto}`;
+        boton.style.backgroundColor = '#16a34a';
+        boton.style.cursor = 'not-allowed';
     }
 
 

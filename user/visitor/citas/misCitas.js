@@ -358,28 +358,6 @@ class MiPanelController {
                 return dateB - dateA;
             });
 
-            // Mapeamos el filtro para empatar pestañas (plural) con estados de Firestore (singular)
-            this.filtrarSolicitudesAdopcion = () => {
-                let filtradas = [...this.solicitudesAdopcion];
-
-                const tabMapeada = this.adopcionesFiltroTab === 'pendientes' ? 'pendiente' :
-                    this.adopcionesFiltroTab === 'aprobadas' ? 'aprobada' :
-                        this.adopcionesFiltroTab === 'rechazadas' ? 'rechazada' :
-                            this.adopcionesFiltroTab;
-
-                filtradas = filtradas.filter(s => s.estado === tabMapeada);
-
-                if (this.adopcionesBusqueda.trim()) {
-                    const busq = this.adopcionesBusqueda.toLowerCase();
-                    filtradas = filtradas.filter(s => {
-                        return s.usuarioNombre?.toLowerCase().includes(busq) ||
-                            s.mensaje?.toLowerCase().includes(busq);
-                    });
-                }
-
-                return filtradas;
-            };
-
             this.actualizarContadoresAdopciones();
             this.renderizarSolicitudesAdopcion();
 
@@ -397,7 +375,13 @@ class MiPanelController {
     filtrarSolicitudesAdopcion() {
         let filtradas = [...this.solicitudesAdopcion];
 
-        filtradas = filtradas.filter(s => s.estado === this.adopcionesFiltroTab);
+        const estado = {
+            pendientes: 'pendiente',
+            aprobadas: 'aprobada',
+            rechazadas: 'rechazada'
+        }[this.adopcionesFiltroTab] || this.adopcionesFiltroTab;
+
+        filtradas = filtradas.filter(s => s.estado === estado);
 
         if (this.adopcionesBusqueda.trim()) {
             const busq = this.adopcionesBusqueda.toLowerCase();
