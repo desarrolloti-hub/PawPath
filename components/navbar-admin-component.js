@@ -14,7 +14,7 @@ class NavbarAdmin extends HTMLElement {
         this.setupMobileToggle();
         this.highlightCurrentPage();
         this._injectChatbot();
-        this.setupLogout(); // ✅ Ahora el logout funciona
+        this.setupLogout(); 
     }
 
     _injectChatbot() {
@@ -58,7 +58,7 @@ class NavbarAdmin extends HTMLElement {
                     <span class="nav-label">Menú principal</span>
                     <ul>
                         <li class="active">
-                            <a href="#">
+                            <a href="/user/administrator/dashAdmin/dashboard.html">
                                 <i class="fas fa-th-large"></i>
                                 <span>Dashboard</span>
                             </a>

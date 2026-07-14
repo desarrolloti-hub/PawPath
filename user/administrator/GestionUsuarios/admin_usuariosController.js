@@ -79,7 +79,6 @@ class Admin_usuariosController {
         const roles = ['usuarios', 'veterinario', 'administrador'];
 
         usuarios.forEach(usuario => {
-            console.log("📌 Usuario:", usuario);
 
             const row = tbody.insertRow();
             
