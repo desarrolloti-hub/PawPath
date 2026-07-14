@@ -139,8 +139,9 @@ class MascotaDetalleController {
             return;
         }
         if(!planValidator.accederAexpediente()){
-            alert('No puedes acceder al expediente de tu mascota');
-            window.location.href='/user/visitor/mascotas/mascotas.html';
+            setTimeout(()=>{
+                window.location.href = '/user/visitor/mascotas/mascotas.html';
+            },1500)
             return;
         }
 

@@ -1,5 +1,6 @@
-import { auth } from '/config/firebase-config.js';
+import { auth, db} from '/config/firebase-config.js';
 import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
 import '/components/JS chatbot-component.js';
 
 (function () {
@@ -396,7 +397,7 @@ import '/components/JS chatbot-component.js';
             // 4. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
             sessionStorage.setItem('logout_event', Date.now().toString());
 
-            console.log('✅ TODO LIMPIADO - REDIRIGIENDO');
+            console.log(' TODO LIMPIADO - REDIRIGIENDO');
 
             // 5. Redirigir con parámetro para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
@@ -639,20 +640,47 @@ import '/components/JS chatbot-component.js';
             if (sideUserRole) sideUserRole.textContent = 'VISITANTE';
         }
     }
-
     // =============================================
-    // VERIFICAR SESIÓN EN FIREBASE
+    // VERIFICAR SESION FIREBASE
     // =============================================
     function verificarSesionFirebase() {
         if (auth) {
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 console.log('🔔 Estado Firebase:', user ? 'logueado' : 'no logueado');
 
-                // Si Firebase dice que no hay usuario pero hay datos en localStorage, limpiar
-                if (!user) {
+                if (user) {
+                    try {
+                        // 1. Obtener los datos más recientes del usuario de Firestore
+                        let userData = null;
+                        let userDoc = await getDoc(doc(db, 'usarios', user.uid));
+
+                        if (userDoc.exists()) {
+                            userData = userDoc.data();
+                        } else {
+                            userDoc = await getDoc(doc(db, 'usuarios', user.uid));
+                            if (userDoc.exists()) {
+                                userData = userDoc.data();
+                            }
+                        }
+
+                        if (userData) {
+                            // 2. Sincronizar el plan y datos en el localStorage
+                            localStorage.setItem('userFullData', JSON.stringify({
+                                uid: user.uid,
+                                ...userData
+                            }));
+                            localStorage.setItem('user_plan', userData.plan || 'free');
+
+                            // 3. Refrescar el Navbar con los datos frescos
+                            cargarDatosUsuario();
+                        }
+                    } catch (error) {
+                        console.error('Error sincronizando datos con Firestore:', error);
+                    }
+                } else {
                     const hasData = localStorage.getItem('userFullData');
                     if (hasData) {
-                        console.log('⚠️ Datos fantasma detectados, limpiando...');
+                        console.log('Datos fantasma detectados, limpiando...');
                         localStorage.clear();
                         sessionStorage.clear();
                         cargarDatosUsuario();
