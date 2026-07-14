@@ -367,7 +367,7 @@ import '/components/JS chatbot-component.js';
     // =============================================
     async function logout() {
         try {
-            console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
+            console.log(' CERRANDO SESIÓN FORZADAMENTE');
 
             // 1. Cerrar sesión con Firebase Modular SDK (v11)
             if (auth) {
@@ -381,7 +381,6 @@ import '/components/JS chatbot-component.js';
             }
 
             // 3. LIMPIAR TODO ABSOLUTAMENTE
-            console.log('🧹 LIMPIANDO ALMACENAMIENTO');
 
             // LocalStorage - eliminar todo
             localStorage.clear();
@@ -397,14 +396,12 @@ import '/components/JS chatbot-component.js';
             // 4. Marcar en sessionStorage que cerramos sesión (para otras pestañas)
             sessionStorage.setItem('logout_event', Date.now().toString());
 
-            console.log(' TODO LIMPIADO - REDIRIGIENDO');
 
             // 5. Redirigir con parámetro para evitar caché
             window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
 
         } catch (error) {
-            console.error('❌ Error al cerrar sesión:', error);
-
+            console.error('Error al cerrar sesión:', error);
             // Forzar limpieza
             localStorage.clear();
             sessionStorage.clear();

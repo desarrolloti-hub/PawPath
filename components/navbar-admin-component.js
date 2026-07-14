@@ -1,7 +1,8 @@
 // ============================================================
 // navbar-admin-component.js - Sidebar Admin (sin Shadow DOM)
 // ============================================================
-
+import { auth } from '/config/firebase-config.js';
+import { signOut } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
 class NavbarAdmin extends HTMLElement {
     constructor() {
         super();
@@ -410,22 +411,45 @@ class NavbarAdmin extends HTMLElement {
             return;
         }
 
-        logoutBtn.addEventListener('click', (e) => {
+        //Hacemos la función del evento 'async' para poder usar 'await' en el signOut
+        logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
-            // 1. Limpiar todo el localStorage y sessionStorage
-            localStorage.clear();
-            sessionStorage.clear();
+            try {
+                console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
 
-            // 2. Eliminar cookies de sesión (si existen)
-            document.cookie.split(';').forEach(cookie => {
-                document.cookie = cookie
-                    .replace(/^ +/, '')
-                    .replace(/=.*/, '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/');
-            });
+                // 1. Cerrar sesión con Firebase Modular SDK (v11)
+                if (auth) {
+                    await signOut(auth);
+                    console.log('✅ Firebase signOut OK');
+                }
 
-            // 3. Redirigir al login (ajusta la ruta según tu proyecto)
-            window.location.href = '/user/visitor/login/login.html';
+                // 2. Usar AuthManager si existe en ventana global
+                if (window.authManager && typeof window.authManager.logout === 'function') {
+                    await window.authManager.logout();
+                }
+
+                // 3. LIMPIAR TODO ABSOLUTAMENTE
+                localStorage.clear();
+                sessionStorage.clear();
+
+                // Cookies - eliminar todas
+                document.cookie.split(";").forEach(function (c) {
+                    document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+                });
+
+                // 4. Marcar en sessionStorage que cerramos sesión (para sincronizar otras pestañas)
+                sessionStorage.setItem('logout_event', Date.now().toString());
+
+                // 5. Redirigir al login con parámetro de fecha para evitar la caché del navegador
+                window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
+
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.href = '/user/visitor/login/login.html?force=true';
+            }
         });
     }
 }
@@ -435,7 +459,7 @@ customElements.define('navbar-admin', NavbarAdmin);
 
 // Definir logout global por si se necesita desde otros scripts
 if (typeof window.logout !== 'function') {
-    window.logout = function() {
+    window.logout = function () {
         localStorage.clear();
         sessionStorage.clear();
         document.cookie.split(';').forEach(cookie => {
