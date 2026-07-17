@@ -70,7 +70,7 @@ class Admin_mascotasController {
             <td>${this.escapeHtml(m.genero || '')}</td>
             <td>${this.escapeHtml(m.edad|| '?')} años</td>
             <td>${m.peso || '?'} kg</td>
-            <td>${m.raz || ''}</td>
+            <td>${m.raza || ''}</td>
             <td><img src="${m.foto}" alt="foto mascota" >
             <td class="acciones">
                 <button class="btn-eliminar" onclick="adminMascotasController.eliminarMascota('${m.id}')">

@@ -1,0 +1,414 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body {
+    background-color: #f8fafc;
+    min-height: 100vh;
+    display: flex; /* Asegura el flujo horizontal (Sidebar a la izquierda, Contenido a la derecha) */
+    align-items: stretch;
+}
+
+/* Contenedor principal ajustado para no encimarse con el sidebar */
+.container-all-vet {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    flex-grow: 1; /* Consume el ancho restante al lado del sidebar */
+    width: calc(100% - 280px); /* Resta el ancho exacto del sidebar */
+    margin-top: 0 !important;
+    padding: 2rem;
+    box-sizing: border-box;
+    max-width: 1400px;
+}
+
+/* Header con título y buscador centrado */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+}
+.page-header h1 {
+    font-size: 2rem;
+    color: #1a202c;
+    font-weight: 600;
+    margin: 0;
+}
+.page-header h1 i {
+    color: #667eea;
+    margin-right: 10px;
+}
+
+/* Buscador */
+.search-container {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+}
+.search-container i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a0aec0;
+    font-size: 1rem;
+}
+.search-container input {
+    width: 100%;
+    padding: 12px 20px 12px 45px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    transition: all 0.3s;
+    background: white;
+}
+.search-container input:focus {
+    border-color: #667eea;
+    outline: none;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+}
+.search-container input::placeholder {
+    color: #a0aec0;
+}
+
+/* Grid de tarjetas responsivo y centrado */
+.veterinarios-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); /* auto-fit mejora el centrado visual */
+    gap: 25px;
+    margin-top: 20px;
+    width: 100%;
+    max-width: 1200px;
+    justify-content: center;
+}
+
+/* Tarjeta */
+.vet-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #edf2f7;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.vet-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.15);
+}
+.vet-card.suspendido {
+    opacity: 0.8;
+    background: #fff5f5;
+    border-left: 4px solid #dc3545;
+}
+
+/* Header de la tarjeta */
+.vet-card-header {
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    border-bottom: 1px solid #edf2f7;
+    position: relative;
+}
+
+/* Foto */
+.vet-foto {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #667eea;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+.vet-foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.avatar-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Info del veterinario */
+.vet-info-header {
+    flex: 1;
+    min-width: 0;
+}
+.vet-nombre {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1a202c;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vet-badges {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+}
+.vet-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+.estado-activo {
+    background: #d4edda;
+    color: #155724;
+}
+.estado-suspendido {
+    background: #f8d7da;
+    color: #721c24;
+}
+.verificado {
+    background: #d4edda;
+    color: #155724;
+}
+.no-verificado {
+    background: #fff3cd;
+    color: #856404;
+}
+.vet-cedula {
+    font-size: 0.85rem;
+    color: #667eea;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.vet-cedula i {
+    flex-shrink: 0;
+}
+.vet-cedula:hover {
+    color: #5a67d8;
+}
+
+/* Estado en esquina */
+.vet-estado {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Cuerpo de la tarjeta */
+.vet-card-body {
+    padding: 20px;
+    flex-grow: 1;
+}
+.vet-clinica {
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    color: #2d3748;
+}
+.vet-clinica i {
+    color: #667eea;
+    margin-right: 8px;
+}
+.vet-especialidades {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 15px;
+    padding: 6px 12px;
+    background: #f7fafc;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    color: #2d3748;
+    flex-wrap: wrap;
+}
+.vet-especialidades i {
+    color: #667eea;
+}
+.vet-contacto {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.contacto-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #4a5568;
+    font-size: 0.9rem;
+}
+.contacto-item i {
+    width: 20px;
+    color: #667eea;
+    flex-shrink: 0;
+}
+.contacto-item span {
+    word-break: break-all;
+}
+
+/* Footer */
+.vet-card-footer {
+    padding: 15px 20px;
+    border-top: 1px solid #edf2f7;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    background: #fafafa;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.btn-ver,
+.btn-suspender,
+.btn-reactivar,
+.btn-eliminar {
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+.btn-ver {
+    background: #667eea;
+    color: white;
+}
+.btn-ver:hover {
+    background: #5a67d8;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+.btn-suspender {
+    background: #f2d12b;
+    color: rgb(0, 0, 0);
+}
+.btn-suspender:hover {
+    background: #e2c120;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(242, 209, 43, 0.3);
+}
+.btn-reactivar {
+    background: #28a745;
+    color: white;
+}
+.btn-reactivar:hover {
+    background: #218838;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+.btn-eliminar {
+    background: #dc3545;
+    color: white;
+}
+.btn-eliminar:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+/* 📱 MEDIA QUERIES RESPONSIVOS */
+@media (max-width: 768px) {
+    body {
+        flex-direction: column; /* Cambia a flujo vertical para el menú móvil */
+    }
+    .container-all-vet {
+        width: 100%; /* Toma todo el ancho en móviles */
+        padding: 4.5rem 1rem 1rem 1rem; /* Espacio extra arriba para que el botón hamburguesa flotante no tape el contenido */
+    }
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    .search-container {
+        max-width: 100%;
+    }
+    .veterinarios-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    .vet-card-header {
+        flex-direction: row;
+        text-align: left;
+    }
+    .vet-foto {
+        width: 60px;
+        height: 60px;
+    }
+    .vet-card-footer {
+        justify-content: stretch;
+    }
+    .btn-ver,
+    .btn-suspender,
+    .btn-reactivar,
+    .btn-eliminar {
+        flex: 1;
+        justify-content: center;
+    }
+}
+@media (max-width: 480px) {
+    .container-all-vet {
+        padding: 4.5rem 0.5rem 0.5rem 0.5rem;
+    }
+    .vet-card-header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 10px;
+    }
+    .vet-badges {
+        justify-content: center;
+    }
+    .vet-cedula {
+        justify-content: center;
+    }
+    .vet-card-footer {
+        flex-direction: column;
+        width: 100%;
+    }
+    .btn-ver,
+    .btn-suspender,
+    .btn-reactivar,
+    .btn-eliminar {
+        width: 100%;
+    }
+}

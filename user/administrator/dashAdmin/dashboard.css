@@ -41,15 +41,6 @@ body {
     gap: 0.8rem;
 }
 
-.menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 1.4rem;
-    color: #475569;
-    cursor: pointer;
-}
-
 .header-left h1 {
     font-size: 1.6rem;
     font-weight: 600;
@@ -630,12 +621,9 @@ body {
         width: 100%;
     }
 
-    .menu-btn {
-        display: block;
-    }
-
     .top-header {
         flex-wrap: wrap;
+        margin-left: 50px;
     }
 
     .header-right .user-info {

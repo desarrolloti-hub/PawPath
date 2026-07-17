@@ -1,446 +1,372 @@
-/* ========== ESTILOS PARA TABLA Y BUSCADOR ========== */
+/* ========== ESTILOS DE ESTRUCTURA Y SIDEBAR (FIJO EN ESCRITORIO) ========== */
 
-/* BUSCADOR - Ahora a la derecha */
+@media (min-width: 769px) {
+    /* Fijamos el sidebar a la izquierda para que no empuje el contenido hacia abajo */
+    .sidebar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        z-index: 1000;
+        background: #ffffff;
+        border-right: 1px solid #e9edf2;
+    }
+}
+
+/* ========== ESTILOS PARA TABLA Y BUSCADOR (ARRIBA Y EN EL CENTRO) ========== */
+
+/* CONTENEDOR PRINCIPAL
+   - justify-content: flex-start: Sube la tabla ARRIBA.
+   - align-items: center: Centra la tabla y el buscador HORIZONTALMENTE. */
 .container-all {
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin-left: 200px;
-    margin-top: 10px;
+    justify-content: flex-start !important; /* Fuerza a que esté ARRIBA */
+    align-items: center !important;        
+    width: 100%;
+    margin-top: 0 !important;
+    padding: 2rem;
+    box-sizing: border-box;
 }
 
+/* En escritorio, desplazamos el contenedor a la derecha el ancho exacto del sidebar */
+@media (min-width: 769px) {
+    .container-all,
+    body > .container-all,
+    .main > .container-all,
+    .main-content > .container-all {
+        margin-left: 280px !important;
+        width: calc(100% - 280px) !important;
+        margin-top: 0 !important;
+    }
+}
+
+/* CABECERA (Alineada al centro de la pantalla con un ancho máximo elegante) */
 .tabla-header {
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: 25px;
-    width: 80%;
-    max-width: 1200px;
-    text-align: center;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1200px; /* Ancho máximo para centrarse coordinadamente con la tabla */
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.2rem;
 }
 
+.tabla-header h1, 
+.tabla-header h2,
+.tabla-header .titulo-seccion {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+}
+
+.tabla-header h1 i,
+.tabla-header h2 i,
+.tabla-header .titulo-seccion i {
+    color: #3b82f6;
+}
+
+/* BUSCADOR PREMIUM */
 .search-container {
     position: relative;
-    width: 350px;
+    width: 100%;
+    max-width: 360px;
 }
 
 .search-container i {
     position: absolute;
     top: 50%;
-    left: 15px;
+    left: 16px;
     transform: translateY(-50%);
     color: #94a3b8;
     font-size: 1rem;
-    transition: color 0.3s;
+    pointer-events: none;
+    transition: color 0.2s ease;
 }
 
 .search-container input {
     width: 100%;
-    padding: 12px 20px 12px 45px;
-    border: 2px solid #e2e8f0;
+    padding: 11px 16px 11px 44px;
+    border: 1.5px solid #e2e8f0;
     border-radius: 12px;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    background: white;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
+    color: #1e293b;
+    background: #ffffff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    transition: all 0.25s ease;
 }
 
 .search-container input:focus {
-    border-color: #667eea;
+    border-color: #3b82f6;
     outline: none;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.15);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12), 0 4px 12px rgba(59, 130, 246, 0.04);
 }
 
-.search-container input:focus+i {
-    color: #667eea;
+.search-container input:focus + i {
+    color: #3b82f6;
 }
 
-.search-container input::placeholder {
-    color: #a0aec0;
-    font-size: 0.9rem;
-}
-
-/* CONTENEDOR DE LA TABLA - usando tu clase tabla-responsive */
+/* CONTENEDOR DE LA TABLA (Centrado en pantalla) */
 .tabla-responsive {
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1200px; /* Centra la tabla con un tamaño máximo elegante */
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e9edf2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02), 0 4px 12px rgba(0,0,0,0.03);
     overflow-x: auto;
-    background: white;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.05);
-    border: 1px solid #edf2f7;
+    -webkit-overflow-scrolling: touch;
 }
 
-/* TABLA - usando tu clase user-admin-table */
+/* TABLA */
 .user-admin-table {
     width: 100%;
     border-collapse: collapse;
-    background: white;
-    border-radius: 20px;
-    overflow: hidden;
+    font-size: 0.9rem;
+    text-align: left;
 }
 
-/* HEADER DE LA TABLA */
 .user-admin-table thead {
-    background: white;
-    color: black;
-    border-color: gray;
+    background: #fafafb;
 }
 
 .user-admin-table th {
-    padding: 16px 15px;
-    text-align: center;
+    padding: 1rem 1.2rem;
+    color: #64748b;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
+    border-bottom: 2px solid #edf2f6;
     white-space: nowrap;
 }
 
-/* CELDAS */
 .user-admin-table td {
-    text-align: center;
-    padding: 16px 15px;
-    border-bottom: 1px solid #edf2f7;
-    color: #2d3748;
-    font-size: 0.95rem;
-}
-
-/* HOVER EN FILAS */
-.user-admin-table tbody tr {
-    transition: all 0.2s ease;
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #eef2f6;
+    color: #334155;
+    font-size: 0.88rem;
+    vertical-align: middle;
 }
 
 .user-admin-table tbody tr:hover {
-    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    background-color: #f8fafc;
 }
 
-/* CENTRAR COLUMNA DE ACCIONES */
-.user-admin-table th:last-child,
-.user-admin-table td:last-child {
-    text-align: center;
-}
-
-/* ACCIONES */
-.acciones {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Botones de acción - usando tus clases pero adaptadas */
-.btn-editar,
-.btn-eliminar,
-.btn-ver {
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
-    padding: 8px 12px;
+/* SELECTOR DE ROLES (ALINEADO Y AJUSTADO A LOS BOTONES) */
+.user-admin-table select {
+    padding: 7px 10px;
+    border: 1.5px solid #e2e8f0;
     border-radius: 8px;
+    background-color: #ffffff;
+    color: #334155;
+    font-family: inherit;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
     transition: all 0.2s ease;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
+    min-width: 135px;
+    height: 36px;
 }
 
-.btn-editar {
-    background: #28a745;
-    color: white;
+.user-admin-table select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
 }
 
-.btn-editar:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-.btn-eliminar {
-    background: #dc3545;
-    color: white;
-}
-
-.btn-eliminar:hover {
-    background: #c82333;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
-}
-
-.btn-ver {
-    background: #17a2b8;
-    color: white;
-}
-
-.btn-ver:hover {
-    background: #138496;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
-}
-
-/* LOADING */
-.user-admin-table td[colspan="4"] {
-    text-align: center;
-    padding: 40px !important;
-    color: #718096;
-    font-size: 1rem;
-}
-
-.user-admin-table td[colspan="4"] i {
-    margin-right: 10px;
-    color: #667eea;
-    font-size: 1.2rem;
-}
-
-/* Estilo para filas de usuarios suspendidos */
+/* Filas inactivas o suspendidas */
 .usuario-suspendido {
-    background-color: rgba(220, 53, 69, 0.05);
-    /* Rojo transparente */
-    opacity: 0.8;
-    transition: all 0.3s ease;
+    background-color: rgba(239, 68, 68, 0.01);
+}
+
+.usuario-suspendido td {
+    color: #94a3b8;
 }
 
 .usuario-suspendido:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    /* Un poco más intenso al hover */
+    background-color: rgba(239, 68, 68, 0.03) !important;
 }
 
-/* Estilo para botón de reactivar (verde) */
-.btn-reactivar {
-    background: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.9rem;
-}
-
-.btn-reactivar:hover {
-    background: #218838;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
-}
-
-/* Estilo para botón de suspender (amarillo) */
-.btn-suspender {
-    background: #ffc107;
-    color: #212529;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.3s;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.9rem;
-}
-
-.btn-suspender:hover {
-    background: #e0a800;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
-}
-
-/* Ajuste para acciones */
+/* ACCIONES (BOTONES ALINEADOS) */
 .acciones {
     display: flex;
     gap: 8px;
     justify-content: center;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
-/* ========== RESPONSIVE ========== */
-@media (max-width: 1024px) {
+.btn-editar,
+.btn-eliminar,
+.btn-ver,
+.btn-suspender,
+.btn-reactivar {
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #ffffff;
+    height: 36px;
+    box-sizing: border-box;
+}
+
+.btn-eliminar {
+    width: 36px;
+    padding: 0;
+    flex-shrink: 0;
+}
+
+.btn-ver { background: #06b6d4; }
+.btn-ver:hover {
+    background: #0891b2;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(6, 182, 212, 0.2);
+}
+
+.btn-editar, .btn-reactivar { background: #10b981; }
+.btn-editar:hover, .btn-reactivar:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.btn-suspender { background: #f59e0b; }
+.btn-suspender:hover {
+    background: #d97706;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+}
+
+.btn-eliminar { background: #ef4444; }
+.btn-eliminar:hover {
+    background: #dc2626;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+}
+
+/* SCROLLBAR PERSONALIZADA */
+.tabla-responsive::-webkit-scrollbar {
+    height: 6px;
+}
+.tabla-responsive::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 10px;
+}
+.tabla-responsive::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+}
+.tabla-responsive::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+
+/* ==================== ESTILOS PARA EL BOTÓN DE MENÚ MÓVIL ==================== */
+#menuToggle, .menu-btn {
+    display: none; /* Oculto en escritorio */
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    color: #0f172a;
+    font-size: 1.25rem;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    z-index: 1100;
+    transition: all 0.2s ease;
+}
+
+#menuToggle:hover, .menu-btn:hover {
+    background: #f1f5f9;
+    color: #3b82f6;
+}
+
+
+/* ==================== RESPONSIVO (TABLETS Y MÓVILES) ==================== */
+
+@media (max-width: 768px) {
+    /* Mostramos el botón de menú flotante en móvil */
+    #menuToggle, .menu-btn {
+        display: inline-flex;
+        position: fixed;
+        top: 15px;
+        left: 15px;
+    }
+
     .container-all {
-        margin-left: 150px;
-        width: calc(100% - 150px);
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 1rem;
+    }
+
+    .tabla-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+        margin-top: 4.2rem; /* Espacio para que el botón de menú móvil no tape el título */
+    }
+
+    .search-container {
+        max-width: 100%;
+        margin-left: 0;
+    }
+
+    /* Activación de scroll horizontal suave en móvil */
+    .user-admin-table {
+        min-width: 850px;
     }
 
     .user-admin-table th,
     .user-admin-table td {
-        padding: 14px 12px;
-    }
-}
-
-@media (max-width: 768px) {
-    .container-all {
-        margin-left: 0;
-        margin-top: 70px;
-        width: 100%;
-        padding: 0 15px;
+        padding: 0.8rem 1rem;
     }
 
-    .main > :not(.navbar) {
-        padding: 15px;
+    /* Aseguramos que el sidebar móvil quede siempre por encima al abrirse */
+    .sidebar {
+        position: fixed !important;
+        transform: translateX(-100%);
+        width: 280px;
+        height: 100vh;
+        z-index: 1200 !important; /* Prioridad de superposición máxima */
+        transition: transform 0.3s ease;
     }
 
-    .tabla-header {
-        justify-content: center;
-        width: 100%;
-    }
-
-    .search-container {
-        width: 60%;  /* Cambiado de 60% a 100% */
-        max-width: 100%;
-        margin-left: 180px;  /* Eliminado el margin-left de 150px */
-    }
-
-    .search-container input {
-        padding: 12px 15px 12px 45px;  /* Aumentado el padding para mejor tactilidad */
-        font-size: 1rem;  /* Aumentado para mejor legibilidad */
-        width: 100%;
-    }
-
-    .user-admin-table {
-        font-size: 0.9rem;
-        width: 100%;
-    }
-
-    .user-admin-table th {
-        padding: 12px 8px;
-        font-size: 0.8rem;
-        white-space: nowrap;
-    }
-
-    .user-admin-table td {
-        padding: 12px 8px;
-        font-size: 0.85rem;
-        word-break: break-word;  /* Para que el texto no se desborde */
-    }
-
-    .acciones {
-        gap: 5px;
-        flex-direction: column;
-    }
-
-    .btn-editar,
-    .btn-eliminar,
-    .btn-ver,
-    .btn-suspender,
-    .btn-reactivar {
-        padding: 8px 12px;  /* Aumentado para mejor tactilidad */
-        font-size: 0.9rem;
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* Hacer la tabla scrolleable horizontalmente */
-    .tabla-responsive {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        width: 100%;
-    }
-
-    .user-admin-table {
-        min-width: 600px;  /* Forzar scroll horizontal si es necesario */
+    .sidebar.open {
+        transform: translateX(0);
     }
 }
 
 @media (max-width: 480px) {
     .container-all {
-        margin-top: 60px;
-        padding: 0 10px;
+        padding: 0.75rem;
     }
 
-    .main > :not(.navbar) {
-        padding: 10px;
-    }
-
-    .navbar {
-        padding: 8px 15px;
-    }
-
-    .navbar h3 {
-        font-size: 1rem;
-    }
-
-    .navbar-brand img {
-        height: 35px;
-    }
-
-    .navbar-brand span {
-        font-size: 0.9rem;
-    }
-
-    .user-admin-table th {
-        padding: 8px 5px;
-        font-size: 0.7rem;
-    }
-
-    .user-admin-table td {
-        padding: 8px 5px;
-        font-size: 0.8rem;
-    }
-
-    .search-container {
-        width: 100%;
-    }
-
-    .search-container input {
-        font-size: 0.9rem;
-        padding: 10px 12px 10px 40px;
-    }
-
-    .search-container i {
-        left: 12px;
-        font-size: 1rem;
-    }
-
-    .acciones {
-        gap: 4px;
-    }
-
-    .btn-editar,
-    .btn-eliminar,
-    .btn-ver,
-    .btn-suspender,
-    .btn-reactivar {
-        padding: 6px 8px;
-        font-size: 0.8rem;
-    }
-
-    /* Ocultar columnas menos importantes en móviles muy pequeños */
+    /* Oculta Fecha de registro (columna 4) para optimizar el espacio */
     .user-admin-table th:nth-child(4),
     .user-admin-table td:nth-child(4) {
-        display: none;  /* Oculta fecha en móviles */
+        display: none; 
     }
 
+    /* Mantiene Rol (columna 5) visible en móvil */
     .user-admin-table th:nth-child(5),
     .user-admin-table td:nth-child(5) {
-        display: none;  /* Oculta rol en móviles */
+        display: table-cell !important; 
     }
-
-    /* Ajustar colspan cuando se ocultan columnas */
-    .user-admin-table td[colspan] {
-        text-align: center;
-    }
-}
-
-
-/* Scroll horizontal suave para la tabla */
-.tabla-responsive::-webkit-scrollbar {
-    height: 6px;
-}
-
-.tabla-responsive::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 10px;
-}
-
-.tabla-responsive::-webkit-scrollbar-thumb {
-    background: #cbd5e0;
-    border-radius: 10px;
-}
-
-.tabla-responsive::-webkit-scrollbar-thumb:hover {
-    background: #a0aec0;
 }

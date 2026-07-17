@@ -14,7 +14,7 @@ class NavbarAdmin extends HTMLElement {
         this.setupMobileToggle();
         this.highlightCurrentPage();
         this._injectChatbot();
-        this.setupLogout(); 
+        this.setupLogout();
     }
 
     _injectChatbot() {
@@ -32,8 +32,13 @@ class NavbarAdmin extends HTMLElement {
     }
 
     render() {
-        // Insertamos el HTML directamente en el DOM
+        // Insertamos el HTML directamente en el DOM, inyectando el botón hamburguesa móvil autónomamente
         this.innerHTML = `
+            <!-- Botón de menú hamburguesa móvil inyectado automáticamente -->
+            <button class="menu-btn" id="menuToggle" aria-label="Abrir menú">
+                <i class="fas fa-bars"></i>
+            </button>
+
             <aside class="sidebar" id="sidebar">
                 <!-- Brand -->
                 <div class="sidebar-brand">
@@ -67,7 +72,6 @@ class NavbarAdmin extends HTMLElement {
                             <a href="/user/administrator/GestionUsuarios/admin_usuarios.html">
                                 <i class="fas fa-users"></i>
                                 <span>Usuarios</span>
-                                <span class="badge-nav">12</span>
                             </a>
                         </li>
                         <li>
@@ -137,8 +141,7 @@ class NavbarAdmin extends HTMLElement {
         const style = document.createElement('style');
         style.id = 'navbar-admin-styles';
         style.textContent = `
-            /* Estilos adicionales para el sidebar (complemento a dashboard.css) */
-            .sidebar {
+           .sidebar {
                 width: 280px;
                 background: #ffffff;
                 border-right: 1px solid #e9edf2;
@@ -271,6 +274,15 @@ class NavbarAdmin extends HTMLElement {
                 padding: 0.1rem 0.6rem;
                 border-radius: 40px;
             }
+            .sidebar-nav ul li a .badge-nav {
+                margin-left: auto;
+                background: #ef4444;
+                color: #fff;
+                font-size: 0.6rem;
+                font-weight: 700;
+                padding: 0.1rem 0.6rem;
+                border-radius: 40px;
+            }
             .sidebar-footer {
                 margin-top: auto;
                 border-top: 1px solid #eef2f6;
@@ -307,10 +319,40 @@ class NavbarAdmin extends HTMLElement {
                 position: fixed;
                 inset: 0;
                 background: rgba(15, 23, 42, 0.3);
-                z-index: 999;
+                z-index: 1040;
                 backdrop-filter: blur(2px);
             }
+            
+            /* Estilo de visibilidad y posicionamiento del botón hamburguesa móvil */
+            #menuToggle, .menu-btn {
+                display: none; /* Oculto por defecto en escritorio */
+            }
+
             @media (max-width: 768px) {
+                #menuToggle, .menu-btn {
+                    display: inline-flex !important;
+                    align-items: center;
+                    justify-content: center;
+                    position: fixed;
+                    top: 15px;
+                    left: 15px;
+                    width: 42px;
+                    height: 42px;
+                    background: #ffffff;
+                    border: 1px solid #cbd5e1;
+                    color: #0f172a;
+                    font-size: 1.2rem;
+                    border-radius: 12px;
+                    cursor: pointer;
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                    z-index: 1100 !important;
+                    transition: all 0.2s ease;
+                }
+                #menuToggle:hover, .menu-btn:hover {
+                    background: #f1f5f9;
+                    color: #3b82f6;
+                }
+
                 .sidebar {
                     position: fixed;
                     transform: translateX(-100%);
@@ -318,13 +360,14 @@ class NavbarAdmin extends HTMLElement {
                     height: 100vh;
                     box-shadow: 4px 0 30px rgba(0,0,0,0.08);
                     border-right: none;
+                    z-index: 1050 !important; /* Por encima de todo el contenido de la tabla */
                 }
                 .sidebar.open {
                     transform: translateX(0);
                 }
                 .sidebar.open ~ .sidebar-overlay,
                 .sidebar.open + .sidebar-overlay {
-                    display: block;
+                    display: block !important;
                 }
             }
             @media (max-width: 480px) {
@@ -338,56 +381,72 @@ class NavbarAdmin extends HTMLElement {
     }
 
     setupMobileToggle() {
-        // Esperamos a que el DOM esté listo
-        setTimeout(() => {
-            const menuToggle = document.getElementById('menuToggle');
+        const init = () => {
+            const menuToggle = document.getElementById('menuToggle') ||
+                document.querySelector('.menu-btn');
+
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
 
-            if (!menuToggle) {
-                console.warn('No se encontró el botón #menuToggle en el DOM');
-                return;
-            }
-            if (!sidebar) {
-                console.warn('No se encontró el sidebar #sidebar en el DOM');
-                return;
+            if (!menuToggle || !sidebar) {
+                return false;
             }
 
-            // Función toggle
+            // Función toggle limpia
             const toggleSidebar = (e) => {
-                if (e) e.stopPropagation();
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
                 sidebar.classList.toggle('open');
             };
 
-            // Evento click en el botón hamburguesa
+            // Evento click al botón de menú hamburguesa
+            menuToggle.removeEventListener('click', toggleSidebar);
             menuToggle.addEventListener('click', toggleSidebar);
 
-            // Cerrar con overlay
+            // Cerrar sidebar al hacer clic en el overlay (el fondo gris semitransparente)
+            const closeSidebar = (e) => {
+                if (e) e.preventDefault();
+                sidebar.classList.remove('open');
+            };
+
             if (overlay) {
-                overlay.addEventListener('click', () => {
-                    sidebar.classList.remove('open');
-                });
+                overlay.removeEventListener('click', closeSidebar);
+                overlay.addEventListener('click', closeSidebar);
             }
 
-            // Cerrar al hacer clic fuera en móvil
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768) {
-                    const isClickInside = sidebar.contains(e.target) || menuToggle.contains(e.target);
-                    if (!isClickInside) {
-                        sidebar.classList.remove('open');
-                    }
-                }
+            // Cerrar automáticamente al hacer clic en cualquier enlace del menú en móvil (UX limpia)
+            const menuLinks = sidebar.querySelectorAll('.sidebar-nav ul li a');
+            menuLinks.forEach(link => {
+                link.addEventListener('click', () => {
+                    sidebar.classList.remove('open');
+                });
             });
 
-            // Cerrar al redimensionar a escritorio
-            window.addEventListener('resize', () => {
+            // Cerrar automáticamente al redimensionar a escritorio
+            const handleResize = () => {
                 if (window.innerWidth > 768) {
                     sidebar.classList.remove('open');
                 }
-            });
+            };
+            window.removeEventListener('resize', handleResize);
+            window.addEventListener('resize', handleResize);
 
             console.log('✅ Mobile toggle configurado correctamente');
-        }, 100);
+            return true; // Configurado con éxito
+        };
+
+        // Bucle de reintento corto por si el DOM asíncrono tarda un instante extra
+        if (!init()) {
+            let attempts = 0;
+            const interval = setInterval(() => {
+                attempts++;
+                if (init() || attempts > 20) {
+                    clearInterval(interval);
+                }
+            }, 100);
+        }
     }
 
     highlightCurrentPage() {
@@ -403,7 +462,6 @@ class NavbarAdmin extends HTMLElement {
         });
     }
 
-    // ✅ NUEVO MÉTODO: Configura el cierre de sesión
     setupLogout() {
         const logoutBtn = this.querySelector('#logoutBtn');
         if (!logoutBtn) {
@@ -411,37 +469,29 @@ class NavbarAdmin extends HTMLElement {
             return;
         }
 
-        //Hacemos la función del evento 'async' para poder usar 'await' en el signOut
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
 
             try {
                 console.log('🔥 CERRANDO SESIÓN FORZADAMENTE');
 
-                // 1. Cerrar sesión con Firebase Modular SDK (v11)
                 if (auth) {
                     await signOut(auth);
                     console.log('✅ Firebase signOut OK');
                 }
 
-                // 2. Usar AuthManager si existe en ventana global
                 if (window.authManager && typeof window.authManager.logout === 'function') {
                     await window.authManager.logout();
                 }
 
-                // 3. LIMPIAR TODO ABSOLUTAMENTE
                 localStorage.clear();
                 sessionStorage.clear();
 
-                // Cookies - eliminar todas
                 document.cookie.split(";").forEach(function (c) {
                     document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
                 });
 
-                // 4. Marcar en sessionStorage que cerramos sesión (para sincronizar otras pestañas)
                 sessionStorage.setItem('logout_event', Date.now().toString());
-
-                // 5. Redirigir al login con parámetro de fecha para evitar la caché del navegador
                 window.location.href = '/user/visitor/login/login.html?logout=' + Date.now();
 
             } catch (error) {
@@ -457,7 +507,6 @@ class NavbarAdmin extends HTMLElement {
 // Registrar el componente
 customElements.define('navbar-admin', NavbarAdmin);
 
-// Definir logout global por si se necesita desde otros scripts
 if (typeof window.logout !== 'function') {
     window.logout = function () {
         localStorage.clear();
